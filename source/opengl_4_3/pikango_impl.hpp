@@ -10,8 +10,9 @@
 
 namespace {
     using opengl_task = std::function<void(std::vector<std::any>)>;
+    using enqued_task = std::pair<opengl_task, std::vector<std::any>>;
 };
-static std::queue<opengl_task> opengl_tasks_queue;
+static std::queue<enqued_task> opengl_tasks_queue;
 static bool should_execution_thread_shutdown = false;
 
 //Not thread safe and bad in general
@@ -31,7 +32,7 @@ void opengl_execution_thread_logic()
         auto task = opengl_tasks_queue.front();
         opengl_tasks_queue.pop();
 
-        task({});
+        task.first(std::move(task.second));
     }
 }
 
@@ -49,6 +50,7 @@ std::string pikango::initialize()
 
 std::string pikango::terminate()
 {
+    should_execution_thread_shutdown = true;
     opengl_execution_thread->join();
     delete opengl_execution_thread;
     return "";
@@ -93,7 +95,7 @@ PIKANGO_NEW(vertex_buffer)
     {
         std::cout << glGetError() << '\n';
     };
-    opengl_tasks_queue.push(func);
+    opengl_tasks_queue.push({func, {}});
     return {};
 }
 

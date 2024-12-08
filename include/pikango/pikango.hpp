@@ -159,13 +159,14 @@ namespace pikango
 
 
 /*
-    Api Dependand
+    Api Dependent
 */
 
 #ifdef PIKANGO_OPENGL_4_3
 namespace pikango
 {
-    void OPENGL_ONLY_execute_on_context_thread(std::function<void(std::vector<std::any>)> func);
+    using opengl_thread_task = std::function<void(std::vector<std::any>)>;
+    void OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args);
 }
 #endif
 
