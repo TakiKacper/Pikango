@@ -15,11 +15,6 @@ namespace pikango_internal
 
 #ifdef PIKANGO_OPENGL_4_3
     #include "opengl_4_3/pikango_impl.hpp"
-
-    void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args)
-    {
-        opengl_tasks_queue.push({task, std::move(args)});
-    }
 #else
     #error No Pikango implementation specified. See file: pikango.cpp
 #endif

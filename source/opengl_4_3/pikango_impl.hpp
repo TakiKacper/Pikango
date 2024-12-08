@@ -1,7 +1,10 @@
 #include "glad/glad.h"
 
-#include <queue>
+#include <mutex>
+#include <condition_variable>
 #include <thread>
+
+#include <queue>
 #include <functional>
 #include <any>
 
@@ -12,28 +15,48 @@ namespace {
     using opengl_task = std::function<void(std::vector<std::any>)>;
     using enqued_task = std::pair<opengl_task, std::vector<std::any>>;
 };
-static std::queue<enqued_task> opengl_tasks_queue;
-static bool should_execution_thread_shutdown = false;
 
-//Not thread safe and bad in general
-//Todo
+static std::condition_variable  opengl_thread_sleep_condition;
+
+static std::mutex               opengl_tasks_queue_mutex;
+static std::queue<enqued_task>  opengl_tasks_queue;
+
+static bool should_opengl_thread_terminate = false;
+
+void enqueue_task(const opengl_task& task, std::vector<std::any>& args)
+{
+    opengl_tasks_queue_mutex.lock();
+    opengl_tasks_queue.push({task, std::move(args)});
+    opengl_tasks_queue_mutex.unlock();
+    opengl_thread_sleep_condition.notify_one();
+}
+
 void opengl_execution_thread_logic()
 {
-    while (!should_execution_thread_shutdown || opengl_tasks_queue.size())
+    while (true)
     {
-        while (!should_execution_thread_shutdown)
-        {
-            if (opengl_tasks_queue.size() == 0) std::this_thread::yield();
-            else break;
-        }
+        //Wait for tasks
+        std::unique_lock<std::mutex> lock(opengl_tasks_queue_mutex);
+        opengl_thread_sleep_condition.wait(lock, []() { return !opengl_tasks_queue.empty() || should_opengl_thread_terminate; });
 
-        if (should_execution_thread_shutdown && opengl_tasks_queue.size() == 0) break;
+        //If no tasks left and should terminate -> Leave
+        if (should_opengl_thread_terminate && opengl_tasks_queue.size() == 0) break;
 
+        //Take task
         auto task = opengl_tasks_queue.front();
         opengl_tasks_queue.pop();
+        
+        //Unlock the queue for write
+        lock.unlock();
 
+        //Execute the task
         task.first(std::move(task.second));
     }
+}
+
+void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args)
+{
+    enqueue_task(task, args);
 }
 
 static std::thread* opengl_execution_thread;
@@ -44,14 +67,21 @@ static std::thread* opengl_execution_thread;
 
 std::string pikango::initialize()
 {
+    should_opengl_thread_terminate = false;
     opengl_execution_thread = new std::thread{opengl_execution_thread_logic};
     return "";
 }
 
 std::string pikango::terminate()
 {
-    should_execution_thread_shutdown = true;
+    //Notify the thread to stop
+    should_opengl_thread_terminate = true;
+    opengl_thread_sleep_condition.notify_one();
+
+    //Wait for the opengl thread
     opengl_execution_thread->join();
+
+    //Delete the thread
     delete opengl_execution_thread;
     return "";
 }
