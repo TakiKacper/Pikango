@@ -3,8 +3,9 @@
 #define PIKANGO_HPP
 
 #include <vector>
-#include <atomic>
 #include <string>
+#include <functional>
+#include <any>
 
 /*
     Enumerations
@@ -33,51 +34,17 @@ namespace pikango
     Handles
 */
 
-namespace pikango_internal
-{
-    template<class T>
-    void implementations_destructor(T*);
-}
+#include "pikango_handle.hpp"
 
-namespace pikango_internal
-{
-    template<class handled_object>
-    class handle
-    {
-    private:
-        struct meta_block
-        {
-            bool valid = true;
-            std::atomic<uint64_t> refs;
-        };
+/*
+This macro for name = xyz would create folowing objects:
 
-        handled_object* object;
-        meta_block* meta;
-
-    public:
-        handle() : meta(nullptr), object(nullptr) {};
-        handle(const handle& other) : 
-            meta(other.meta), 
-            object(other.object)
-        {
-            if (meta != nullptr)
-                meta->refs++;
-        }
-        ~handle()
-        {
-            if (meta != nullptr)
-            {
-                meta->refs--;
-                if (meta->refs == 0)
-                {
-                    implementations_destructor(object);
-                    delete meta;
-                }
-            }
-        }
-    };
-}
-
+    pikango_internal::xyz_impl  (forward)
+    
+    pikango::xyz_handle         (handle specialization)
+    pikango::new_xyz            (function)
+    pikango::delete_xyz         (function)
+*/
 #define PIKANGO_HANDLE_FWD(name)     \
     namespace pikango_internal   \
     {                            \
@@ -90,7 +57,6 @@ namespace pikango_internal
         name##_handle new_##name ();            \
         void delete_##name (name##_handle);     \
     }
-
 
 PIKANGO_HANDLE_FWD(vertex_buffer);
 PIKANGO_HANDLE_FWD(index_buffer);
@@ -106,13 +72,16 @@ PIKANGO_HANDLE_FWD(frame_buffer);
 /*
     Library Functions
 */
-
 namespace pikango
 {
     using error_notification_callback = void(*)(const std::string& notification);
 
     std::string initialize();
     std::string terminate();
+
+    void wait_all_tasks_completion();
+    void wait_all_current_tasks_completion();
+
     void set_error_notification_callback(error_notification_callback callback);
 }
 
@@ -187,5 +156,17 @@ namespace pikango
 
     void draw_vertices(const draw_vertices_args& args);
 }
+
+
+/*
+    Api Dependand
+*/
+
+#ifdef PIKANGO_OPENGL_4_3
+namespace pikango
+{
+    void OPENGL_ONLY_execute_on_context_thread(std::function<void(std::vector<std::any>)> func);
+}
+#endif
 
 #endif

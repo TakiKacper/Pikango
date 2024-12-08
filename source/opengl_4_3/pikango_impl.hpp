@@ -18,9 +18,6 @@ static bool should_execution_thread_shutdown = false;
 //Todo
 void opengl_execution_thread_logic()
 {
-    if (gladLoadGL() != 0) 
-        return;
-
     while (!should_execution_thread_shutdown || opengl_tasks_queue.size())
     {
         while (!should_execution_thread_shutdown)
@@ -57,6 +54,18 @@ std::string pikango::terminate()
     return "";
 }
 
+void pikango::wait_all_tasks_completion()
+{
+    while (opengl_tasks_queue.size())
+        std::this_thread::yield();
+}
+
+void pikango::wait_all_current_tasks_completion()
+{
+    //todo
+    //dummy
+}
+
 /*
     Contructors / Deconstructors
 */
@@ -82,7 +91,7 @@ PIKANGO_NEW(vertex_buffer)
 {
     auto func = [](std::vector<std::any>)
     {
-        glClear(GL_COLOR_BUFFER_BIT);
+        std::cout << glGetError() << '\n';
     };
     opengl_tasks_queue.push(func);
     return {};
