@@ -1,3 +1,7 @@
+#pragma once
+#ifndef PIKANGO_HPP
+#define PIKANGO_HPP
+
 #include <vector>
 #include <atomic>
 #include <string>
@@ -31,12 +35,19 @@ namespace pikango
 
 namespace pikango_internal
 {
+    template<class T>
+    void implementations_destructor(T*);
+}
+
+namespace pikango_internal
+{
     template<class handled_object>
     class handle
     {
     private:
         struct meta_block
         {
+            bool valid = true;
             std::atomic<uint64_t> refs;
         };
 
@@ -59,7 +70,7 @@ namespace pikango_internal
                 meta->refs--;
                 if (meta->refs == 0)
                 {
-                    delete object;
+                    implementations_destructor(object);
                     delete meta;
                 }
             }
@@ -67,7 +78,7 @@ namespace pikango_internal
     };
 }
 
-#define PIKANGO_HANDLE(name)     \
+#define PIKANGO_HANDLE_FWD(name)     \
     namespace pikango_internal   \
     {                            \
         struct name##_impl;      \
@@ -81,16 +92,16 @@ namespace pikango_internal
     }
 
 
-PIKANGO_HANDLE(vertex_buffer);
-PIKANGO_HANDLE(index_buffer);
-PIKANGO_HANDLE(instances_buffer);
-PIKANGO_HANDLE(uniform_buffer);
-PIKANGO_HANDLE(data_layout);
-PIKANGO_HANDLE(graphics_shader);
-PIKANGO_HANDLE(texture); 
-PIKANGO_HANDLE(frame_buffer);
+PIKANGO_HANDLE_FWD(vertex_buffer);
+PIKANGO_HANDLE_FWD(index_buffer);
+PIKANGO_HANDLE_FWD(instances_buffer);
+PIKANGO_HANDLE_FWD(uniform_buffer);
+PIKANGO_HANDLE_FWD(data_layout);
+PIKANGO_HANDLE_FWD(graphics_shader);
+PIKANGO_HANDLE_FWD(texture); 
+PIKANGO_HANDLE_FWD(frame_buffer);
 
-#undef PIKANGO_HANDLE
+#undef PIKANGO_HANDLE_FWD
 
 /*
     Library Functions
@@ -175,18 +186,6 @@ namespace pikango
     };
 
     void draw_vertices(const draw_vertices_args& args);
-}
-
-#ifdef PIKANGO_IMPLEMENTATION
-
-namespace pikango_internal
-{
-    pikango::error_notification_callback error_callback = nullptr;
-}
-
-void pikango::set_error_notification_callback(error_notification_callback callback)
-{
-    pikango_internal::error_callback = callback;
 }
 
 #endif
