@@ -1,68 +1,12 @@
 #include "glad/glad.h"
 
-#include <mutex>
-#include <condition_variable>
-#include <thread>
-
-#include <queue>
-#include <functional>
-#include <any>
-
 #include "enumerations.hpp"
-
-//delete
-#include "pikango/pikango.hpp"
-#include <iostream>
-
-namespace {
-    using opengl_task = std::function<void(std::vector<std::any>)>;
-    using enqued_task = std::pair<opengl_task, std::vector<std::any>>;
-};
-
-static std::condition_variable  opengl_thread_sleep_condition;
-
-static std::mutex               opengl_tasks_queue_mutex;
-static std::queue<enqued_task>  opengl_tasks_queue;
-
-static bool should_opengl_thread_terminate = false;
-
-void enqueue_task(const opengl_task& task, std::vector<std::any> args)
-{
-    opengl_tasks_queue_mutex.lock();
-    opengl_tasks_queue.push({task, std::move(args)});
-    opengl_tasks_queue_mutex.unlock();
-    opengl_thread_sleep_condition.notify_one();
-}
-
-void opengl_execution_thread_logic()
-{
-    while (true)
-    {
-        //Wait for tasks
-        std::unique_lock<std::mutex> lock(opengl_tasks_queue_mutex);
-        opengl_thread_sleep_condition.wait(lock, []() { return !opengl_tasks_queue.empty() || should_opengl_thread_terminate; });
-
-        //If no tasks left and should terminate -> Leave
-        if (should_opengl_thread_terminate && opengl_tasks_queue.size() == 0) break;
-
-        //Take task
-        auto task = opengl_tasks_queue.front();
-        opengl_tasks_queue.pop();
-        
-        //Unlock the queue for write
-        lock.unlock();
-
-        //Execute the task
-        task.first(std::move(task.second));
-    }
-}
+#include "context_thread.hpp"
 
 void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args)
 {
     enqueue_task(task, std::move(args));
 }
-
-static std::thread* opengl_execution_thread;
 
 /*
     Common Opengl Objects
@@ -75,8 +19,7 @@ static GLuint VAO;
 
 std::string pikango::initialize_library_cpu()
 {
-    should_opengl_thread_terminate = false;
-    opengl_execution_thread = new std::thread{opengl_execution_thread_logic};
+    start_opengl_execution_thread();
     return "";
 }
 
@@ -94,28 +37,36 @@ std::string pikango::initialize_library_gpu()
 
 std::string pikango::terminate()
 {
-    //Notify the thread to stop
-    should_opengl_thread_terminate = true;
-    opengl_thread_sleep_condition.notify_one();
-
-    //Wait for the opengl thread
-    opengl_execution_thread->join();
-
-    //Delete the thread
-    delete opengl_execution_thread;
+    stop_opengl_execution_thread();
     return "";
 }
 
 void pikango::wait_all_tasks_completion()
 {
-    while (opengl_tasks_queue.size())
-        std::this_thread::yield();
+    if (opengl_tasks_queue.size() == 0) return;
+    
+    std::unique_lock lock(all_tasks_done_mutex);
+    all_tasks_done_condition.wait(lock, []{ return opengl_tasks_queue.size() == 0; });
 }
 
 void pikango::wait_all_current_tasks_completion()
 {
-    //todo
-    //dummy
+    static std::mutex mutex;
+    static std::condition_variable condition;
+
+    auto func = [&](std::vector<std::any> args)
+    {
+        auto flag = std::any_cast<bool*>(args[0]);
+        *flag = true;
+
+        condition.notify_one();
+    };
+
+    std::unique_lock lock(mutex);
+    bool flag = false;
+
+    enqueue_task(func, {&flag});
+    condition.wait(lock, [&]{return flag;});
 }
 
 /*
@@ -203,7 +154,7 @@ PIKANGO_NEW(graphics_shader)
             "out vec4 FragColor;\n"
             "void main()\n"
             "{\n"
-            "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+            "  FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
             "}\n\0";
 
         unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -216,7 +167,7 @@ PIKANGO_NEW(graphics_shader)
         if (!success)
         {
             glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+            pikango_internal::log_error(infoLog);
         }
         // fragment shader
         unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -227,7 +178,7 @@ PIKANGO_NEW(graphics_shader)
         if (!success)
         {
             glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+            pikango_internal::log_error(infoLog);
         }
         // link shaders
         unsigned int shaderProgram = glCreateProgram();
@@ -238,7 +189,7 @@ PIKANGO_NEW(graphics_shader)
         glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
         if (!success) {
             glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-            std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+            pikango_internal::log_error(infoLog);
         }
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);

@@ -7,6 +7,13 @@
 namespace pikango_internal
 {
     pikango::error_notification_callback error_callback = nullptr;
+    void log_error(const char* text)
+    {
+        if (error_callback != nullptr)
+            error_callback(text);
+        else
+            abort();
+    }
 }
 
 /*

@@ -89,7 +89,7 @@ PIKANGO_HANDLE_FWD(frame_buffer);
 */
 namespace pikango
 {
-    using error_notification_callback = void(*)(const std::string& notification);
+    using error_notification_callback = void(*)(const char* notification);
 
     std::string initialize_library_cpu();
     std::string initialize_library_gpu();
