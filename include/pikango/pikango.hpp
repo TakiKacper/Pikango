@@ -20,6 +20,20 @@ namespace pikango
         traingles, traingles_strip
     };
 
+    enum class buffer_memory_profile
+    {
+        rare_write_rare_read,   //data is rarely in use
+        rare_write_often_read,  //data is often overwritten and often used
+        often_write_often_read  //data is rarely overwritten and often used
+    };
+
+    enum class buffer_access_profile
+    {
+        cpu_to_gpu, //application writes data to gpu
+        gpu_to_cpu, //gpu data is read by application 
+        gpu_to_gpu  //gpu data is read by gpu
+    };
+
     enum class data_types
     {
         int32,
@@ -28,6 +42,7 @@ namespace pikango
         vec3f32,
         vec4f32
     };
+    size_t size_of(data_types dt);
 }
 
 /*
@@ -76,7 +91,8 @@ namespace pikango
 {
     using error_notification_callback = void(*)(const std::string& notification);
 
-    std::string initialize();
+    std::string initialize_library_cpu();
+    std::string initialize_library_gpu();
     std::string terminate();
 
     void wait_all_tasks_completion();
@@ -90,9 +106,10 @@ namespace pikango
 */
 
 #define BUFFER_METHODS(buffer_name) \
+    size_t get_buffer_size(buffer_name##_handle target); \
+    void assign_buffer_memory(buffer_name##_handle target, size_t memory_block_size_bytes, buffer_memory_profile memory_profile, buffer_access_profile access_profile);   \
     void write_buffer(buffer_name##_handle target, size_t data_size_bytes, void* data);   \
-    void overwrite_buffer(buffer_name##_handle target, size_t data_size_bytes, void* data);   \
-    void overwrite_buffer_region(buffer_name##_handle target, size_t data_size_bytes, void* data, size_t data_offset_bytes);   \
+    void write_buffer_region(buffer_name##_handle target, size_t data_size_bytes, void* data, size_t data_offset_bytes);   \
 
 namespace pikango
 {
@@ -110,6 +127,8 @@ namespace pikango
 
 namespace pikango
 {
+    size_t get_layout_size(data_layout_handle target);
+    size_t get_layout_size_with_stride(data_layout_handle target);
     void assign_data_layout(data_layout_handle target, std::vector<data_types> layout, size_t layouts_stride);
 }
 
@@ -154,12 +173,12 @@ namespace pikango
         
     };
 
-    void draw_vertices(const draw_vertices_args& args);
+    void draw_vertices(draw_vertices_args& args);
 }
 
 
 /*
-    Api Dependent
+    Api Specific
 */
 
 #ifdef PIKANGO_OPENGL_4_3
