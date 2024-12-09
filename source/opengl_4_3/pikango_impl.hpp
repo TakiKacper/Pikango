@@ -59,7 +59,7 @@ void opengl_execution_thread_logic()
 
 void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args)
 {
-    enqueue_task(task, args);
+    enqueue_task(task, std::move(args));
 }
 
 static std::thread* opengl_execution_thread;
