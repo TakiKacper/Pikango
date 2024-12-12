@@ -191,6 +191,21 @@ namespace pikango
     };
 
     void draw_vertices(draw_vertices_args& args);
+
+    struct draw_indexed_args
+    {
+        draw_primitive primitive = draw_primitive::traingles;
+        size_t indicies_count = 0;
+
+        frame_buffer_handle     target;
+
+        vertex_buffer_handle    vertex_buffer;
+        index_buffer_handle     index_buffer;
+        graphics_shader_handle  graphics_shader;
+        data_layout_handle      data_layout;
+    };
+
+    void draw_indexed(draw_indexed_args& args);
 }
 
 

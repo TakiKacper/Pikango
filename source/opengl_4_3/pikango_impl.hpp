@@ -133,3 +133,26 @@ void pikango::draw_vertices(draw_vertices_args& args)
 
     enqueue_task(func, {args});
 }
+
+void pikango::draw_indexed(draw_indexed_args& args)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto draw_args = std::any_cast<pikango::draw_indexed_args>(args.front());
+
+        glBindBuffer(GL_ARRAY_BUFFER, pikango_internal::object_read_access(draw_args.vertex_buffer)->id);
+
+        //push data layout
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+        
+        //enable index buffer
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pikango_internal::object_read_access(draw_args.index_buffer)->id);
+
+        glUseProgram(pikango_internal::object_read_access(draw_args.graphics_shader)->id);
+
+        glDrawElements(GL_TRIANGLES, draw_args.indicies_count, GL_UNSIGNED_INT, 0);
+    };
+
+    enqueue_task(func, {args});
+}
