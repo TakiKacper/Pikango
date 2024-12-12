@@ -95,6 +95,8 @@ namespace pikango
     std::string initialize_library_gpu();
     std::string terminate();
 
+    const char* get_used_shading_language_name();
+
     void wait_all_tasks_completion();
     void wait_all_current_tasks_completion();
 
@@ -138,9 +140,24 @@ namespace pikango
 
 namespace pikango
 {
-    void link_vertex_shader  (graphics_shader_handle target, const std::string& shader);
-    void link_geometry_shader(graphics_shader_handle target, const std::string& shader);
-    void link_pixel_shader   (graphics_shader_handle target, const std::string& shader);
+    struct shader_part_vertex;
+    struct shader_part_geometry;
+    struct shader_part_pixel;
+
+    shader_part_vertex*     compile_shader_part_vertex(const std::string& source);
+    shader_part_geometry*   compile_shader_part_geometry(const std::string& source);
+    shader_part_pixel*      compile_shader_part_pixel(const std::string& source);
+
+    void free_shader_part_vertex(shader_part_vertex* spv);
+    void free_shader_part_geometry(shader_part_geometry* spg);
+    void free_shader_part_pixel(shader_part_pixel* spp);
+
+    void link_graphics_shader(
+        graphics_shader_handle target, 
+        const shader_part_vertex* spv, 
+        const shader_part_geometry* spg, 
+        const shader_part_pixel* spp
+    );
 }
 
 /*
