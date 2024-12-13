@@ -67,6 +67,7 @@ namespace pikango_internal
     private:
         T* object;
         std::shared_mutex* mutex;
+
     public:
         object_read_access(const handle<T>& handle) :
             object(handle.object), mutex(&handle.meta->mutex)
@@ -95,6 +96,7 @@ namespace pikango_internal
     private:
         T* object;
         std::shared_mutex* mutex;
+        
     public:
         object_write_access(const handle<T>& handle) :
             object(handle.object), mutex(&handle.meta->mutex)
