@@ -180,7 +180,7 @@ namespace pikango
     {
         draw_primitive primitive = draw_primitive::traingles;
         size_t first_vertex_index = 0;
-        size_t primitives_count = 0;
+        size_t vertices_count = 0;
 
         frame_buffer_handle     target;
 
