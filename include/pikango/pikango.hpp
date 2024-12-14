@@ -191,10 +191,10 @@ namespace pikango
         const shader_part_pixel* spp
     );
 
-    void bind_texture_to_shader(
+    void bind_texture_pool_slot_to_shader(
         graphics_shader_handle target,
-        const std::string& binding_name,
-        texture_2d_handle texture
+        const std::string& sampler_access,
+        size_t index
     );
 }
 
@@ -204,6 +204,15 @@ namespace pikango
 
 namespace pikango
 {
+    size_t get_texture_pool_size();
+
+    void bind_texture_to_pool(texture_1d_handle target, size_t pool_index);
+    void bind_texture_to_pool(texture_2d_handle target, size_t pool_index);
+    void bind_texture_to_pool(texture_3d_handle target, size_t pool_index);
+    void bind_texture_to_pool(texture_cube_handle target, size_t pool_index);
+    void bind_texture_to_pool(texture_1d_array_handle target, size_t pool_index);
+    void bind_texture_to_pool(texture_2d_array_handle target, size_t pool_index);
+
     void write_texture(
         texture_1d_handle target, 
         texture_format source_format, 

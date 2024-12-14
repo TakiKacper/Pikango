@@ -3,6 +3,8 @@
 #include "enumerations.hpp"
 #include "context_thread.hpp"
 
+constexpr size_t textures_pool_size = 16;
+
 void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args)
 {
     enqueue_task(task, std::move(args));
@@ -113,6 +115,12 @@ PIKANGO_DELETE(frame_buffer)
 //
 // Texture
 //
+
+size_t pikango::get_texture_pool_size()
+{
+    return textures_pool_size;
+}
+
 PIKANGO_IMPL(texture_2d)
 {
     GLuint id     = 0;
@@ -203,28 +211,19 @@ void pikango::set_texture_filtering(
     enqueue_task(func, {target, get_texture_filtering(magnifying), combine_min_filters(minifying, mipmap)});
 }
 
-void pikango::bind_texture_to_shader(
-    graphics_shader_handle target,
-    const std::string& binding_name,
-    texture_2d_handle texture
-)
+void pikango::bind_texture_to_pool(texture_2d_handle target, size_t index)
 {
     auto func = [](std::vector<std::any> args)
     {
-        auto handle = std::any_cast<graphics_shader_handle>(args[0]);
-        auto binding_name = std::any_cast<std::string>(args[1]);
-        auto texture = std::any_cast<texture_2d_handle>(args[2]);
+        auto handle = std::any_cast<texture_2d_handle>(args[0]);
+        auto index = std::any_cast<size_t>(args[1]);
 
-        auto gsi = pikango_internal::object_read_access(handle);
-        auto ti  = pikango_internal::object_read_access(texture);
+        auto ti = pikango_internal::object_read_access(handle);
 
-        glActiveTexture(GL_TEXTURE0);
+        glActiveTexture(GL_TEXTURE0 + index);
         glBindTexture(GL_TEXTURE_2D, ti->id);
-
-        glUseProgram(gsi->id);
-        glUniform1i(glGetUniformLocation(gsi->id, binding_name.c_str()), 0);
     };
-    enqueue_task(func, {target, binding_name, texture});
+    enqueue_task(func, {target, index});
 }
 
 #include "drawing.hpp"

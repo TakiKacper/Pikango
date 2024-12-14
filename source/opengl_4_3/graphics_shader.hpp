@@ -160,3 +160,23 @@ void pikango::link_graphics_shader(
     };
     enqueue_task(func, {target, spv, spg, spp});
 }
+
+void pikango::bind_texture_pool_slot_to_shader(
+    graphics_shader_handle target,
+    const std::string& sampler_access,
+    size_t index
+)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto handle = std::any_cast<graphics_shader_handle>(args[0]);
+        auto sampler = std::any_cast<std::string>(args[1]);
+        auto index = std::any_cast<size_t>(args[2]);
+
+        auto gsi = pikango_internal::object_read_access(handle);
+
+        glUseProgram(gsi->id);
+        glUniform1i(glGetUniformLocation(gsi->id, sampler.c_str()), index);
+    };
+    enqueue_task(func, {target, sampler_access, index});
+}
