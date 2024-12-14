@@ -259,12 +259,12 @@ namespace pikango
     );
 
 
-    void set_texture_wraping(texture_1d_handle, texture_wraping x);
-    void set_texture_wraping(texture_2d_handle, texture_wraping x, texture_wraping y);
-    void set_texture_wraping(texture_3d_handle, texture_wraping x, texture_wraping y, texture_wraping z);
+    void set_texture_wraping(texture_1d_handle target, texture_wraping x);
+    void set_texture_wraping(texture_2d_handle target, texture_wraping x, texture_wraping y);
+    void set_texture_wraping(texture_3d_handle target, texture_wraping x, texture_wraping y, texture_wraping z);
 
-    void set_texture_wraping(texture_1d_array_handle, texture_wraping x);
-    void set_texture_wraping(texture_2d_array_handle, texture_wraping x, texture_wraping y);
+    void set_texture_wraping(texture_1d_array_handle target, texture_wraping x);
+    void set_texture_wraping(texture_2d_array_handle target, texture_wraping x, texture_wraping y);
 
 
     void set_texture_filtering(

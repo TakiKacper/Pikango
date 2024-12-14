@@ -157,15 +157,50 @@ void pikango::write_texture(
             glGenTextures(1, &ti->id);
         glBindTexture(GL_TEXTURE_2D, ti->id);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
         glTexImage2D(GL_TEXTURE_2D, 0, inner_format, width, height, 0, source_format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     };
     enqueue_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, height, pixel_data});
+}
+
+void pikango::set_texture_wraping(texture_2d_handle target, texture_wraping x, texture_wraping y)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto handle = std::any_cast<texture_2d_handle>(args[0]);
+        auto tw_x   = std::any_cast<GLuint>(args[1]);
+        auto tw_y   = std::any_cast<GLuint>(args[2]);
+
+        auto ti = pikango_internal::object_read_access(handle);
+
+        glBindTexture(GL_TEXTURE_2D, ti->id);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, tw_x);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, tw_y);
+    };
+    enqueue_task(func, {target, get_texture_wraping(x), get_texture_wraping(y)});
+}
+
+void pikango::set_texture_filtering(
+    texture_2d_handle target, 
+    texture_filtering magnifying, 
+    texture_filtering minifying, 
+    texture_filtering mipmap
+)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto handle = std::any_cast<texture_2d_handle>(args[0]);
+        auto mag_filter = std::any_cast<GLuint>(args[1]);
+        auto min_filter = std::any_cast<GLuint>(args[2]);
+
+        auto ti = pikango_internal::object_read_access(handle);
+
+        glBindTexture(GL_TEXTURE_2D, ti->id);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+    };
+
+    enqueue_task(func, {target, get_texture_filtering(magnifying), combine_min_filters(minifying, mipmap)});
 }
 
 void pikango::bind_texture_to_shader(

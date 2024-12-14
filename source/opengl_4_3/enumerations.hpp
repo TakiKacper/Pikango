@@ -123,3 +123,42 @@ GLuint get_texture_format(pikango::texture_format format) {
     //will never happen
     return GL_RED;
 }
+
+GLuint get_texture_wraping(pikango::texture_wraping wraping)
+{
+    switch (wraping)
+    {
+        case pikango::texture_wraping::repeat:          return GL_REPEAT;
+        case pikango::texture_wraping::mirror_repeat:   return GL_MIRRORED_REPEAT;
+        case pikango::texture_wraping::clamp_coords:    return GL_CLAMP_TO_BORDER; 
+        case pikango::texture_wraping::clamp_texture:   return GL_CLAMP_TO_EDGE;
+    }
+    //will never happen
+    return GL_REPEAT;
+}
+
+GLuint get_texture_filtering(pikango::texture_filtering filtering)
+{
+    switch (filtering)
+    {
+        case pikango::texture_filtering::linear: return GL_LINEAR;
+        case pikango::texture_filtering::nearest: return GL_NEAREST;
+    }
+    //will never happen
+    return GL_LINEAR;
+}
+
+GLuint combine_min_filters(pikango::texture_filtering min, pikango::texture_filtering mipmap)
+{
+    if      (min == pikango::texture_filtering::linear && mipmap == pikango::texture_filtering::linear)
+        return GL_LINEAR_MIPMAP_LINEAR;
+    else if (min == pikango::texture_filtering::linear && mipmap == pikango::texture_filtering::nearest)
+        return GL_LINEAR_MIPMAP_NEAREST;
+    else if (min == pikango::texture_filtering::nearest && mipmap == pikango::texture_filtering::linear)
+        return GL_NEAREST_MIPMAP_LINEAR;
+    else if (min == pikango::texture_filtering::nearest && mipmap == pikango::texture_filtering::nearest)
+        return GL_NEAREST_MIPMAP_NEAREST;
+    
+    //will never happen
+    return GL_LINEAR_MIPMAP_LINEAR;
+}
