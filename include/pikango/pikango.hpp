@@ -43,6 +43,28 @@ namespace pikango
         vec4f32
     };
     size_t size_of(data_types dt);
+
+    enum class texture_filtering
+	{
+		nearest, linear
+	};
+
+    enum class texture_wraping
+	{
+		repeat, 
+        mirror_repeat,
+		clamp_coords, 
+        clamp_texture
+	};
+
+    enum class texture_format
+	{
+		depth,  depth_stencil,	depth24_stencil8,
+		r,		r8, r16,
+		rg,		rg8, rg16,
+		rgb,	r3_g3_b2, rgb4, rgb5, rgb8, rgb10, rgb12, 
+		rgba,	rgba2, rgba4, rgba8, rgba12, rgba16, rgba32f
+	};
 }
 
 /*
@@ -77,9 +99,19 @@ PIKANGO_HANDLE_FWD(vertex_buffer);
 PIKANGO_HANDLE_FWD(index_buffer);
 PIKANGO_HANDLE_FWD(instances_buffer);
 PIKANGO_HANDLE_FWD(uniform_buffer);
+
 PIKANGO_HANDLE_FWD(data_layout);
+
 PIKANGO_HANDLE_FWD(graphics_shader);
-PIKANGO_HANDLE_FWD(texture); 
+
+PIKANGO_HANDLE_FWD(texture_1d);
+PIKANGO_HANDLE_FWD(texture_2d);
+PIKANGO_HANDLE_FWD(texture_3d);
+PIKANGO_HANDLE_FWD(texture_cube);
+PIKANGO_HANDLE_FWD(texture_1d_array);
+PIKANGO_HANDLE_FWD(texture_2d_array);
+
+PIKANGO_HANDLE_FWD(renderbuffer);
 PIKANGO_HANDLE_FWD(frame_buffer);
 
 #undef PIKANGO_HANDLE_FWD
@@ -158,11 +190,125 @@ namespace pikango
         const shader_part_geometry* spg, 
         const shader_part_pixel* spp
     );
+
+    void bind_texture_to_shader(
+        graphics_shader_handle target,
+        const std::string& binding_name,
+        texture_2d_handle texture
+    );
 }
 
 /*
     Textures Methods
 */
+
+namespace pikango
+{
+    void write_texture(
+        texture_1d_handle target, 
+        texture_format source_format, 
+        texture_format inner_format, 
+        size_t width, 
+        void* pixel_data
+    );
+
+    void write_texture(
+        texture_2d_handle target, 
+        texture_format source_format, 
+        texture_format inner_format,
+        size_t width, 
+        size_t height, 
+        void* pixel_data
+    );
+
+    void write_texture(
+        texture_3d_handle target, 
+        texture_format source_format, 
+        texture_format inner_format, 
+        size_t width, 
+        size_t height, 
+        size_t depth, 
+        void* pixel_data
+    );
+
+    void write_texture(
+        texture_cube_handle target, 
+        size_t texture_size, 
+        void* top, 
+        void* bottom, 
+        void* left, 
+        void* right, 
+        void* front,
+        void* back
+    );
+
+    void write_texture(
+        texture_1d_array_handle target,
+        texture_format source_format, 
+        texture_format inner_format, 
+        size_t width, 
+        std::vector<void*> pixel_data
+    );
+    void write_texture(
+        texture_2d_array_handle target,
+        texture_format source_format, 
+        texture_format inner_format, 
+        size_t width, 
+        size_t height, 
+        std::vector<void*> pixel_data
+    );
+
+
+    void set_texture_wraping(texture_1d_handle, texture_wraping x);
+    void set_texture_wraping(texture_2d_handle, texture_wraping x, texture_wraping y);
+    void set_texture_wraping(texture_3d_handle, texture_wraping x, texture_wraping y, texture_wraping z);
+
+    void set_texture_wraping(texture_1d_array_handle, texture_wraping x);
+    void set_texture_wraping(texture_2d_array_handle, texture_wraping x, texture_wraping y);
+
+
+    void set_texture_filtering(
+        texture_1d_handle target, 
+        texture_filtering magnifying, 
+        texture_filtering minifying,
+        texture_filtering mipmap
+    );
+
+    void set_texture_filtering(
+        texture_2d_handle target, 
+        texture_filtering magnifying, 
+        texture_filtering minifying, 
+        texture_filtering mipmap
+    );
+
+    void set_texture_filtering(
+        texture_3d_handle target, 
+        texture_filtering magnifying, 
+        texture_filtering minifying, 
+        texture_filtering mipmap
+    );
+
+    void set_texture_filtering(
+        texture_cube_handle target, 
+        texture_filtering magnifying, 
+        texture_filtering minifying, 
+        texture_filtering mipmap
+    );
+
+    void set_texture_filtering(
+        texture_1d_array_handle target, 
+        texture_filtering magnifying, 
+        texture_filtering minifying, 
+        texture_filtering mipmap
+    );
+
+    void set_texture_filtering(
+        texture_2d_array_handle target, 
+        texture_filtering magnifying, 
+        texture_filtering minifying, 
+        texture_filtering mipmap
+    );
+}
 
 
 /*
@@ -187,7 +333,6 @@ namespace pikango
         vertex_buffer_handle    vertex_buffer;
         graphics_shader_handle  graphics_shader;
         data_layout_handle      data_layout;
-        
     };
 
     void draw_vertices(draw_vertices_args& args);

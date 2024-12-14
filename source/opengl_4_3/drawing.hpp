@@ -12,11 +12,12 @@ void bind_vertex_layout(const pikango::data_layout_handle& handle)
     for (; i < dli->layout.size(); i++)
     {
         auto data_type = dli->layout.at(i);
-
         auto dt = dli->layout.at(i);
 
         glVertexAttribPointer(i, get_elements_in_data_type(dt), get_data_type(dt), GL_FALSE, size, (void*)(uintptr_t)(offset));
 		glEnableVertexAttribArray(i);
+
+        offset += pikango::size_of(dt);
     }
 
     for (; i < 16; i++)

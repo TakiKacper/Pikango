@@ -113,19 +113,83 @@ PIKANGO_DELETE(frame_buffer)
 //
 // Texture
 //
-PIKANGO_IMPL(texture)
+PIKANGO_IMPL(texture_2d)
 {
-    GLuint id = 0;
+    GLuint id     = 0;
+    size_t width  = 0;
+    size_t height = 0;
 };
 
-PIKANGO_NEW(texture)
+PIKANGO_NEW(texture_2d)
 {
-    return {};
+    auto handle = pikango_internal::make_handle(new pikango_internal::texture_2d_impl);
+    auto ti = pikango_internal::object_write_access(handle);
+    ti->id = 0;
+    return handle;
 };
 
-PIKANGO_DELETE(texture)
+PIKANGO_DELETE(texture_2d)
 {
 
 };
+
+void pikango::write_texture(
+    texture_2d_handle target, 
+    texture_format source_format, 
+    texture_format inner_format,
+    size_t width, 
+    size_t height, 
+    void* pixel_data
+)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto handle = std::any_cast<texture_2d_handle>(args[0]);
+        auto source_format = std::any_cast<GLuint>(args[1]);
+        auto inner_format = std::any_cast<GLuint>(args[2]);
+        auto width = std::any_cast<size_t>(args[3]);
+        auto height = std::any_cast<size_t>(args[4]);
+        auto data = std::any_cast<void*>(args[5]);
+
+        auto ti = pikango_internal::object_write_access(handle);
+
+        if (ti->id == 0)
+            glGenTextures(1, &ti->id);
+        glBindTexture(GL_TEXTURE_2D, ti->id);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, inner_format, width, height, 0, source_format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    };
+    enqueue_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, height, pixel_data});
+}
+
+void pikango::bind_texture_to_shader(
+    graphics_shader_handle target,
+    const std::string& binding_name,
+    texture_2d_handle texture
+)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto handle = std::any_cast<graphics_shader_handle>(args[0]);
+        auto binding_name = std::any_cast<std::string>(args[1]);
+        auto texture = std::any_cast<texture_2d_handle>(args[2]);
+
+        auto gsi = pikango_internal::object_read_access(handle);
+        auto ti  = pikango_internal::object_read_access(texture);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, ti->id);
+
+        glUseProgram(gsi->id);
+        glUniform1i(glGetUniformLocation(gsi->id, binding_name.c_str()), 0);
+    };
+    enqueue_task(func, {target, binding_name, texture});
+}
 
 #include "drawing.hpp"

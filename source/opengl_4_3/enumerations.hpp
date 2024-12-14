@@ -92,3 +92,34 @@ GLuint get_elements_in_data_type(pikango::data_types type)
     //will never happen
     return 1;
 }
+
+GLuint get_texture_format(pikango::texture_format format) {
+    switch (format) {
+        case pikango::texture_format::depth:            return GL_DEPTH_COMPONENT;
+        case pikango::texture_format::depth_stencil:    return GL_DEPTH_STENCIL;
+        case pikango::texture_format::depth24_stencil8: return GL_DEPTH24_STENCIL8;
+
+        case pikango::texture_format::r:        return GL_RED;
+        case pikango::texture_format::r8:       return GL_R8;
+        case pikango::texture_format::r16:      return GL_R16;
+        case pikango::texture_format::rg:       return GL_RG;
+        case pikango::texture_format::rg8:      return GL_RG8;
+        case pikango::texture_format::rg16:     return GL_RG16;
+        case pikango::texture_format::rgb:      return GL_RGB;
+        case pikango::texture_format::r3_g3_b2: return GL_R3_G3_B2;
+        case pikango::texture_format::rgb4:     return GL_RGB4;
+        case pikango::texture_format::rgb5:     return GL_RGB5;
+        case pikango::texture_format::rgb8:     return GL_RGB8;
+        case pikango::texture_format::rgb10:    return GL_RGB10;
+        case pikango::texture_format::rgb12:    return GL_RGB12;
+        case pikango::texture_format::rgba:     return GL_RGBA;
+        case pikango::texture_format::rgba2:    return GL_RGBA2;
+        case pikango::texture_format::rgba4:    return GL_RGBA4;
+        case pikango::texture_format::rgba8:    return GL_RGBA8;
+        case pikango::texture_format::rgba12:   return GL_RGBA12;
+        case pikango::texture_format::rgba16:   return GL_RGBA16;
+        case pikango::texture_format::rgba32f:  return GL_RGBA32F;
+    }
+    //will never happen
+    return GL_RED;
+}
