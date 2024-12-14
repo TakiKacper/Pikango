@@ -60,7 +60,7 @@ void pikango::wait_all_current_tasks_completion()
     static std::mutex mutex;
     static std::condition_variable condition;
 
-    auto func = [&](std::vector<std::any> args)
+    auto func = [](std::vector<std::any> args)
     {
         auto flag = std::any_cast<bool*>(args[0]);
         *flag = true;

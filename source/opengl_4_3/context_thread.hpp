@@ -3,11 +3,10 @@
 #include <thread>
 
 #include <queue>
-#include <functional>
 #include <any>
 
 namespace {
-    using opengl_task = std::function<void(std::vector<std::any>)>;
+    using opengl_task = void(*)(std::vector<std::any>);
     using enqued_task = std::pair<opengl_task, std::vector<std::any>>;
 };
 
