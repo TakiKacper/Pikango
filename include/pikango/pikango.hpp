@@ -242,7 +242,9 @@ namespace pikango
 
     void write_texture(
         texture_cube_handle target, 
-        size_t texture_size, 
+        texture_format source_format, 
+        texture_format inner_format, 
+        size_t width, 
         void* top, 
         void* bottom, 
         void* left, 
@@ -271,6 +273,8 @@ namespace pikango
     void set_texture_wraping(texture_1d_handle target, texture_wraping x);
     void set_texture_wraping(texture_2d_handle target, texture_wraping x, texture_wraping y);
     void set_texture_wraping(texture_3d_handle target, texture_wraping x, texture_wraping y, texture_wraping z);
+
+    void set_texture_wraping(texture_cube_handle target, texture_wraping x, texture_wraping y, texture_wraping z);
 
     void set_texture_wraping(texture_1d_array_handle target, texture_wraping x);
     void set_texture_wraping(texture_2d_array_handle target, texture_wraping x, texture_wraping y);
