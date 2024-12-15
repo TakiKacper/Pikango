@@ -97,7 +97,7 @@ This macro for name = xyz would create folowing objects:
 
 PIKANGO_HANDLE_FWD(vertex_buffer);
 PIKANGO_HANDLE_FWD(index_buffer);
-PIKANGO_HANDLE_FWD(instances_buffer);
+PIKANGO_HANDLE_FWD(instance_buffer);
 PIKANGO_HANDLE_FWD(uniform_buffer);
 
 PIKANGO_HANDLE_FWD(data_layout);
@@ -149,7 +149,7 @@ namespace pikango
 {
     BUFFER_METHODS(vertex_buffer);
     BUFFER_METHODS(index_buffer);
-    BUFFER_METHODS(instances_buffer);
+    BUFFER_METHODS(instance_buffer);
     BUFFER_METHODS(uniform_buffer);
 }
 
@@ -335,37 +335,47 @@ namespace pikango
 
 namespace pikango
 {
+    struct draw_instanced_args
+    {
+        size_t                  instances_count = 0;
+        instance_buffer_handle  instance_buffer;
+        data_layout_handle      instance_layout;
+    };
+
     struct draw_vertices_args
     {
-        draw_primitive primitive = draw_primitive::traingles;
-        size_t first_vertex_index = 0;
-        size_t vertices_count = 0;
+        draw_primitive          primitive = draw_primitive::traingles;
+        size_t                  first_vertex_index = 0;
+        size_t                  vertices_count = 0;
 
         frame_buffer_handle     target;
 
         vertex_buffer_handle    vertex_buffer;
+        data_layout_handle      vertex_layout;
+
         graphics_shader_handle  graphics_shader;
-        data_layout_handle      data_layout;
     };
 
     void draw_vertices(draw_vertices_args& args);
+    void draw_vertices_instanced(draw_vertices_args& args, draw_instanced_args inst_args);
 
     struct draw_indexed_args
     {
-        draw_primitive primitive = draw_primitive::traingles;
-        size_t indicies_count = 0;
+        draw_primitive          primitive = draw_primitive::traingles;
+        size_t                  indicies_count = 0;
 
         frame_buffer_handle     target;
 
         vertex_buffer_handle    vertex_buffer;
+        data_layout_handle      vertex_layout;
+        
         index_buffer_handle     index_buffer;
         graphics_shader_handle  graphics_shader;
-        data_layout_handle      data_layout;
     };
 
     void draw_indexed(draw_indexed_args& args);
+    void draw_indexed_instanced(draw_indexed_args& args, draw_instanced_args inst_args);
 }
-
 
 /*
     Api Specific

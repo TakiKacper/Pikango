@@ -93,12 +93,12 @@ size_t pikango::get_texture_pool_size()
 #define PIKANGO_DELETE(name)    \
     void pikango::delete_##name (pikango::name##_handle handle)
 
-
 #include "enumerations/enumerations.hpp"
 
 #include "buffers/generic.hpp"
 #include "buffers/vertex_buffer.hpp"
 #include "buffers/index_buffer.hpp"
+#include "buffers/instance_buffer.hpp"
 
 #include "data_layout/data_layout.hpp"
 
