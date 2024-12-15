@@ -1,9 +1,6 @@
 #include "glad/glad.h"
 
-#include "enumerations.hpp"
-#include "context_thread.hpp"
-
-constexpr size_t textures_pool_size = 16;
+#include "runthread/context_thread.hpp"
 
 void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args)
 {
@@ -14,6 +11,7 @@ void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std
     Common Opengl Objects
 */
 static GLuint VAO;
+constexpr size_t textures_pool_size = 16;
 
 /*
     Library Implementation
@@ -77,6 +75,11 @@ void pikango::wait_all_current_tasks_completion()
     condition.wait(lock, [&]{return flag;});
 }
 
+size_t pikango::get_texture_pool_size()
+{
+    return textures_pool_size;
+}
+
 /*
     Contructors / Deconstructors
 */
@@ -90,13 +93,23 @@ void pikango::wait_all_current_tasks_completion()
 #define PIKANGO_DELETE(name)    \
     void pikango::delete_##name (pikango::name##_handle handle)
 
-#include "buffers.hpp"
-#include "data_layout.hpp"
-#include "graphics_shader.hpp"
 
-//
-// Frame Buffer
-//
+#include "enumerations/enumerations.hpp"
+
+#include "buffers/generic.hpp"
+#include "buffers/vertex_buffer.hpp"
+#include "buffers/index_buffer.hpp"
+
+#include "data_layout/data_layout.hpp"
+
+#include "shaders/graphics_shader.hpp"
+
+#include "textures/generic.hpp"
+#include "textures/texture_1d.hpp"
+#include "textures/texture_2d.hpp"
+#include "textures/texture_3d.hpp"
+#include "textures/texture_cube.hpp"
+
 PIKANGO_IMPL(frame_buffer)
 {
 
@@ -112,19 +125,4 @@ PIKANGO_DELETE(frame_buffer)
 
 };
 
-//
-// Texture
-//
-
-size_t pikango::get_texture_pool_size()
-{
-    return textures_pool_size;
-}
-
-#include "textures/texutues_impl_utilities.hpp"
-#include "textures/texture_1d.hpp"
-#include "textures/texture_2d.hpp"
-#include "textures/texture_3d.hpp"
-#include "textures/texture_cube.hpp"
-
-#include "drawing.hpp"
+#include "drawing/drawing.hpp"
