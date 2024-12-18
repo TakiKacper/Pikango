@@ -127,6 +127,12 @@ namespace pikango
     std::string initialize_library_gpu();
     std::string terminate();
 
+    template<class T>
+    bool handle_good(const pikango_internal::handle<T>& handle)
+    {
+        return !pikango_internal::is_empty(handle);
+    }
+
     const char* get_used_shading_language_name();
 
     void wait_all_tasks_completion();

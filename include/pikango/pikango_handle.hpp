@@ -10,8 +10,9 @@ namespace pikango_internal
     template<class handled_object>
     class handle
     {
-        template<class X> friend handle<X>  make_handle (X* object);
-        template<class X> friend handle<X>* alloc_handle(X* object);
+        template<class T> friend bool       is_empty(const handle<T>& handle);
+        template<class T> friend handle<T>  make_handle (T* object);
+        template<class T> friend handle<T>* alloc_handle(T* object);
         template<class T> friend struct object_read_access;
         template<class T> friend struct object_write_access;
         
@@ -64,7 +65,18 @@ namespace pikango_internal
             if (meta != nullptr)
                 meta->refs++;
         }
+
+        bool operator==(const handle<handled_object>& other) const
+        {
+            return meta == other.meta;
+        }
     };
+
+    template<class T>
+    bool is_empty(const handle<T>& handle)
+    {
+        return handle.meta == nullptr || handle.object == nullptr;
+    }
 
     template<class T>
     handle<T> make_handle(T* object)
