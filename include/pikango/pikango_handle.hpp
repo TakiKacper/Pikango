@@ -10,7 +10,8 @@ namespace pikango_internal
     template<class handled_object>
     class handle
     {
-        template<class X> friend handle<X> make_handle(X* object);
+        template<class X> friend handle<X>  make_handle (X* object);
+        template<class X> friend handle<X>* alloc_handle(X* object);
         template<class T> friend struct object_read_access;
         template<class T> friend struct object_write_access;
         
@@ -53,12 +54,28 @@ namespace pikango_internal
                 }
             }
         }
+        void operator=(const handle& other)
+        {
+            this->~handle();
+
+            object = other.object;
+            meta = other.meta;
+
+            if (meta != nullptr)
+                meta->refs++;
+        }
     };
 
     template<class T>
     handle<T> make_handle(T* object)
     {
         return handle<T>{object};
+    }
+
+    template<class T>
+    handle<T>* alloc_handle(T* object)
+    {
+        return new handle<T>{object};
     }
 
     template<class T>

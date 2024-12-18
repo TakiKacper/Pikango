@@ -96,5 +96,5 @@ void pikango::set_texture_filtering(texture_cube_handle target, texture_filterin
 
 void pikango::bind_texture_to_pool(texture_cube_handle target, size_t index)
 {
-    bind_texture_to_pool_generic(target, index);
+    bind_texture_to_pool_generic<texture_cube_handle, GL_TEXTURE_CUBE_MAP>(target, index);
 }

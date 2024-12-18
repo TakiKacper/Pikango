@@ -1,5 +1,11 @@
 #pragma once
 
+void bind_draw_target(const pikango::draw_target_args& dta)
+{
+    auto fbi = pikango_internal::object_read_access(dta.frame_buffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbi->id);
+}
+
 void bind_vertex_layout(const pikango::data_layout_handle& layout, const pikango::vertex_buffer_handle& vertex)
 {
     auto dli = pikango_internal::object_read_access(layout);
@@ -70,11 +76,15 @@ void bind_vertex_and_instance_layout(
         glDisableVertexAttribArray(i);
 }
 
-void pikango::draw_vertices(draw_vertices_args& args)
+void pikango::draw_vertices(draw_target_args& dta, draw_vertices_args& dva)
 {
     auto func = [](std::vector<std::any> args)
     {
-        auto draw_args = std::any_cast<pikango::draw_vertices_args>(args[0]);
+        auto targ_args = std::any_cast<pikango::draw_target_args>(args[0]);
+        auto draw_args = std::any_cast<pikango::draw_vertices_args>(args[1]);
+
+        //bind framebuffer
+        bind_draw_target(targ_args);
 
         //bind layout
         bind_vertex_layout(draw_args.vertex_layout, draw_args.vertex_buffer);
@@ -89,14 +99,18 @@ void pikango::draw_vertices(draw_vertices_args& args)
         );
     };
 
-    enqueue_task(func, {args});
+    enqueue_task(func, {dta, dva});
 }
 
-void pikango::draw_indexed(draw_indexed_args& args)
+void pikango::draw_indexed(draw_target_args& dta, draw_indexed_args& dia)
 {
     auto func = [](std::vector<std::any> args)
     {
-        auto draw_args = std::any_cast<pikango::draw_indexed_args>(args[0]);
+        auto targ_args = std::any_cast<pikango::draw_target_args>(args[0]);
+        auto draw_args = std::any_cast<pikango::draw_indexed_args>(args[1]);
+
+        //bind framebuffer
+        bind_draw_target(targ_args);
 
         //bind layout
         bind_vertex_layout(draw_args.vertex_layout, draw_args.vertex_buffer);
@@ -115,15 +129,19 @@ void pikango::draw_indexed(draw_indexed_args& args)
         );
     };
 
-    enqueue_task(func, {args});
+    enqueue_task(func, {dta, dia});
 }
 
-void pikango::draw_vertices_instanced(draw_vertices_args& args, draw_instanced_args inst_args)
+void pikango::draw_vertices_instanced(draw_target_args& dta, draw_vertices_args& dva, draw_instanced_args dia)
 {
     auto func = [](std::vector<std::any> args)
     {
-        auto draw_args = std::any_cast<pikango::draw_vertices_args>(args[0]);
-        auto inst_args = std::any_cast<pikango::draw_instanced_args>(args[1]);
+        auto targ_args = std::any_cast<pikango::draw_target_args>(args[0]);
+        auto draw_args = std::any_cast<pikango::draw_vertices_args>(args[1]);
+        auto inst_args = std::any_cast<pikango::draw_instanced_args>(args[2]);
+
+        //bind framebuffer
+        bind_draw_target(targ_args);
 
         //bind layout
         bind_vertex_and_instance_layout(
@@ -144,15 +162,19 @@ void pikango::draw_vertices_instanced(draw_vertices_args& args, draw_instanced_a
         );
     };
 
-    enqueue_task(func, {args, inst_args});
+    enqueue_task(func, {dta, dva, dia});
 }
-#include <iostream>
-void pikango::draw_indexed_instanced(draw_indexed_args& args, draw_instanced_args inst_args)
+
+void pikango::draw_indexed_instanced(draw_target_args& dta, draw_indexed_args& dia, draw_instanced_args dia2)
 {
     auto func = [](std::vector<std::any> args)
     {
-        auto draw_args = std::any_cast<pikango::draw_indexed_args>(args[0]);
-        auto inst_args = std::any_cast<pikango::draw_instanced_args>(args[1]);
+        auto targ_args = std::any_cast<pikango::draw_target_args>(args[0]);
+        auto draw_args = std::any_cast<pikango::draw_indexed_args>(args[1]);
+        auto inst_args = std::any_cast<pikango::draw_instanced_args>(args[2]);
+
+        //bind framebuffer
+        bind_draw_target(targ_args);
 
         //bind layout
         bind_vertex_and_instance_layout(
@@ -177,5 +199,5 @@ void pikango::draw_indexed_instanced(draw_indexed_args& args, draw_instanced_arg
         );
     };
 
-    enqueue_task(func, {args, inst_args});
+    enqueue_task(func, {dta, dia, dia2});
 }

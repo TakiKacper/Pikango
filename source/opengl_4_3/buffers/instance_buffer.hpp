@@ -9,8 +9,6 @@ PIKANGO_IMPL(instance_buffer)
 PIKANGO_NEW(instance_buffer)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::instance_buffer_impl);
-    auto ibi = pikango_internal::object_write_access(handle);
-    ibi->buffer_size = 0;
     return handle;
 }
 

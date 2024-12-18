@@ -9,8 +9,6 @@ PIKANGO_IMPL(vertex_buffer)
 PIKANGO_NEW(vertex_buffer)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::vertex_buffer_impl);
-    auto vbi = pikango_internal::object_write_access(handle);
-    vbi->buffer_size = 0;
     return handle;
 }
 

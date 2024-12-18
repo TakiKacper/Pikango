@@ -78,5 +78,5 @@ void pikango::set_texture_filtering(texture_3d_handle target, texture_filtering 
 
 void pikango::bind_texture_to_pool(texture_3d_handle target, size_t index)
 {
-    bind_texture_to_pool_generic(target, index);
+    bind_texture_to_pool_generic<texture_3d_handle, GL_TEXTURE_3D>(target, index);
 }

@@ -328,6 +328,29 @@ namespace pikango
     Frame Buffer Methods
 */
 
+namespace pikango
+{
+    void attach_framebuffer_color_buffer(
+        frame_buffer_handle target,
+        texture_2d_handle attachment
+    );
+
+    void attach_framebuffer_depth_buffer(
+        frame_buffer_handle target,
+        texture_2d_handle attachment
+    );
+
+    void attach_framebuffer_stencil_buffer(
+        frame_buffer_handle target,
+        texture_2d_handle attachment
+    );
+
+    void attach_framebuffer_depth_stencil_buffer(
+        frame_buffer_handle target,
+        texture_2d_handle attachment
+    );
+};
+
 
 /*
     Drawing
@@ -335,11 +358,9 @@ namespace pikango
 
 namespace pikango
 {
-    struct draw_instanced_args
+    struct draw_target_args
     {
-        size_t                  instances_count = 0;
-        instance_buffer_handle  instance_buffer;
-        data_layout_handle      instance_layout;
+        frame_buffer_handle     frame_buffer;
     };
 
     struct draw_vertices_args
@@ -348,33 +369,53 @@ namespace pikango
         size_t                  first_vertex_index = 0;
         size_t                  vertices_count = 0;
 
-        frame_buffer_handle     target;
-
         vertex_buffer_handle    vertex_buffer;
         data_layout_handle      vertex_layout;
 
         graphics_shader_handle  graphics_shader;
     };
-
-    void draw_vertices(draw_vertices_args& args);
-    void draw_vertices_instanced(draw_vertices_args& args, draw_instanced_args inst_args);
 
     struct draw_indexed_args
     {
         draw_primitive          primitive = draw_primitive::traingles;
         size_t                  indicies_count = 0;
 
-        frame_buffer_handle     target;
-
         vertex_buffer_handle    vertex_buffer;
         data_layout_handle      vertex_layout;
         
         index_buffer_handle     index_buffer;
+
         graphics_shader_handle  graphics_shader;
     };
 
-    void draw_indexed(draw_indexed_args& args);
-    void draw_indexed_instanced(draw_indexed_args& args, draw_instanced_args inst_args);
+    struct draw_instanced_args
+    {
+        size_t                  instances_count = 0;
+        instance_buffer_handle  instance_buffer;
+        data_layout_handle      instance_layout;
+    };
+
+    void draw_vertices(
+        draw_target_args&   dta, 
+        draw_vertices_args& dva
+    );
+
+    void draw_vertices_instanced(
+        draw_target_args&   dta, 
+        draw_vertices_args& dva,
+        draw_instanced_args dia
+    );
+
+    void draw_indexed(
+        draw_target_args&   dta, 
+        draw_indexed_args&  dia
+    );
+
+    void draw_indexed_instanced(
+        draw_target_args&   dta, 
+        draw_indexed_args&  dia, 
+        draw_instanced_args dia2
+    );
 }
 
 /*
@@ -386,6 +427,7 @@ namespace pikango
 {
     using opengl_thread_task = void(*)(std::vector<std::any>);
     void OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args);
+    frame_buffer_handle OPENGL_ONLY_get_default_frame_buffer();
 }
 #endif
 

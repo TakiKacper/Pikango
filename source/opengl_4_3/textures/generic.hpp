@@ -1,4 +1,4 @@
-template<class handle_type>
+template<class handle_type, GLuint gl_texture_type>
 inline void bind_texture_to_pool_generic(handle_type target, size_t index)
 {
     auto func = [](std::vector<std::any> args)
@@ -9,7 +9,10 @@ inline void bind_texture_to_pool_generic(handle_type target, size_t index)
         auto ti = pikango_internal::object_read_access(handle);
 
         glActiveTexture(GL_TEXTURE0 + index);
-        glBindTexture(GL_TEXTURE_2D, ti->id);
+        glBindTexture(gl_texture_type, ti->id);
+
+        //to avoid changing the pool bindings
+        glActiveTexture(GL_TEXTURE0 + textures_operation_unit);
     };
     enqueue_task(func, {target, index});
 }

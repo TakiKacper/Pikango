@@ -57,7 +57,9 @@ void pikango::write_texture(
             glGenTextures(1, &ti->id);
         glBindTexture(GL_TEXTURE_2D, ti->id);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, inner_format, width, height, 0, source_format, GL_UNSIGNED_BYTE, data);
+        auto source_data_type = inner_format == GL_DEPTH24_STENCIL8 ? GL_UNSIGNED_INT_24_8 : GL_UNSIGNED_BYTE;
+
+        glTexImage2D(GL_TEXTURE_2D, 0, inner_format, width, height, 0, source_format, source_data_type, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     };
     enqueue_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, height, pixel_data});
@@ -75,5 +77,5 @@ void pikango::set_texture_filtering(texture_2d_handle target, texture_filtering 
 
 void pikango::bind_texture_to_pool(texture_2d_handle target, size_t index)
 {
-    bind_texture_to_pool_generic(target, index);
+    bind_texture_to_pool_generic<texture_2d_handle, GL_TEXTURE_2D>(target, index);
 }
