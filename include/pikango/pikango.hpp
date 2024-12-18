@@ -330,9 +330,12 @@ namespace pikango
 
 namespace pikango
 {
+    size_t get_max_framebuffer_color_buffers_amount();
+
     void attach_framebuffer_color_buffer(
         frame_buffer_handle target,
-        texture_2d_handle attachment
+        texture_2d_handle attachment,
+        unsigned int slot
     );
 
     void attach_framebuffer_depth_buffer(
@@ -344,11 +347,24 @@ namespace pikango
         frame_buffer_handle target,
         texture_2d_handle attachment
     );
+    
 
-    void attach_framebuffer_depth_stencil_buffer(
+    void detach_framebuffer_color_buffer(
         frame_buffer_handle target,
-        texture_2d_handle attachment
+        unsigned int slot
     );
+
+    void detach_framebuffer_depth_buffer(frame_buffer_handle target);
+    void detach_framebuffer_stencil_buffer(frame_buffer_handle target);
+
+
+    texture_2d_handle get_framebuffer_color_buffer(
+        frame_buffer_handle target,
+        unsigned int slot
+    );
+
+    texture_2d_handle get_framebuffer_depth_buffer(frame_buffer_handle target);
+    texture_2d_handle get_framebuffer_stencil_buffer(frame_buffer_handle target);
 };
 
 
