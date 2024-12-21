@@ -4,6 +4,7 @@ PIKANGO_IMPL(vertex_buffer)
     size_t buffer_size = 0;
     pikango::buffer_memory_profile memory_profile;
     pikango::buffer_access_profile access_profile;
+    ~vertex_buffer_impl();
 };
 
 PIKANGO_NEW(vertex_buffer)
@@ -16,6 +17,11 @@ PIKANGO_DELETE(vertex_buffer)
 { 
 
 };
+
+pikango_internal::vertex_buffer_impl::~vertex_buffer_impl()
+{
+    destroy_buffer_generic(this);
+}
 
 size_t pikango::get_buffer_size(vertex_buffer_handle target)
 {

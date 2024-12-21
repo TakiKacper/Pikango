@@ -1,3 +1,15 @@
+template <class impl_type>
+void destroy_buffer_generic(impl_type* _this)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto bi = std::any_cast<impl_type*>(args[0]);
+        if (bi->id != 0)
+            glDeleteBuffers(1, &bi->id);
+    };
+    enqueue_task(func, {_this});
+}
+
 template<class handle_type>
 void assign_buffer_memory_generic(
     handle_type target,

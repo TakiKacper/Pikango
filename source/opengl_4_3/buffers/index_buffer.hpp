@@ -4,6 +4,7 @@ PIKANGO_IMPL(index_buffer)
     size_t buffer_size = 0;
     pikango::buffer_memory_profile memory_profile;
     pikango::buffer_access_profile access_profile;
+    ~index_buffer_impl();
 };
 
 PIKANGO_NEW(index_buffer)
@@ -16,6 +17,11 @@ PIKANGO_DELETE(index_buffer)
 { 
 
 };
+
+pikango_internal::index_buffer_impl::~index_buffer_impl()
+{
+    destroy_buffer_generic(this);
+}
 
 size_t pikango::get_buffer_size(index_buffer_handle target)
 {

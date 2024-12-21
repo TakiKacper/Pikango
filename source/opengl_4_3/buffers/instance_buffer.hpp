@@ -4,6 +4,7 @@ PIKANGO_IMPL(instance_buffer)
     size_t buffer_size = 0;
     pikango::buffer_memory_profile memory_profile;
     pikango::buffer_access_profile access_profile;
+    ~instance_buffer_impl();
 };
 
 PIKANGO_NEW(instance_buffer)
@@ -16,6 +17,11 @@ PIKANGO_DELETE(instance_buffer)
 { 
 
 };
+
+pikango_internal::instance_buffer_impl::~instance_buffer_impl()
+{
+    destroy_buffer_generic(this);
+}
 
 size_t pikango::get_buffer_size(instance_buffer_handle target)
 {
