@@ -1,6 +1,11 @@
 /*
 
 !.gitignore
-!include/
-!opengl_4_2_impl/
 !README.md
+
+!source/
+
+!/include
+/include/*
+!/include/pikango
+!/include/pikango/*
