@@ -9,6 +9,7 @@
 static GLuint VAO;
 static pikango::frame_buffer_handle* default_frame_buffer_handle = nullptr;
 static GLint textures_pool_size;
+static GLint uniforms_pool_size;
 static GLint textures_operation_unit;
 static GLint max_color_attachments;
 
@@ -51,6 +52,9 @@ std::string pikango::initialize_library_gpu()
         textures_pool_size--;   //Reserve last active texture for writing
         textures_operation_unit = textures_pool_size;
         glActiveTexture(GL_TEXTURE0 + textures_operation_unit);
+
+        //get uniforms pool size
+        glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &uniforms_pool_size);
 
         //get max color attachments
         glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &max_color_attachments);
@@ -112,6 +116,11 @@ size_t pikango::get_texture_pool_size()
     return textures_pool_size;
 }
 
+size_t pikango::get_uniform_pool_size()
+{
+    return uniforms_pool_size;
+}
+
 #define PIKANGO_IMPL(name)  \
     struct pikango_internal::name##_impl
 
@@ -127,6 +136,7 @@ size_t pikango::get_texture_pool_size()
 #include "buffers/vertex_buffer.hpp"
 #include "buffers/index_buffer.hpp"
 #include "buffers/instance_buffer.hpp"
+#include "buffers/uniform_buffer.hpp"
 
 #include "data_layout/data_layout.hpp"
 

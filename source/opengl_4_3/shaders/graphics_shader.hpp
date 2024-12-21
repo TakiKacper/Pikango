@@ -161,10 +161,10 @@ void pikango::link_graphics_shader(
     enqueue_task(func, {target, spv, spg, spp});
 }
 
-void pikango::bind_texture_pool_slot_to_shader(
+void pikango::bind_shader_sampler_to_pool(
     graphics_shader_handle target,
     const std::string& sampler_access,
-    size_t index
+    size_t pool_index
 )
 {
     auto func = [](std::vector<std::any> args)
@@ -178,5 +178,25 @@ void pikango::bind_texture_pool_slot_to_shader(
         glUseProgram(gsi->id);
         glUniform1i(glGetUniformLocation(gsi->id, sampler.c_str()), index);
     };
-    enqueue_task(func, {target, sampler_access, index});
+    enqueue_task(func, {target, sampler_access, pool_index});
+}
+#include <iostream>
+void pikango::bind_shader_uniform_to_pool(
+    graphics_shader_handle target,
+    const std::string& uniform_access,
+    size_t pool_index
+)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto handle = std::any_cast<graphics_shader_handle>(args[0]);
+        auto uniform = std::any_cast<std::string>(args[1]);
+        auto index = std::any_cast<size_t>(args[2]);
+
+        auto gsi = pikango_internal::object_read_access(handle);
+
+        auto uniform_index = glGetUniformBlockIndex(gsi->id, uniform.c_str());   
+        glUniformBlockBinding(gsi->id, uniform_index, index);
+    };
+    enqueue_task(func, {target, uniform_access, pool_index});
 }

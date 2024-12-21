@@ -61,6 +61,7 @@ size_t pikango::size_of(data_types dt)
 IMPLEMENT_DESTRUCTOR(vertex_buffer);
 IMPLEMENT_DESTRUCTOR(index_buffer);
 IMPLEMENT_DESTRUCTOR(instance_buffer);
+IMPLEMENT_DESTRUCTOR(uniform_buffer);
 IMPLEMENT_DESTRUCTOR(data_layout);
 IMPLEMENT_DESTRUCTOR(graphics_shader);
 IMPLEMENT_DESTRUCTOR(texture_1d)

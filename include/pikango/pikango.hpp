@@ -157,6 +157,9 @@ namespace pikango
     BUFFER_METHODS(index_buffer);
     BUFFER_METHODS(instance_buffer);
     BUFFER_METHODS(uniform_buffer);
+
+    size_t get_uniform_pool_size();
+    void bind_uniform_buffer_to_pool(uniform_buffer_handle target, size_t pool_index);
 }
 
 #undef BUFFER_METHODS
@@ -197,10 +200,16 @@ namespace pikango
         const shader_part_pixel* spp
     );
 
-    void bind_texture_pool_slot_to_shader(
+    void bind_shader_sampler_to_pool(
         graphics_shader_handle target,
         const std::string& sampler_access,
-        size_t index
+        size_t pool_index
+    );
+    
+    void bind_shader_uniform_to_pool(
+        graphics_shader_handle target,
+        const std::string& uniform_access,
+        size_t pool_index
     );
 }
 
