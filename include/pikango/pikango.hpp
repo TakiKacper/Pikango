@@ -137,24 +137,23 @@ namespace pikango
         return !pikango_internal::is_empty(handle);
     }
 
-    const char* get_used_shading_language_name();
-
-    void wait_queue_current_tasks();
-    void wait_queue_empty();
-    void wait_all_queues_empty();
-
     void set_error_notification_callback(error_notification_callback callback);
 }
 
 /*
     Queues
 */
+
 namespace pikango
 {
     enum class queue_type
     {
         general, compute, transfer
     };
+    
+    void wait_queue_current_tasks();
+    void wait_queue_empty();
+    void wait_all_queues_empty();
 
     size_t get_queues_max_amount(queue_type type);
     void enable_queues(queue_type type, size_t amount);
@@ -201,6 +200,8 @@ namespace pikango
 
 namespace pikango
 {
+    const char* get_used_shading_language_name();
+
     struct shader_part_vertex;
     struct shader_part_geometry;
     struct shader_part_pixel;

@@ -74,7 +74,7 @@ namespace {
     std::queue<enqueued_task>   transfer_queue;
     std::condition_variable     transfer_queue_empty_condition;
 
-    bool should_opengl_thread_terminate = false;
+    bool should_execution_thread_terminate = false;
 
     std::mutex                  all_tasks_done_mutex;
     std::condition_variable     all_tasks_done_condition;
