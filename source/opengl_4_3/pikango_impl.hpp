@@ -61,6 +61,7 @@ std::string pikango::initialize_library_gpu()
     };
 
     enqueue_task(func, {});
+    wait_all_current_tasks_completion();
     return "";
 }
 

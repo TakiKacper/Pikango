@@ -37,6 +37,10 @@ namespace pikango
     enum class data_types
     {
         int32,
+        vec2i32,
+        vec3i32,
+        vec4i32,
+
         float32,
         vec2f32,
         vec3f32,
