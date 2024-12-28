@@ -139,10 +139,26 @@ namespace pikango
 
     const char* get_used_shading_language_name();
 
-    void wait_all_tasks_completion();
-    void wait_all_current_tasks_completion();
+    void wait_queue_current_tasks();
+    void wait_queue_empty();
+    void wait_all_queues_empty();
 
     void set_error_notification_callback(error_notification_callback callback);
+}
+
+/*
+    Queues
+*/
+namespace pikango
+{
+    enum class queue_type
+    {
+        general, compute, transfer
+    };
+
+    size_t get_queues_max_amount(queue_type type);
+    void enable_queues(queue_type type, size_t amount);
+    void select_thread_target_queue(queue_type type, size_t queue_index);
 }
 
 /*

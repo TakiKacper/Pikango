@@ -1,5 +1,3 @@
-#include <map>
-
 #include "glad/glad.h"
 #include "runthread/context_thread.hpp"
 
@@ -61,7 +59,7 @@ std::string pikango::initialize_library_gpu()
     };
 
     enqueue_task(func, {});
-    wait_all_current_tasks_completion();
+    pikango::wait_all_queues_empty();
     return "";
 }
 
@@ -82,34 +80,6 @@ static const char* glsl = "glsl";
 const char* pikango::get_used_shading_language_name()
 {
     return glsl;
-}
-
-void pikango::wait_all_tasks_completion()
-{
-    if (opengl_tasks_queue.size() == 0) return;
-    
-    std::unique_lock lock(all_tasks_done_mutex);
-    all_tasks_done_condition.wait(lock, []{ return opengl_tasks_queue.size() == 0; });
-}
-
-void pikango::wait_all_current_tasks_completion()
-{
-    static std::mutex mutex;
-    static std::condition_variable condition;
-
-    auto func = [](std::vector<std::any> args)
-    {
-        auto flag = std::any_cast<bool*>(args[0]);
-        *flag = true;
-
-        condition.notify_one();
-    };
-
-    std::unique_lock lock(mutex);
-    bool flag = false;
-
-    enqueue_task(func, {&flag});
-    condition.wait(lock, [&]{return flag;});
 }
 
 size_t pikango::get_texture_pool_size()
