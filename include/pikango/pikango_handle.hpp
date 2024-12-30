@@ -114,6 +114,11 @@ namespace pikango_internal
             return object;
         }
 
+        const T* operator*()
+        {
+            return object;
+        }
+
         object_read_access(const object_read_access<T>& cpy) = delete; 
         object_read_access(const object_read_access<T>&& cpy) = delete;
         object_read_access& operator=(const object_read_access<T>& cpy) = delete;
@@ -139,6 +144,11 @@ namespace pikango_internal
         }
 
         T* operator->()
+        {
+            return object;
+        }
+
+        T* operator*()
         {
             return object;
         }

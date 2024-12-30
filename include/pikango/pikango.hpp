@@ -8,7 +8,7 @@
 #include <any>
 
 /*
-    Enumerations
+    ENUMERATIONS
 */
 
 namespace pikango
@@ -72,7 +72,7 @@ namespace pikango
 }
 
 /*
-    Handles
+    HANDLES
 */
 
 #include "pikango_handle.hpp"
@@ -99,6 +99,9 @@ This macro for name = xyz would create folowing objects:
         void delete_##name (name##_handle);     \
     }
 
+PIKANGO_HANDLE_FWD(command_buffer);
+PIKANGO_HANDLE_FWD(fence);
+
 PIKANGO_HANDLE_FWD(vertex_buffer);
 PIKANGO_HANDLE_FWD(index_buffer);
 PIKANGO_HANDLE_FWD(instance_buffer);
@@ -121,8 +124,10 @@ PIKANGO_HANDLE_FWD(frame_buffer);
 #undef PIKANGO_HANDLE_FWD
 
 /*
-    Library Functions
+    FUNCTIONS
 */
+
+//Library
 namespace pikango
 {
     using error_notification_callback = void(*)(const char* notification);
@@ -131,62 +136,96 @@ namespace pikango
     std::string initialize_library_gpu();
     std::string terminate();
 
+    void set_error_notification_callback(error_notification_callback callback);
+
     template<class T>
     bool handle_good(const pikango_internal::handle<T>& handle)
     {
         return !pikango_internal::is_empty(handle);
     }
-
-    void set_error_notification_callback(error_notification_callback callback);
 }
 
-/*
-    Queues
-*/
+//Command Buffer
+namespace pikango
+{
+    enum class queue_type;
+    void configure_command_buffer(command_buffer_handle target, queue_type target_queue_type);
+    void begin_command_buffer_recording(command_buffer_handle target);
+    void end_command_buffer_recording(command_buffer_handle target);
+    void clear_command_buffer(command_buffer_handle target);
+}
 
+//Queues
 namespace pikango
 {
     enum class queue_type
     {
         general, compute, transfer
     };
-    
-    void wait_queue_current_tasks();
-    void wait_queue_empty();
-    void wait_all_queues_empty();
 
     size_t get_queues_max_amount(queue_type type);
     void enable_queues(queue_type type, size_t amount);
-    void select_thread_target_queue(queue_type type, size_t queue_index);
+
+    void wait_queue_empty(queue_type type, size_t queue_index);
+    void wait_all_queues_empty();
+    void submit_command_buffer(command_buffer_handle target, queue_type type, size_t queue_index);
+    void submit_command_buffer_with_fence(command_buffer_handle target, queue_type type, size_t queue_index, fence_handle wait_fence);
+}
+
+//Fences
+namespace pikango
+{
+    void wait_fence(fence_handle target);
+    void wait_multiple_fences(std::vector<fence_handle> targets);
+}
+
+//Getters
+namespace pikango
+{
+    //Uniform Buffers
+    size_t get_uniform_pool_size();
+
+    //Shaders
+    const char* get_used_shading_language_name();
+
+    //Textures
+    size_t get_texture_pool_size();
+
+    //Framebuffers
+    size_t get_max_framebuffer_color_buffers_amount();
 }
 
 /*
-    Buffers Methods
+    COMMNANDS AND METHODS
 */
 
-#define BUFFER_METHODS(buffer_name) \
-    size_t get_buffer_size(buffer_name##_handle target); \
+//Buffers
+namespace pikango
+{
+    size_t get_buffer_size(vertex_buffer_handle target);
+    size_t get_buffer_size(index_buffer_handle target);
+    size_t get_buffer_size(instance_buffer_handle target);
+    size_t get_buffer_size(uniform_buffer_handle target);
+}
+
+#define BUFFER_CMD(buffer_name) \
     void assign_buffer_memory(buffer_name##_handle target, size_t memory_block_size_bytes, buffer_memory_profile memory_profile, buffer_access_profile access_profile);   \
     void write_buffer(buffer_name##_handle target, size_t data_size_bytes, void* data);   \
     void write_buffer_region(buffer_name##_handle target, size_t data_size_bytes, void* data, size_t data_offset_bytes);   \
 
-namespace pikango
+namespace pikango::cmd
 {
-    BUFFER_METHODS(vertex_buffer);
-    BUFFER_METHODS(index_buffer);
-    BUFFER_METHODS(instance_buffer);
-    BUFFER_METHODS(uniform_buffer);
+    BUFFER_CMD(vertex_buffer);
+    BUFFER_CMD(index_buffer);
+    BUFFER_CMD(instance_buffer);
+    BUFFER_CMD(uniform_buffer);
 
-    size_t get_uniform_pool_size();
     void bind_uniform_buffer_to_pool(uniform_buffer_handle target, size_t pool_index);
 }
 
 #undef BUFFER_METHODS
 
-/*
-    Data Layout Methods
-*/
-
+//Data Layout
 namespace pikango
 {
     size_t get_layout_size(data_layout_handle target);
@@ -194,14 +233,9 @@ namespace pikango
     void assign_data_layout(data_layout_handle target, std::vector<data_types> layout, size_t layouts_stride);
 }
 
-/*
-    Shaders Methods
-*/
-
+//Shaders Compilation
 namespace pikango
 {
-    const char* get_used_shading_language_name();
-
     struct shader_part_vertex;
     struct shader_part_geometry;
     struct shader_part_pixel;
@@ -220,7 +254,11 @@ namespace pikango
         const shader_part_geometry* spg, 
         const shader_part_pixel* spp
     );
+}
 
+//Shaders Commands
+namespace pikango::cmd
+{
     void bind_shader_sampler_to_pool(
         graphics_shader_handle target,
         const std::string& sampler_access,
@@ -234,14 +272,64 @@ namespace pikango
     );
 }
 
-/*
-    Textures Methods
-*/
-
+//Textures
 namespace pikango
 {
-    size_t get_texture_pool_size();
+    void set_texture_wraping(texture_1d_handle target, texture_wraping x);
+    void set_texture_wraping(texture_2d_handle target, texture_wraping x, texture_wraping y);
+    void set_texture_wraping(texture_3d_handle target, texture_wraping x, texture_wraping y, texture_wraping z);
 
+    void set_texture_wraping(texture_cube_handle target, texture_wraping x, texture_wraping y, texture_wraping z);
+
+    void set_texture_wraping(texture_1d_array_handle target, texture_wraping x);
+    void set_texture_wraping(texture_2d_array_handle target, texture_wraping x, texture_wraping y);
+
+
+    void set_texture_filtering(
+        texture_1d_handle target, 
+        texture_filtering magnifying, 
+        texture_filtering minifying,
+        texture_filtering mipmap
+    );
+
+    void set_texture_filtering(
+        texture_2d_handle target, 
+        texture_filtering magnifying, 
+        texture_filtering minifying, 
+        texture_filtering mipmap
+    );
+
+    void set_texture_filtering(
+        texture_3d_handle target, 
+        texture_filtering magnifying, 
+        texture_filtering minifying, 
+        texture_filtering mipmap
+    );
+
+    void set_texture_filtering(
+        texture_cube_handle target, 
+        texture_filtering magnifying, 
+        texture_filtering minifying, 
+        texture_filtering mipmap
+    );
+
+    void set_texture_filtering(
+        texture_1d_array_handle target, 
+        texture_filtering magnifying, 
+        texture_filtering minifying, 
+        texture_filtering mipmap
+    );
+
+    void set_texture_filtering(
+        texture_2d_array_handle target, 
+        texture_filtering magnifying, 
+        texture_filtering minifying, 
+        texture_filtering mipmap
+    );
+}
+
+namespace pikango::cmd
+{
     void bind_texture_to_pool(texture_1d_handle target, size_t pool_index);
     void bind_texture_to_pool(texture_2d_handle target, size_t pool_index);
     void bind_texture_to_pool(texture_3d_handle target, size_t pool_index);
@@ -304,70 +392,11 @@ namespace pikango
         size_t height, 
         std::vector<void*> pixel_data
     );
-
-
-    void set_texture_wraping(texture_1d_handle target, texture_wraping x);
-    void set_texture_wraping(texture_2d_handle target, texture_wraping x, texture_wraping y);
-    void set_texture_wraping(texture_3d_handle target, texture_wraping x, texture_wraping y, texture_wraping z);
-
-    void set_texture_wraping(texture_cube_handle target, texture_wraping x, texture_wraping y, texture_wraping z);
-
-    void set_texture_wraping(texture_1d_array_handle target, texture_wraping x);
-    void set_texture_wraping(texture_2d_array_handle target, texture_wraping x, texture_wraping y);
-
-
-    void set_texture_filtering(
-        texture_1d_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying,
-        texture_filtering mipmap
-    );
-
-    void set_texture_filtering(
-        texture_2d_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying, 
-        texture_filtering mipmap
-    );
-
-    void set_texture_filtering(
-        texture_3d_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying, 
-        texture_filtering mipmap
-    );
-
-    void set_texture_filtering(
-        texture_cube_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying, 
-        texture_filtering mipmap
-    );
-
-    void set_texture_filtering(
-        texture_1d_array_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying, 
-        texture_filtering mipmap
-    );
-
-    void set_texture_filtering(
-        texture_2d_array_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying, 
-        texture_filtering mipmap
-    );
 }
 
-
-/*
-    Frame Buffer Methods
-*/
-
+//Framebuffers
 namespace pikango
 {
-    size_t get_max_framebuffer_color_buffers_amount();
-
     void attach_framebuffer_color_buffer(
         frame_buffer_handle target,
         texture_2d_handle attachment,
@@ -404,10 +433,7 @@ namespace pikango
 };
 
 
-/*
-    Drawing
-*/
-
+//Drawing
 namespace pikango
 {
     struct draw_target_args
@@ -446,7 +472,10 @@ namespace pikango
         instance_buffer_handle  instance_buffer;
         data_layout_handle      instance_layout;
     };
+}
 
+namespace pikango::cmd
+{
     void draw_vertices(
         draw_target_args&   dta, 
         draw_vertices_args& dva
@@ -471,7 +500,7 @@ namespace pikango
 }
 
 /*
-    Api Specific
+    API SPECIFIC
 */
 
 #ifdef PIKANGO_OPENGL_4_3

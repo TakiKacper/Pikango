@@ -29,7 +29,7 @@ size_t pikango::get_buffer_size(vertex_buffer_handle target)
     return bi->buffer_size;
 }
 
-void pikango::assign_buffer_memory(
+void pikango::cmd::assign_buffer_memory(
     vertex_buffer_handle target,
     size_t memory_block_size_bytes, 
     buffer_memory_profile memory_profile, 
@@ -44,12 +44,12 @@ void pikango::assign_buffer_memory(
     );
 }
 
-void pikango::write_buffer(vertex_buffer_handle target, size_t data_size_bytes, void* data)
+void pikango::cmd::write_buffer(vertex_buffer_handle target, size_t data_size_bytes, void* data)
 {
     write_buffer_memory_generic<vertex_buffer_handle>(target, data_size_bytes, data);
 }
 
-void pikango::write_buffer_region(vertex_buffer_handle target, size_t data_size_bytes, void* data, size_t data_offset_bytes)
+void pikango::cmd::write_buffer_region(vertex_buffer_handle target, size_t data_size_bytes, void* data, size_t data_offset_bytes)
 {
     write_buffer_memory_region_generic<vertex_buffer_handle>(target, data_size_bytes, data, data_offset_bytes);
 }

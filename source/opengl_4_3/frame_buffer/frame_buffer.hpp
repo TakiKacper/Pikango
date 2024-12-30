@@ -20,7 +20,7 @@ PIKANGO_NEW(frame_buffer)
         glGenFramebuffers(1, &fbi->id);
     };
 
-    enqueue_task(func, {handle});
+    enqueue_task(func, {handle}, pikango::queue_type::general);
     return handle;
 }
 
