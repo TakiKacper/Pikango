@@ -8,15 +8,7 @@ PIKANGO_IMPL(texture_cube)
 
 pikango_internal::texture_cube_impl::~texture_cube_impl()
 {
-    if (id != 0)
-    {
-        auto func = [](std::vector<std::any> args)
-        {
-            auto id = std::any_cast<GLuint>(args[0]);
-            glDeleteTextures(1, &id);
-        };
-        enqueue_task(func, {id});
-    }
+    delete_texture(this);
 }
 
 PIKANGO_NEW(texture_cube)
@@ -32,7 +24,7 @@ PIKANGO_DELETE(texture_cube)
 
 };
 
-void pikango::write_texture(
+void pikango::cmd::write_texture(
     texture_cube_handle target, 
     texture_format source_format, 
     texture_format inner_format, 
@@ -81,7 +73,12 @@ void pikango::write_texture(
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     };
 
-    enqueue_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, top, bottom, left, right, front, back});
+    record_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, top, bottom, left, right, front, back});
+}
+
+void pikango::cmd::bind_texture_to_pool(texture_cube_handle target, size_t index)
+{
+    bind_texture_to_pool_generic<texture_cube_handle, GL_TEXTURE_CUBE_MAP>(target, index);
 }
 
 void pikango::set_texture_wraping(texture_cube_handle target, texture_wraping x, texture_wraping y, texture_wraping z)
@@ -92,9 +89,4 @@ void pikango::set_texture_wraping(texture_cube_handle target, texture_wraping x,
 void pikango::set_texture_filtering(texture_cube_handle target, texture_filtering magnifying, texture_filtering minifying, texture_filtering mipmap)
 {
     set_texture_filtering_generic<texture_cube_handle, GL_TEXTURE_CUBE_MAP>(target, magnifying, minifying, mipmap);
-}
-
-void pikango::bind_texture_to_pool(texture_cube_handle target, size_t index)
-{
-    bind_texture_to_pool_generic<texture_cube_handle, GL_TEXTURE_CUBE_MAP>(target, index);
 }

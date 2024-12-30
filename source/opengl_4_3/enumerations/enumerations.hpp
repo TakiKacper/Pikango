@@ -69,6 +69,9 @@ GLuint get_data_type(pikango::data_types type)
         return GL_FLOAT;
 
     case pikango::data_types::int32:   
+    case pikango::data_types::vec2i32:
+    case pikango::data_types::vec3i32:
+    case pikango::data_types::vec4i32:
         return GL_INT;
     }
     //will never happen
@@ -85,9 +88,17 @@ GLuint get_elements_in_data_type(pikango::data_types type)
     case pikango::data_types::float32: return 1;
     case pikango::data_types::int32:   return 1;
     
-    case pikango::data_types::vec2f32: return 2;
-    case pikango::data_types::vec3f32: return 3;
-    case pikango::data_types::vec4f32: return 4;
+    case pikango::data_types::vec2f32: 
+    case pikango::data_types::vec2i32: 
+        return 2;
+
+    case pikango::data_types::vec3f32: 
+    case pikango::data_types::vec3i32: 
+        return 3;
+
+    case pikango::data_types::vec4f32: 
+    case pikango::data_types::vec4i32: 
+        return 4;
     }
     //will never happen
     return 1;

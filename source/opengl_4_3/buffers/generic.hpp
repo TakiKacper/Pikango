@@ -1,13 +1,14 @@
 template <class impl_type>
 void destroy_buffer_generic(impl_type* _this)
 {
-    auto func = [](std::vector<std::any> args)
+    /*auto func = [](std::vector<std::any> args)
     {
         auto bi = std::any_cast<impl_type*>(args[0]);
         if (bi->id != 0)
             glDeleteBuffers(1, &bi->id);
     };
-    enqueue_task(func, {_this});
+
+    enqueue_task(func, {_this});*/
 }
 
 template<class handle_type>
@@ -41,7 +42,8 @@ void assign_buffer_memory_generic(
         glBindBuffer(GL_COPY_WRITE_BUFFER, bi->id);
         glBufferData(GL_COPY_WRITE_BUFFER, size, nullptr, get_buffer_usage_flag(memory, access));   
     };
-    enqueue_task(func, {target, memory_block_size_bytes, memory_profile, access_profile});
+    
+    record_task(func, {target, memory_block_size_bytes, memory_profile, access_profile});
 }
 
 template<class handle_type>
@@ -72,7 +74,7 @@ void write_buffer_memory_generic(
         glBufferSubData(GL_COPY_WRITE_BUFFER, 0, size, data);
     };
     
-    enqueue_task(func, {target, data_size_bytes, data});
+    record_task(func, {target, data_size_bytes, data});
 }
 
 template<class handle_type>
@@ -105,5 +107,5 @@ void write_buffer_memory_region_generic(
         glBufferSubData(GL_COPY_WRITE_BUFFER, offset, size, data);
     };
     
-    enqueue_task(func, {target, data_size_bytes, data, data_offset_bytes});
+    record_task(func, {target, data_size_bytes, data, data_offset_bytes});
 }

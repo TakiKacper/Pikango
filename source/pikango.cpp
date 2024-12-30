@@ -7,6 +7,7 @@
 namespace pikango_internal
 {
     pikango::error_notification_callback error_callback = nullptr;
+
     void log_error(const char* text)
     {
         if (error_callback != nullptr)
@@ -57,7 +58,8 @@ size_t pikango::size_of(data_types dt)
         delete impl;                                                     \
     }
 
-
+IMPLEMENT_DESTRUCTOR(command_buffer);
+IMPLEMENT_DESTRUCTOR(fence);
 IMPLEMENT_DESTRUCTOR(vertex_buffer);
 IMPLEMENT_DESTRUCTOR(index_buffer);
 IMPLEMENT_DESTRUCTOR(instance_buffer);
