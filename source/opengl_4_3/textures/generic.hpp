@@ -52,7 +52,7 @@ inline void set_texture_filtering_generic(
         glTexParameteri(gl_texture_type, GL_TEXTURE_MIN_FILTER, min_filter);
     };
 
-    record_task(func, {target, get_texture_filtering(magnifying), combine_min_filters(minifying, mipmap)});
+    enqueue_task(func, {target, get_texture_filtering(magnifying), combine_min_filters(minifying, mipmap)}, pikango::queue_type::general);
 }
 
 template<class handle_type, GLuint gl_texture_type>
@@ -68,7 +68,7 @@ inline void set_texture_wraping_1d_generic(handle_type target, pikango::texture_
         glBindTexture(gl_texture_type, ti->id);
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_S, tw_x);
     };
-    record_task(func, {target, get_texture_wraping(x)});
+    enqueue_task(func, {target, get_texture_wraping(x)}, pikango::queue_type::general);
 }
 
 template<class handle_type, GLuint gl_texture_type>
@@ -86,7 +86,7 @@ inline void set_texture_wraping_2d_generic(handle_type target, pikango::texture_
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_S, tw_x);
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_T, tw_y);
     };
-    record_task(func, {target, get_texture_wraping(x), get_texture_wraping(y)});
+    enqueue_task(func, {target, get_texture_wraping(x), get_texture_wraping(y)}, pikango::queue_type::general);
 }
 
 template<class handle_type, GLuint gl_texture_type>
@@ -106,5 +106,5 @@ inline void set_texture_wraping_3d_generic(handle_type target, pikango::texture_
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_T, tw_y);
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_R, tw_z);
     };
-    record_task(func, {target, get_texture_wraping(x), get_texture_wraping(y), get_texture_wraping(z)});
+    enqueue_task(func, {target, get_texture_wraping(x), get_texture_wraping(y), get_texture_wraping(z)}, pikango::queue_type::general);
 }

@@ -76,7 +76,7 @@ void bind_vertex_and_instance_layout(
         glDisableVertexAttribArray(i);
 }
 
-void pikango::draw_vertices(draw_target_args& dta, draw_vertices_args& dva)
+void pikango::cmd::draw_vertices(draw_target_args& dta, draw_vertices_args& dva)
 {
     auto func = [](std::vector<std::any> args)
     {
@@ -102,7 +102,7 @@ void pikango::draw_vertices(draw_target_args& dta, draw_vertices_args& dva)
     record_task(func, {dta, dva});
 }
 
-void pikango::draw_indexed(draw_target_args& dta, draw_indexed_args& dia)
+void pikango::cmd::draw_indexed(draw_target_args& dta, draw_indexed_args& dia)
 {
     auto func = [](std::vector<std::any> args)
     {
@@ -132,7 +132,7 @@ void pikango::draw_indexed(draw_target_args& dta, draw_indexed_args& dia)
     record_task(func, {dta, dia});
 }
 
-void pikango::draw_vertices_instanced(draw_target_args& dta, draw_vertices_args& dva, draw_instanced_args dia)
+void pikango::cmd::draw_vertices_instanced(draw_target_args& dta, draw_vertices_args& dva, draw_instanced_args dia)
 {
     auto func = [](std::vector<std::any> args)
     {
@@ -165,7 +165,7 @@ void pikango::draw_vertices_instanced(draw_target_args& dta, draw_vertices_args&
     record_task(func, {dta, dva, dia});
 }
 
-void pikango::draw_indexed_instanced(draw_target_args& dta, draw_indexed_args& dia, draw_instanced_args dia2)
+void pikango::cmd::draw_indexed_instanced(draw_target_args& dta, draw_indexed_args& dia, draw_instanced_args dia2)
 {
     auto func = [](std::vector<std::any> args)
     {

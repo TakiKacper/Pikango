@@ -18,7 +18,7 @@ void attach_framebuffer_buffer_generic(
         glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment_type + index, GL_TEXTURE_2D, ti->id, 0);
     };
 
-    record_task(func, {target, attachment, index});
+    enqueue_task(func, {target}, pikango::queue_type::general);
 }
 
 template<GLenum gl_attachment_type>
@@ -38,5 +38,5 @@ void detach_framebuffer_buffer_generic(
         glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment_type + index, GL_TEXTURE_2D, 0, 0);
     };
 
-    record_task(func, {target, index});
+    enqueue_task(func, {target}, pikango::queue_type::general);
 }

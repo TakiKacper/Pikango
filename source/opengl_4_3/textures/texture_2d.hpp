@@ -25,7 +25,7 @@ PIKANGO_DELETE(texture_2d)
 
 };
 
-void pikango::write_texture(
+void pikango::cmd::write_texture(
     texture_2d_handle target, 
     texture_format source_format, 
     texture_format inner_format,
@@ -57,6 +57,11 @@ void pikango::write_texture(
     record_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, height, pixel_data});
 }
 
+void pikango::cmd::bind_texture_to_pool(texture_2d_handle target, size_t index)
+{
+    bind_texture_to_pool_generic<texture_2d_handle, GL_TEXTURE_2D>(target, index);
+}
+
 void pikango::set_texture_wraping(texture_2d_handle target, texture_wraping x, texture_wraping y)
 {
     set_texture_wraping_2d_generic<texture_2d_handle, GL_TEXTURE_2D>(target, x, y);
@@ -65,9 +70,4 @@ void pikango::set_texture_wraping(texture_2d_handle target, texture_wraping x, t
 void pikango::set_texture_filtering(texture_2d_handle target, texture_filtering magnifying, texture_filtering minifying, texture_filtering mipmap)
 {
     set_texture_filtering_generic<texture_2d_handle, GL_TEXTURE_2D>(target, magnifying, minifying, mipmap);
-}
-
-void pikango::bind_texture_to_pool(texture_2d_handle target, size_t index)
-{
-    bind_texture_to_pool_generic<texture_2d_handle, GL_TEXTURE_2D>(target, index);
 }

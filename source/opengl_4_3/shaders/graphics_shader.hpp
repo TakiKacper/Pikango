@@ -75,37 +75,37 @@ struct pikango::shader_part_pixel
 pikango::shader_part_vertex* pikango::compile_shader_part_vertex(const std::string& source)
 {
     shader_part_vertex* sp = new shader_part_vertex;
-    record_task(compile_shader_part_task<shader_part_vertex, GL_VERTEX_SHADER>, {sp, source});
+    enqueue_task(compile_shader_part_task<shader_part_vertex, GL_VERTEX_SHADER>, {sp, source}, queue_type::general);
     return sp;    
 }
 
 pikango::shader_part_geometry* pikango::compile_shader_part_geometry(const std::string& source)
 {
     shader_part_geometry* sp = new shader_part_geometry;
-    record_task(compile_shader_part_task<shader_part_geometry, GL_GEOMETRY_SHADER>, {sp, source});
+    enqueue_task(compile_shader_part_task<shader_part_geometry, GL_GEOMETRY_SHADER>, {sp, source}, queue_type::general);
     return sp;    
 }
 
 pikango::shader_part_pixel* pikango::compile_shader_part_pixel(const std::string& source)
 {
     shader_part_pixel* sp = new shader_part_pixel;
-    record_task(compile_shader_part_task<shader_part_pixel, GL_FRAGMENT_SHADER>, {sp, source});
+    enqueue_task(compile_shader_part_task<shader_part_pixel, GL_FRAGMENT_SHADER>, {sp, source}, queue_type::general);
     return sp;    
 }
 
 void pikango::free_shader_part_vertex(shader_part_vertex* sp)
 {
-    record_task(delete_shader_part_task<shader_part_vertex>, {sp});
+    enqueue_task(delete_shader_part_task<shader_part_vertex>, {sp}, queue_type::general);
 }
 
 void pikango::free_shader_part_geometry(shader_part_geometry* sp)
 {
-    record_task(delete_shader_part_task<shader_part_geometry>, {sp});
+    enqueue_task(delete_shader_part_task<shader_part_geometry>, {sp}, queue_type::general);
 }
 
 void pikango::free_shader_part_pixel(shader_part_pixel* sp)
 {
-    record_task(delete_shader_part_task<shader_part_pixel>, {sp});
+    enqueue_task(delete_shader_part_task<shader_part_pixel>, {sp}, queue_type::general);
 }
 
 void pikango::link_graphics_shader(
@@ -158,10 +158,10 @@ void pikango::link_graphics_shader(
 
         gsi->id = graphics_shader;
     };
-    record_task(func, {target, spv, spg, spp});
+    enqueue_task(func, {target, spv, spg, spp}, pikango::queue_type::general);
 }
 
-void pikango::bind_shader_sampler_to_pool(
+void pikango::cmd::bind_shader_sampler_to_pool(
     graphics_shader_handle target,
     const std::string& sampler_access,
     size_t pool_index
@@ -180,8 +180,8 @@ void pikango::bind_shader_sampler_to_pool(
     };
     record_task(func, {target, sampler_access, pool_index});
 }
-#include <iostream>
-void pikango::bind_shader_uniform_to_pool(
+
+void pikango::cmd::bind_shader_uniform_to_pool(
     graphics_shader_handle target,
     const std::string& uniform_access,
     size_t pool_index
