@@ -99,6 +99,9 @@ This macro for name = xyz would create folowing objects:
         void delete_##name (name##_handle);     \
     }
 
+PIKANGO_HANDLE_FWD(command_buffer);
+PIKANGO_HANDLE_FWD(fence);
+
 PIKANGO_HANDLE_FWD(vertex_buffer);
 PIKANGO_HANDLE_FWD(index_buffer);
 PIKANGO_HANDLE_FWD(instance_buffer);
@@ -141,6 +144,19 @@ namespace pikango
 }
 
 /*
+    Command Buffer Methods
+*/
+
+namespace pikango
+{
+    enum class queue_type;
+    void configure_command_buffer(command_buffer_handle target, queue_type target_queue_type);
+    void begin_command_buffer_recording(command_buffer_handle target);
+    void end_command_buffer_recording(command_buffer_handle target);
+    void clear_command_buffer(command_buffer_handle target);
+}
+
+/*
     Queues
 */
 
@@ -150,14 +166,24 @@ namespace pikango
     {
         general, compute, transfer
     };
-    
-    void wait_queue_current_tasks();
-    void wait_queue_empty();
-    void wait_all_queues_empty();
 
     size_t get_queues_max_amount(queue_type type);
     void enable_queues(queue_type type, size_t amount);
-    void select_thread_target_queue(queue_type type, size_t queue_index);
+
+    void wait_queue_empty(queue_type type, size_t queue_index);
+    void wait_all_queues_empty();
+    void submit_command_buffer(command_buffer_handle target, queue_type type, size_t queue_index);
+    void submit_command_buffer_with_fence(command_buffer_handle target, queue_type type, size_t queue_index, fence_handle wait_fence);
+}
+
+/*
+    Fences Methods
+*/
+
+namespace pikango
+{
+    void wait_fence(fence_handle target);
+    void wait_multiple_fences(std::vector<fence_handle> targets);
 }
 
 /*

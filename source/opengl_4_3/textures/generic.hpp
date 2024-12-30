@@ -1,3 +1,17 @@
+template<class impl_type>
+inline void delete_texture(impl_type* target)
+{
+    /*if (target->id != 0)
+    {
+        auto func = [](std::vector<std::any> args)
+        {
+            auto id = std::any_cast<GLuint>(args[0]);
+            glDeleteTextures(1, &id);
+        };
+        enqueue_task(func, {target->id});
+    }*/
+}
+
 template<class handle_type, GLuint gl_texture_type>
 inline void bind_texture_to_pool_generic(handle_type target, size_t index)
 {
@@ -14,7 +28,7 @@ inline void bind_texture_to_pool_generic(handle_type target, size_t index)
         //to avoid changing the pool bindings
         glActiveTexture(GL_TEXTURE0 + textures_operation_unit);
     };
-    enqueue_task(func, {target, index});
+    record_task(func, {target, index});
 }
 
 template<class handle_type, GLuint gl_texture_type>
@@ -38,7 +52,7 @@ inline void set_texture_filtering_generic(
         glTexParameteri(gl_texture_type, GL_TEXTURE_MIN_FILTER, min_filter);
     };
 
-    enqueue_task(func, {target, get_texture_filtering(magnifying), combine_min_filters(minifying, mipmap)});
+    record_task(func, {target, get_texture_filtering(magnifying), combine_min_filters(minifying, mipmap)});
 }
 
 template<class handle_type, GLuint gl_texture_type>
@@ -54,7 +68,7 @@ inline void set_texture_wraping_1d_generic(handle_type target, pikango::texture_
         glBindTexture(gl_texture_type, ti->id);
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_S, tw_x);
     };
-    enqueue_task(func, {target, get_texture_wraping(x)});
+    record_task(func, {target, get_texture_wraping(x)});
 }
 
 template<class handle_type, GLuint gl_texture_type>
@@ -72,7 +86,7 @@ inline void set_texture_wraping_2d_generic(handle_type target, pikango::texture_
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_S, tw_x);
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_T, tw_y);
     };
-    enqueue_task(func, {target, get_texture_wraping(x), get_texture_wraping(y)});
+    record_task(func, {target, get_texture_wraping(x), get_texture_wraping(y)});
 }
 
 template<class handle_type, GLuint gl_texture_type>
@@ -92,5 +106,5 @@ inline void set_texture_wraping_3d_generic(handle_type target, pikango::texture_
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_T, tw_y);
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_R, tw_z);
     };
-    enqueue_task(func, {target, get_texture_wraping(x), get_texture_wraping(y), get_texture_wraping(z)});
+    record_task(func, {target, get_texture_wraping(x), get_texture_wraping(y), get_texture_wraping(z)});
 }

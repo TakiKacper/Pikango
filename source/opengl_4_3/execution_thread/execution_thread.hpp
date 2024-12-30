@@ -5,16 +5,6 @@
 #include <queue>
 #include <any>
 
-/*
-    Queues
-*/
-
-namespace
-{
-    thread_local pikango::queue_type target_queue_type = pikango::queue_type::general;
-    thread_local size_t target_queue_index = 0;
-}
-
 //In opengl there is no such concept as queues
 //therefore we emulate this behavior by executing the general queue first 
 //and the other ones when the general queue is empty
@@ -42,23 +32,11 @@ void pikango::enable_queues(pikango::queue_type type, size_t amount)
     //Theres no queues to be created
 }
 
-void pikango::select_thread_target_queue(pikango::queue_type type, size_t queue_index)
-{
-    if (queue_index != 0)
-        pikango_internal::log_error(("Invalid queue index: " + std::to_string(queue_index) + ". OpenGL pikango implementation only supports one queue per type").c_str());
-
-    target_queue_type = type;
-    target_queue_index = queue_index;
-}
-
 /*
     Execution
 */
 
 namespace {
-    using opengl_task = void(*)(std::vector<std::any>);
-    using enqueued_task = std::pair<opengl_task, std::vector<std::any>>;
-
     std::mutex                  execution_thread_sleep_mutex;
     std::condition_variable     execution_thread_sleep_condition;
 
@@ -80,33 +58,6 @@ namespace {
     std::condition_variable     all_tasks_done_condition;
 };
 
-static void enqueue_task(const opengl_task& task, std::vector<std::any> args)
-{
-    auto push_task = [&](std::queue<enqueued_task>& queue, std::mutex& mutex, std::condition_variable& condition)
-    {
-        mutex.lock();
-        queue.push({task, std::move(args)});
-        mutex.unlock();
-    };
-
-    switch (target_queue_type)
-    {
-    case pikango::queue_type::general:
-        push_task(general_queue, general_queue_mutex, general_queue_empty_condition);
-        break;
-
-    case pikango::queue_type::compute:
-        push_task(compute_queue, compute_queue_mutex, compute_queue_empty_condition);
-        break;
-        
-    case pikango::queue_type::transfer:
-        push_task(transfer_queue, transfer_queue_mutex, transfer_queue_empty_condition);
-        break;
-    }
-
-    execution_thread_sleep_condition.notify_one();
-}
-
 static bool all_queues_empty()
 {
     return !(general_queue.size() + compute_queue.size() + transfer_queue.size());
@@ -118,10 +69,10 @@ static void opengl_execution_thread_logic()
     {
         //Wait for tasks
         std::unique_lock<std::mutex> lock(execution_thread_sleep_mutex);
-        execution_thread_sleep_condition.wait(lock, []() { return !all_queues_empty() || should_opengl_thread_terminate; });
+        execution_thread_sleep_condition.wait(lock, []() { return !all_queues_empty() || should_execution_thread_terminate; });
 
         //If no tasks left and should terminate -> Leave
-        if (should_opengl_thread_terminate && all_queues_empty() == 0) break;
+        if (should_execution_thread_terminate && all_queues_empty() == 0) break;
 
         //Take task
         enqueued_task task;
@@ -162,14 +113,14 @@ static std::thread* opengl_execution_thread;
 
 static void start_opengl_execution_thread()
 {
-    should_opengl_thread_terminate = false;
+    should_execution_thread_terminate = false;
     opengl_execution_thread = new std::thread{opengl_execution_thread_logic};
 }
 
 static void stop_opengl_execution_thread()
 {
     //Notify the thread to stop
-    should_opengl_thread_terminate = true;
+    should_execution_thread_terminate = true;
     execution_thread_sleep_condition.notify_one();
 
     //Wait for the opengl thread
@@ -183,33 +134,13 @@ static void stop_opengl_execution_thread()
     Waiting
 */
 
-void pikango::wait_queue_current_tasks()
-{
-    static std::mutex mutex;
-    static std::condition_variable condition;
-
-    auto func = [](std::vector<std::any> args)
-    {
-        auto flag = std::any_cast<bool*>(args[0]);
-        *flag = true;
-
-        condition.notify_one();
-    };
-
-    std::unique_lock lock(mutex);
-    bool flag = false;
-
-    enqueue_task(func, {&flag});
-    condition.wait(lock, [&]{return flag;});
-}
-
-void pikango::wait_queue_empty()
+void pikango::wait_queue_empty(queue_type type, size_t queue_index)
 {
     std::queue<enqueued_task>*  queue;
     std::mutex*                 mutex;
     std::condition_variable*    condition;
 
-    switch (target_queue_type)
+    switch (type)
     {
     case pikango::queue_type::general:
         queue = &general_queue;

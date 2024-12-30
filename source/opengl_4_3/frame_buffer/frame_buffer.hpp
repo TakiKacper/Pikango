@@ -20,7 +20,7 @@ PIKANGO_NEW(frame_buffer)
         glGenFramebuffers(1, &fbi->id);
     };
 
-    enqueue_task(func, {handle});
+    record_task(func, {handle});
     return handle;
 }
 

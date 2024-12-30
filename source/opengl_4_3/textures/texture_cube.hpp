@@ -8,15 +8,7 @@ PIKANGO_IMPL(texture_cube)
 
 pikango_internal::texture_cube_impl::~texture_cube_impl()
 {
-    if (id != 0)
-    {
-        auto func = [](std::vector<std::any> args)
-        {
-            auto id = std::any_cast<GLuint>(args[0]);
-            glDeleteTextures(1, &id);
-        };
-        enqueue_task(func, {id});
-    }
+    delete_texture(this);
 }
 
 PIKANGO_NEW(texture_cube)
@@ -81,7 +73,7 @@ void pikango::write_texture(
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     };
 
-    enqueue_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, top, bottom, left, right, front, back});
+    record_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, top, bottom, left, right, front, back});
 }
 
 void pikango::set_texture_wraping(texture_cube_handle target, texture_wraping x, texture_wraping y, texture_wraping z)

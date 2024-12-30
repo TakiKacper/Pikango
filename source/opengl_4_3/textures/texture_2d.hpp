@@ -9,15 +9,7 @@ PIKANGO_IMPL(texture_2d)
 
 pikango_internal::texture_2d_impl::~texture_2d_impl()
 {
-    if (id != 0)
-    {
-        auto func = [](std::vector<std::any> args)
-        {
-            auto id = std::any_cast<GLuint>(args[0]);
-            glDeleteTextures(1, &id);
-        };
-        enqueue_task(func, {id});
-    }
+    delete_texture(this);
 }
 
 PIKANGO_NEW(texture_2d)
@@ -62,7 +54,7 @@ void pikango::write_texture(
         glTexImage2D(GL_TEXTURE_2D, 0, inner_format, width, height, 0, source_format, source_data_type, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     };
-    enqueue_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, height, pixel_data});
+    record_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, height, pixel_data});
 }
 
 void pikango::set_texture_wraping(texture_2d_handle target, texture_wraping x, texture_wraping y)

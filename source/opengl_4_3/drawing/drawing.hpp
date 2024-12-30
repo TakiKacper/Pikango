@@ -99,7 +99,7 @@ void pikango::draw_vertices(draw_target_args& dta, draw_vertices_args& dva)
         );
     };
 
-    enqueue_task(func, {dta, dva});
+    record_task(func, {dta, dva});
 }
 
 void pikango::draw_indexed(draw_target_args& dta, draw_indexed_args& dia)
@@ -129,7 +129,7 @@ void pikango::draw_indexed(draw_target_args& dta, draw_indexed_args& dia)
         );
     };
 
-    enqueue_task(func, {dta, dia});
+    record_task(func, {dta, dia});
 }
 
 void pikango::draw_vertices_instanced(draw_target_args& dta, draw_vertices_args& dva, draw_instanced_args dia)
@@ -162,7 +162,7 @@ void pikango::draw_vertices_instanced(draw_target_args& dta, draw_vertices_args&
         );
     };
 
-    enqueue_task(func, {dta, dva, dia});
+    record_task(func, {dta, dva, dia});
 }
 
 void pikango::draw_indexed_instanced(draw_target_args& dta, draw_indexed_args& dia, draw_instanced_args dia2)
@@ -199,5 +199,5 @@ void pikango::draw_indexed_instanced(draw_target_args& dta, draw_indexed_args& d
         );
     };
 
-    enqueue_task(func, {dta, dia, dia2});
+    record_task(func, {dta, dia, dia2});
 }

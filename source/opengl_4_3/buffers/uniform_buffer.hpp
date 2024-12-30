@@ -64,5 +64,5 @@ void pikango::bind_uniform_buffer_to_pool(uniform_buffer_handle target, size_t p
         auto bi = pikango_internal::object_read_access(handle);
         glBindBufferBase(GL_UNIFORM_BUFFER, index, bi->id);
     };
-    enqueue_task(func, {target, pool_index});
+    record_task(func, {target, pool_index});
 }

@@ -8,15 +8,7 @@ PIKANGO_IMPL(texture_1d)
 
 pikango_internal::texture_1d_impl::~texture_1d_impl()
 {
-    if (id != 0)
-    {
-        auto func = [](std::vector<std::any> args)
-        {
-            auto id = std::any_cast<GLuint>(args[0]);
-            glDeleteTextures(1, &id);
-        };
-        enqueue_task(func, {id});
-    }
+    delete_texture(this);
 }
 
 PIKANGO_NEW(texture_1d)
@@ -57,7 +49,7 @@ void pikango::write_texture(
         glTexImage1D(GL_TEXTURE_1D, 0, inner_format, width, 0, source_format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_1D);
     };
-    enqueue_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, pixel_data});
+    record_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, pixel_data});
 }
 
 void pikango::set_texture_wraping(texture_1d_handle target, texture_wraping x)
