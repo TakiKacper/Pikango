@@ -20,6 +20,7 @@ namespace
 
 #include "execution_thread/execution_thread.hpp"
 #include "command_buffer/command_buffer.hpp"
+#include "fence/fence.hpp"
 
 namespace
 {
@@ -90,6 +91,67 @@ void pikango::submit_command_buffer(pikango::command_buffer_handle cb, pikango::
     execution_thread_sleep_condition.notify_one();
 }
 
+void pikango::submit_command_buffer_with_fence(pikango::command_buffer_handle cb, pikango::queue_type target_queue_type, size_t target_queue_index, fence_handle fence)
+{
+    auto cbi = pikango_internal::object_read_access(cb);
+    
+    std::queue<enqueued_task>*  queue;
+    std::mutex*                 mutex;
+
+    switch (target_queue_type)
+    {
+    case pikango::queue_type::general:
+        queue = &general_queue;
+        mutex = &general_queue_mutex;
+        break;
+    case pikango::queue_type::compute:
+        queue = &compute_queue;
+        mutex = &compute_queue_mutex;
+        break;
+    case pikango::queue_type::transfer:
+        queue = &transfer_queue;
+        mutex = &transfer_queue_mutex;
+        break;
+    };
+
+    auto func = [](std::vector<std::any> args)
+    {
+        auto fence = std::any_cast<fence_handle>(args[0]);
+        auto const_fi = pikango_internal::object_read_access(fence);
+        auto fi = const_cast<pikango_internal::fence_impl*>(*const_fi);
+
+        fi->is_signaled = true;
+        fi->condition.notify_one();
+    };
+
+    mutex->lock();
+
+    auto fi = pikango_internal::object_write_access(fence);
+    fi->subbmitted = true;
+    fi->is_signaled = false;
+
+    for (auto& task : cbi->tasks)
+        queue->push(task);
+
+    queue->push({func, {fence}});
+
+    mutex->unlock();
+
+    execution_thread_sleep_condition.notify_one();
+}
+
+void pikango::wait_fence(fence_handle target)
+{
+    //using read access does not block the handle mutex
+    //it is required so the exectution thread could signal the fence
+    auto const_fi = pikango_internal::object_read_access(target);
+    auto fi = const_cast<pikango_internal::fence_impl*>(*const_fi);
+
+    if (fi->subbmitted == false) return;
+
+    std::unique_lock<std::mutex> lock(fi->mutex);
+    fi->condition.wait(lock, [&] { return fi->is_signaled || !fi->subbmitted; });
+}
 
 /*
     Common Opengl Objects

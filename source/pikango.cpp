@@ -59,6 +59,7 @@ size_t pikango::size_of(data_types dt)
     }
 
 IMPLEMENT_DESTRUCTOR(command_buffer);
+IMPLEMENT_DESTRUCTOR(fence);
 IMPLEMENT_DESTRUCTOR(vertex_buffer);
 IMPLEMENT_DESTRUCTOR(index_buffer);
 IMPLEMENT_DESTRUCTOR(instance_buffer);
