@@ -97,8 +97,18 @@ This macro for name = xyz would create folowing objects:
         name##_handle new_##name ();            \
     }
 
+PIKANGO_HANDLE_FWD(graphics_pipeline);
+//PIKANGO_HANDLE_FWD(compute_pipeline)
+
+PIKANGO_HANDLE_FWD(vertex_shader);
+PIKANGO_HANDLE_FWD(pixel_shader);
+PIKANGO_HANDLE_FWD(geometry_shader);
+//PIKANGO_HANDLE_FWD(compute_shader);
+
 PIKANGO_HANDLE_FWD(command_buffer);
 PIKANGO_HANDLE_FWD(fence);
+
+PIKANGO_HANDLE_FWD(frame_buffer);
 
 PIKANGO_HANDLE_FWD(vertex_buffer);
 PIKANGO_HANDLE_FWD(index_buffer);
@@ -115,9 +125,7 @@ PIKANGO_HANDLE_FWD(texture_3d);
 PIKANGO_HANDLE_FWD(texture_cube);
 PIKANGO_HANDLE_FWD(texture_1d_array);
 PIKANGO_HANDLE_FWD(texture_2d_array);
-
-PIKANGO_HANDLE_FWD(renderbuffer);
-PIKANGO_HANDLE_FWD(frame_buffer);
+//PIKANGO_HANDLE_FWD(renderbuffer);
 
 #undef PIKANGO_HANDLE_FWD
 
@@ -144,6 +152,30 @@ namespace pikango
         rectangle() : ax(0), ay(0), bx(400), by(400) {};
         rectangle(float _ax, float _ay, float _bx, float _by)
             : ax(_ax), ay(_ay), bx(_bx), by(_by) {};
+    };
+
+    struct graphics_shaders_configuration
+    {
+        vertex_shader_handle    vertex_shader;
+        pixel_shader_handle     pixel_shader;
+        geometry_shader_handle  geometry_shader;
+    };
+
+    struct input_assembly_configuration
+    {
+        draw_primitive primitive = draw_primitive::traingles;
+    };
+
+    struct rasterization_configuration
+    {
+        //TODO
+    };
+
+    struct graphics_pipeline_configuration
+    {
+        graphics_shaders_configuration  shaders_config;
+        input_assembly_configuration    assembly_config;
+        rasterization_configuration     rasterization_config;
     };
 
     struct draw_target_args
@@ -206,16 +238,6 @@ namespace pikango
     }
 }
 
-//Command Buffer
-namespace pikango
-{
-    enum class queue_type;
-    void configure_command_buffer(command_buffer_handle target, queue_type target_queue_type);
-    void begin_command_buffer_recording(command_buffer_handle target);
-    void end_command_buffer_recording(command_buffer_handle target);
-    void clear_command_buffer(command_buffer_handle target);
-}
-
 //Queues
 namespace pikango
 {
@@ -231,13 +253,6 @@ namespace pikango
     void wait_all_queues_empty();
     void submit_command_buffer(command_buffer_handle target, queue_type type, size_t queue_index);
     void submit_command_buffer_with_fence(command_buffer_handle target, queue_type type, size_t queue_index, fence_handle wait_fence);
-}
-
-//Fences
-namespace pikango
-{
-    void wait_fence(fence_handle target);
-    void wait_multiple_fences(std::vector<fence_handle> targets);
 }
 
 //Getters
@@ -257,8 +272,30 @@ namespace pikango
 }
 
 /*
-    COMMNANDS AND METHODS
+    COMMNANDS AND UTILITY METHODS
 */
+
+//PIPELINES
+namespace pikango
+{
+    void configure_graphics_pipeline(graphics_pipeline_handle target, graphics_pipeline_configuration configuration);
+}
+
+//Command Buffer
+namespace pikango
+{
+    void configure_command_buffer(command_buffer_handle target, queue_type target_queue_type);
+    void begin_command_buffer_recording(command_buffer_handle target);
+    void end_command_buffer_recording(command_buffer_handle target);
+    void clear_command_buffer(command_buffer_handle target);
+}
+
+//Fences
+namespace pikango
+{
+    void wait_fence(fence_handle target);
+    void wait_multiple_fences(std::vector<fence_handle> targets);
+}
 
 //Buffers
 namespace pikango
@@ -297,24 +334,10 @@ namespace pikango
 //Shaders Compilation
 namespace pikango
 {
-    struct shader_part_vertex;
-    struct shader_part_geometry;
-    struct shader_part_pixel;
-
-    shader_part_vertex*     compile_shader_part_vertex(const std::string& source);
-    shader_part_geometry*   compile_shader_part_geometry(const std::string& source);
-    shader_part_pixel*      compile_shader_part_pixel(const std::string& source);
-
-    void free_shader_part_vertex(shader_part_vertex* spv);
-    void free_shader_part_geometry(shader_part_geometry* spg);
-    void free_shader_part_pixel(shader_part_pixel* spp);
-
-    void link_graphics_shader(
-        graphics_shader_handle target, 
-        const shader_part_vertex* spv, 
-        const shader_part_geometry* spg, 
-        const shader_part_pixel* spp
-    );
+    void compile_vertex_shader   (vertex_shader_handle target, const std::string& source);
+    void compile_pixel_shader    (pixel_shader_handle target, const std::string& source);
+    void compile_geometry_shader (geometry_shader_handle target, const std::string& source);
+    //void compile_compute_shader(compute_shader_handle target, const std::string& source);
 }
 
 //Shaders Commands
@@ -493,6 +516,21 @@ namespace pikango
     texture_2d_handle get_framebuffer_stencil_buffer(frame_buffer_handle target);
 };
 
+/*
+    DRAWING AND STATE
+*/
+
+//Binding
+namespace pikango::cmd
+{
+    void bind_graphics_pipeline(command_buffer_handle target, graphics_pipeline_handle pipeline);
+    
+    void bind_frame_buffer(command_buffer_handle target, frame_buffer_handle frame_buffer);
+
+    void bind_vertex_buffer(command_buffer_handle target, vertex_buffer_handle vertex_buffer);
+    void bind_index_buffer(command_buffer_handle target, index_buffer_handle index_buffer);
+    void bind_instance_buffer(command_buffer_handle target, instance_buffer_handle instance_buffer);
+}
 
 //Drawing
 namespace pikango::cmd
