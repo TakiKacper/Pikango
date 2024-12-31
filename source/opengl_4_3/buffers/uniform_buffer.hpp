@@ -13,11 +13,6 @@ PIKANGO_NEW(uniform_buffer)
     return handle;
 }
 
-PIKANGO_DELETE(uniform_buffer)
-{ 
-
-};
-
 pikango_internal::uniform_buffer_impl::~uniform_buffer_impl()
 {
     destroy_buffer_generic(this);

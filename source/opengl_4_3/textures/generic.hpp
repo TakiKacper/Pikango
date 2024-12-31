@@ -1,15 +1,14 @@
 template<class impl_type>
 inline void delete_texture(impl_type* target)
 {
-    /*if (target->id != 0)
+    auto func = [](std::vector<std::any> args)
     {
-        auto func = [](std::vector<std::any> args)
-        {
-            auto id = std::any_cast<GLuint>(args[0]);
-            glDeleteTextures(1, &id);
-        };
-        enqueue_task(func, {target->id});
-    }*/
+        auto id = std::any_cast<GLuint>(args[0]);
+        glDeleteTextures(1, &id);
+    };
+
+    if (target->id != 0)
+        enqueue_task(func, {target->id}, pikango::queue_type::general);
 }
 
 template<class handle_type, GLuint gl_texture_type>

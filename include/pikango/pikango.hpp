@@ -84,7 +84,6 @@ This macro for name = xyz would create folowing objects:
     
     pikango::xyz_handle         (handle specialization)
     pikango::new_xyz            (function)
-    pikango::delete_xyz         (function)
 */
 #define PIKANGO_HANDLE_FWD(name)     \
     namespace pikango_internal   \
@@ -96,7 +95,6 @@ This macro for name = xyz would create folowing objects:
     {                            \
         using name##_handle = pikango_internal::handle<pikango_internal::name##_impl>;    \
         name##_handle new_##name ();            \
-        void delete_##name (name##_handle);     \
     }
 
 PIKANGO_HANDLE_FWD(command_buffer);

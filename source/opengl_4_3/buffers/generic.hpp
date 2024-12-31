@@ -1,14 +1,14 @@
 template <class impl_type>
 void destroy_buffer_generic(impl_type* _this)
 {
-    /*auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any> args)
     {
-        auto bi = std::any_cast<impl_type*>(args[0]);
-        if (bi->id != 0)
-            glDeleteBuffers(1, &bi->id);
+        auto id = std::any_cast<GLuint>(args[0]);
+        glDeleteBuffers(1, &id);
     };
 
-    enqueue_task(func, {_this});*/
+    if (_this->id != 0)
+        enqueue_task(func, {_this->id}, pikango::queue_type::general);
 }
 
 template<class handle_type>

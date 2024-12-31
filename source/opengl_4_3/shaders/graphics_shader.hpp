@@ -5,6 +5,7 @@
 PIKANGO_IMPL(graphics_shader)
 {
     GLuint id;
+    ~graphics_shader_impl();
 };
 
 PIKANGO_NEW(graphics_shader)
@@ -15,10 +16,18 @@ PIKANGO_NEW(graphics_shader)
     return handle;
 };
 
-PIKANGO_DELETE(graphics_shader)
+pikango_internal::graphics_shader_impl::~graphics_shader_impl()
 {
+    auto func = [](std::vector<std::any> args)
+    {
+        auto id = std::any_cast<GLuint>(args[0]);
+        glDeleteProgram(id);
+    };
 
-};
+    if (id != 0)
+        enqueue_task(func, {id}, pikango::queue_type::general);
+}
+
 
 /*
     Methods

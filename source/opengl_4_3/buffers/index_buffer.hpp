@@ -13,11 +13,6 @@ PIKANGO_NEW(index_buffer)
     return handle;
 }
 
-PIKANGO_DELETE(index_buffer)
-{ 
-
-};
-
 pikango_internal::index_buffer_impl::~index_buffer_impl()
 {
     destroy_buffer_generic(this);

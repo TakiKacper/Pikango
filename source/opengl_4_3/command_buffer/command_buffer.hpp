@@ -10,11 +10,6 @@ PIKANGO_NEW(command_buffer)
     return handle;
 }
 
-PIKANGO_DELETE(command_buffer)
-{ 
-
-};
-
 void pikango::configure_command_buffer(command_buffer_handle target, queue_type target_queue_type)
 {
     auto cbi = pikango_internal::object_write_access(target);

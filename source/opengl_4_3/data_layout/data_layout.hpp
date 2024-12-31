@@ -13,11 +13,6 @@ PIKANGO_NEW(data_layout)
     return pikango_internal::make_handle(new pikango_internal::data_layout_impl);
 };
 
-PIKANGO_DELETE(data_layout)
-{
-
-};
-
 /*
     Methods
 */

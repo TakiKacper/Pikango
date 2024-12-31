@@ -15,9 +15,6 @@ namespace
 #define PIKANGO_NEW(name)   \
     pikango::name##_handle pikango::new_##name ()
 
-#define PIKANGO_DELETE(name)    \
-    void pikango::delete_##name (pikango::name##_handle handle)
-
 #include "execution_thread/execution_thread.hpp"
 #include "command_buffer/command_buffer.hpp"
 #include "fence/fence.hpp"
