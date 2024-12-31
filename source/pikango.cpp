@@ -1,6 +1,25 @@
 #include "pikango/pikango.hpp"
 
 /*
+    Util
+*/
+
+static bool operator==(const pikango::rectangle& a, const pikango::rectangle& b)
+{
+    return (
+        a.ax == b.ax && 
+        a.ay == b.ay && 
+        a.bx == b.bx && 
+        a.by == b.by
+    );
+}
+
+static bool operator!=(const pikango::rectangle& a, const pikango::rectangle& b)
+{
+    return !(a == b);
+}
+
+/*
     Private Globals
 */
 

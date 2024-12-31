@@ -122,6 +122,69 @@ PIKANGO_HANDLE_FWD(frame_buffer);
 #undef PIKANGO_HANDLE_FWD
 
 /*
+    STRUCTS
+*/
+
+namespace pikango
+{
+    //Struct for representing rectangles
+    //it describes them at two points in a coordinate system: a and b
+    //a being the lower-left point  (offset)
+    //b being the upper-right point (extend)
+    //  |----------B
+    //  |----------|
+    //  A----------|
+    struct rectangle
+    {
+        float ax;
+        float ay;
+
+        float bx;
+        float by;
+        rectangle() : ax(0), ay(0), bx(400), by(400) {};
+        rectangle(float _ax, float _ay, float _bx, float _by)
+            : ax(_ax), ay(_ay), bx(_bx), by(_by) {};
+    };
+
+    struct draw_target_args
+    {
+        frame_buffer_handle     frame_buffer;
+    };
+
+    struct draw_vertices_args
+    {
+        draw_primitive          primitive = draw_primitive::traingles;
+        size_t                  first_vertex_index = 0;
+        size_t                  vertices_count = 0;
+
+        vertex_buffer_handle    vertex_buffer;
+        data_layout_handle      vertex_layout;
+
+        graphics_shader_handle  graphics_shader;
+    };
+
+    struct draw_indexed_args
+    {
+        draw_primitive          primitive = draw_primitive::traingles;
+        size_t                  indicies_count = 0;
+
+        vertex_buffer_handle    vertex_buffer;
+        data_layout_handle      vertex_layout;
+        
+        index_buffer_handle     index_buffer;
+
+        graphics_shader_handle  graphics_shader;
+    };
+
+    struct draw_instanced_args
+    {
+        size_t                  instances_count = 0;
+        instance_buffer_handle  instance_buffer;
+        data_layout_handle      instance_layout;
+    };
+}
+
+/*
     FUNCTIONS
 */
 
@@ -432,46 +495,6 @@ namespace pikango
 
 
 //Drawing
-namespace pikango
-{
-    struct draw_target_args
-    {
-        frame_buffer_handle     frame_buffer;
-    };
-
-    struct draw_vertices_args
-    {
-        draw_primitive          primitive = draw_primitive::traingles;
-        size_t                  first_vertex_index = 0;
-        size_t                  vertices_count = 0;
-
-        vertex_buffer_handle    vertex_buffer;
-        data_layout_handle      vertex_layout;
-
-        graphics_shader_handle  graphics_shader;
-    };
-
-    struct draw_indexed_args
-    {
-        draw_primitive          primitive = draw_primitive::traingles;
-        size_t                  indicies_count = 0;
-
-        vertex_buffer_handle    vertex_buffer;
-        data_layout_handle      vertex_layout;
-        
-        index_buffer_handle     index_buffer;
-
-        graphics_shader_handle  graphics_shader;
-    };
-
-    struct draw_instanced_args
-    {
-        size_t                  instances_count = 0;
-        instance_buffer_handle  instance_buffer;
-        data_layout_handle      instance_layout;
-    };
-}
-
 namespace pikango::cmd
 {
     void draw_vertices(
