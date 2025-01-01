@@ -15,7 +15,7 @@ PIKANGO_NEW(instance_buffer)
 
 pikango_internal::instance_buffer_impl::~instance_buffer_impl()
 {
-    destroy_buffer_generic(this);
+    delete_buffer_generic(this);
 }
 
 size_t pikango::get_buffer_size(instance_buffer_handle target)

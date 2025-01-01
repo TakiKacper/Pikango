@@ -15,7 +15,7 @@ PIKANGO_NEW(uniform_buffer)
 
 pikango_internal::uniform_buffer_impl::~uniform_buffer_impl()
 {
-    destroy_buffer_generic(this);
+    delete_buffer_generic(this);
 }
 
 size_t pikango::get_buffer_size(uniform_buffer_handle target)

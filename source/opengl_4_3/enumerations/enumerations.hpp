@@ -58,20 +58,20 @@ GLuint get_primitive(pikango::draw_primitive prim)
     return GL_TRIANGLES;
 }
 
-GLuint get_data_type(pikango::data_types type)
+GLuint get_data_type(pikango::data_type type)
 {
     switch (type)
     {
-    case pikango::data_types::float32: 
-    case pikango::data_types::vec2f32:
-    case pikango::data_types::vec3f32:
-    case pikango::data_types::vec4f32:
+    case pikango::data_type::float32: 
+    case pikango::data_type::vec2f32:
+    case pikango::data_type::vec3f32:
+    case pikango::data_type::vec4f32:
         return GL_FLOAT;
 
-    case pikango::data_types::int32:   
-    case pikango::data_types::vec2i32:
-    case pikango::data_types::vec3i32:
-    case pikango::data_types::vec4i32:
+    case pikango::data_type::int32:   
+    case pikango::data_type::vec2i32:
+    case pikango::data_type::vec3i32:
+    case pikango::data_type::vec4i32:
         return GL_INT;
     }
     //will never happen
@@ -81,23 +81,23 @@ GLuint get_data_type(pikango::data_types type)
 //returns 3 for vec3
 //returns 4 for vec4
 //etc
-GLuint get_elements_in_data_type(pikango::data_types type)
+GLuint get_elements_in_data_type(pikango::data_type type)
 {
     switch (type)
     {
-    case pikango::data_types::float32: return 1;
-    case pikango::data_types::int32:   return 1;
+    case pikango::data_type::float32: return 1;
+    case pikango::data_type::int32:   return 1;
     
-    case pikango::data_types::vec2f32: 
-    case pikango::data_types::vec2i32: 
+    case pikango::data_type::vec2f32: 
+    case pikango::data_type::vec2i32: 
         return 2;
 
-    case pikango::data_types::vec3f32: 
-    case pikango::data_types::vec3i32: 
+    case pikango::data_type::vec3f32: 
+    case pikango::data_type::vec3i32: 
         return 3;
 
-    case pikango::data_types::vec4f32: 
-    case pikango::data_types::vec4i32: 
+    case pikango::data_type::vec4f32: 
+    case pikango::data_type::vec4i32: 
         return 4;
     }
     //will never happen

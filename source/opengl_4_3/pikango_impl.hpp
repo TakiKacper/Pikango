@@ -249,13 +249,19 @@ size_t pikango::get_uniform_pool_size()
     Commands Implementations
 */
 
+#include "pipelines/graphics_pipeline.hpp"
+
+#include "shaders/generic.hpp"
+#include "shaders/vertex_shader.hpp"
+#include "shaders/pixel_shader.hpp"
+#include "shaders/geometry_shader.hpp"
+//#include "shaders/compute_shader.hpp"
+
 #include "buffers/generic.hpp"
 #include "buffers/vertex_buffer.hpp"
 #include "buffers/index_buffer.hpp"
 #include "buffers/instance_buffer.hpp"
 #include "buffers/uniform_buffer.hpp"
-
-#include "data_layout/data_layout.hpp"
 
 #include "shaders/graphics_shader.hpp"
 
@@ -268,4 +274,5 @@ size_t pikango::get_uniform_pool_size()
 #include "frame_buffer/generic.hpp"
 #include "frame_buffer/frame_buffer.hpp"
 
+#include "drawing/binding.hpp"
 #include "drawing/drawing.hpp"

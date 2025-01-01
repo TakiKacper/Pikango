@@ -1,8 +1,4 @@
-/*
-    Implementation
-*/
-
-PIKANGO_IMPL(graphics_shader)
+/*PIKANGO_IMPL(graphics_shader)
 {
     GLuint id;
     ~graphics_shader_impl();
@@ -33,30 +29,7 @@ pikango_internal::graphics_shader_impl::~graphics_shader_impl()
     Methods
 */
 
-template<class T, GLuint ShaderTypeFlag>
-void compile_shader_part_task(std::vector<std::any> args)
-{
-    T* sp = std::any_cast<T*>(args[0]);
-    std::string source = std::any_cast<std::string>(args[1]);
-
-    auto source_ptr = source.c_str();
-
-    unsigned int shader = glCreateShader(ShaderTypeFlag);
-    glShaderSource(shader, 1, &source_ptr, NULL);
-    glCompileShader(shader);
-
-    int success;
-    char infoLog[512];
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    
-    if (!success)
-    {
-        glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        pikango_internal::log_error(infoLog);
-    }
-
-    sp->id = shader;
-}
+/*
 
 template<class T>
 void delete_shader_part_task(std::vector<std::any> args)
@@ -208,4 +181,4 @@ void pikango::cmd::bind_shader_uniform_to_pool(
         glUniformBlockBinding(gsi->id, uniform_index, index);
     };
     record_task(func, {target, uniform_access, pool_index});
-}
+}*/
