@@ -1,3 +1,6 @@
+//to delete
+#include <iostream>
+
 #include "glad/glad.h"
 #include "enumerations/enumerations.hpp"
 
@@ -150,6 +153,28 @@ void pikango::wait_fence(fence_handle target)
     fi->condition.wait(lock, [&] { return fi->is_signaled || !fi->subbmitted; });
 }
 
+struct graphics_shaders_pipeline_config_hash
+{
+    std::size_t operator()(const pikango::graphics_shaders_pipeline_config& config) const
+    {
+        std::size_t seed = 0;
+        seed = seed ^ (size_t)pikango_internal::get_handle_meta_block_address(config.vertex_shader);
+        seed = seed ^ (size_t)pikango_internal::get_handle_meta_block_address(config.pixel_shader);
+        seed = seed ^ (size_t)pikango_internal::get_handle_meta_block_address(config.geometry_shader);
+        return seed;
+    }
+};
+
+struct graphics_shaders_pipeline_config_equal
+{
+    bool operator()(const pikango::graphics_shaders_pipeline_config& a, const pikango::graphics_shaders_pipeline_config& b) const
+    {
+        return  a.vertex_shader == b.vertex_shader && 
+                a.pixel_shader == b.pixel_shader && 
+                a.geometry_shader == b.geometry_shader;
+    }
+};
+
 /*
     Common Opengl Objects
 */
@@ -162,6 +187,12 @@ namespace
     GLint uniforms_pool_size;
     GLint textures_operation_unit;
     GLint max_color_attachments;
+    std::unordered_map<
+        pikango::graphics_shaders_pipeline_config, 
+        GLuint, 
+        graphics_shaders_pipeline_config_hash, 
+        graphics_shaders_pipeline_config_equal> 
+    program_registry;
 }
 
 /*
@@ -222,6 +253,9 @@ std::string pikango::terminate()
     {
         glDeleteVertexArrays(1, &VAO);
         delete default_frame_buffer_handle;
+
+        for (auto& [_, id] : program_registry)
+            glDeleteProgram(id);
     };
 
     enqueue_task(func, {}, pikango::queue_type::general);
@@ -256,6 +290,7 @@ size_t pikango::get_uniform_pool_size()
 #include "shaders/pixel_shader.hpp"
 #include "shaders/geometry_shader.hpp"
 //#include "shaders/compute_shader.hpp"
+#include "shaders/program.hpp"
 
 #include "buffers/generic.hpp"
 #include "buffers/vertex_buffer.hpp"

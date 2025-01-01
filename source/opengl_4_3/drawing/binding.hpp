@@ -21,6 +21,8 @@ void pikango::cmd::bind_graphics_pipeline(graphics_pipeline_handle pipeline)
     {
         auto pipeline = std::any_cast<graphics_pipeline_handle>(args[0]);
 
+        if (pipeline == binded_graphics_pipeline) return;
+
         binded_graphics_pipeline = pipeline;
         graphics_pipeline_changed = true;
         vao_bindings_changed = true;
@@ -35,6 +37,8 @@ void pikango::cmd::bind_frame_buffer(frame_buffer_handle frame_buffer)
     {
         auto frame_buffer = std::any_cast<frame_buffer_handle>(args[0]);
 
+        if (frame_buffer == binded_frame_buffer) return;
+
         binded_frame_buffer = frame_buffer;
         fbo_bindings_changed = true;
     };
@@ -47,6 +51,8 @@ void pikango::cmd::bind_vertex_buffer(vertex_buffer_handle vertex_buffer)
     auto func = [](std::vector<std::any> args)
     {
         auto vertex_buffer = std::any_cast<vertex_buffer_handle>(args[0]);
+
+        if (vertex_buffer == binded_vertex_buffer) return;
 
         binded_vertex_buffer = vertex_buffer;
         vao_bindings_changed = true;
@@ -61,6 +67,8 @@ void pikango::cmd::bind_instance_buffer(instance_buffer_handle instance_buffer)
     {
         auto instance_buffer = std::any_cast<instance_buffer_handle>(args[0]);
 
+        if (instance_buffer == binded_instance_buffer) return;
+
         binded_instance_buffer = instance_buffer;
         vao_bindings_changed = true;
     };
@@ -73,6 +81,8 @@ void pikango::cmd::bind_index_buffer(index_buffer_handle index_buffer)
     auto func = [](std::vector<std::any> args)
     {
         auto index_buffer = std::any_cast<index_buffer_handle>(args[0]);
+
+        if (index_buffer == binded_index_buffer) return;
 
         binded_index_buffer = index_buffer;
         ibo_bindings_changed = true;
@@ -175,9 +185,13 @@ void apply_vertex_layout(
 
 void apply_graphics_pipeline(pikango::graphics_pipeline_handle pipeline)
 {
+    auto gpi = pikango_internal::object_write_access(pipeline);
+
     //Vertex Layout already applied
 
     //Apply shaders
+    GLuint program = get_program(gpi->config.shaders_config);
+    glUseProgram(program);
 
     //Apply rasterization settings
     

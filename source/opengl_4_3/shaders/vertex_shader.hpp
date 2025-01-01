@@ -17,5 +17,5 @@ pikango_internal::vertex_shader_impl::~vertex_shader_impl()
 
 void pikango::compile_vertex_shader(vertex_shader_handle target, const std::string& source)
 {
-    enqueue_task(compile_shader_part_task<vertex_shader_handle, GL_VERTEX_SHADER>, {target, source}, pikango::queue_type::general);
+    enqueue_task(compile_shader_task<vertex_shader_handle, GL_VERTEX_SHADER>, {target, source}, pikango::queue_type::general);
 }

@@ -17,5 +17,5 @@ pikango_internal::geometry_shader_impl::~geometry_shader_impl()
 
 void pikango::compile_geometry_shader(geometry_shader_handle target, const std::string& source)
 {
-    enqueue_task(compile_shader_part_task<geometry_shader_handle, GL_GEOMETRY_SHADER>, {target, source}, pikango::queue_type::general);
+    enqueue_task(compile_shader_task<geometry_shader_handle, GL_GEOMETRY_SHADER>, {target, source}, pikango::queue_type::general);
 }

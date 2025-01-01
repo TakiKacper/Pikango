@@ -12,7 +12,7 @@ void delete_shader_generic(impl_type* _this)
 }
 
 template<class shader_handle_type, GLuint ShaderTypeFlag>
-void compile_shader_part_task(std::vector<std::any> args)
+void compile_shader_task(std::vector<std::any> args)
 {
     shader_handle_type handle = std::any_cast<shader_handle_type>(args[0]);
     std::string source = std::any_cast<std::string>(args[1]);
@@ -21,14 +21,13 @@ void compile_shader_part_task(std::vector<std::any> args)
 
     auto source_ptr = source.c_str();
 
-    unsigned int shader = glCreateShader(ShaderTypeFlag);
+    GLuint shader = glCreateShader(ShaderTypeFlag);
     glShaderSource(shader, 1, &source_ptr, NULL);
     glCompileShader(shader);
 
     int success;
     char infoLog[512];
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);  
     if (!success)
     {
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
