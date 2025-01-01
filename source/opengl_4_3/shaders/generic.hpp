@@ -21,6 +21,7 @@ void compile_shader_task(std::vector<std::any> args)
 
     auto source_ptr = source.c_str();
 
+    //Create Shader
     GLuint shader = glCreateShader(ShaderTypeFlag);
     glShaderSource(shader, 1, &source_ptr, NULL);
     glCompileShader(shader);
@@ -34,5 +35,15 @@ void compile_shader_task(std::vector<std::any> args)
         pikango_internal::log_error(infoLog);
     }
 
-    si->id = shader;
+    //Create Separatable Program
+    GLuint program = glCreateProgram();
+    glProgramParameteri(program, GL_PROGRAM_SEPARABLE, GL_TRUE);
+    glAttachShader(program, shader);
+    glLinkProgram(program);
+
+    //Delete Shader
+    glDetachShader(program, shader);
+    glDeleteShader(shader);
+
+    si->id = program;
 }

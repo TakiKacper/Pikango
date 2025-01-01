@@ -190,8 +190,9 @@ void apply_graphics_pipeline(pikango::graphics_pipeline_handle pipeline)
     //Vertex Layout already applied
 
     //Apply shaders
-    GLuint program = get_program(gpi->config.shaders_config);
-    glUseProgram(program);
+    GLuint program_pipeline = get_program_pipeline(gpi->config.shaders_config);
+    glUseProgram(0);
+    glBindProgramPipeline(program_pipeline);
 
     //Apply rasterization settings
     

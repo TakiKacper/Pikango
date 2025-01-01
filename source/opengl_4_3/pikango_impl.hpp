@@ -1,6 +1,3 @@
-//to delete
-#include <iostream>
-
 #include "glad/glad.h"
 #include "enumerations/enumerations.hpp"
 
@@ -179,20 +176,23 @@ struct graphics_shaders_pipeline_config_equal
     Common Opengl Objects
 */
 
-namespace
-{
+namespace {
     GLuint VAO;
     pikango::frame_buffer_handle* default_frame_buffer_handle = nullptr;
     GLint textures_pool_size;
     GLint uniforms_pool_size;
     GLint textures_operation_unit;
     GLint max_color_attachments;
+
+    //program pipelines reigstry needs to be mutexed since it can be accessed 
+    //by both exection thread when applying bindings and other threads in shaders deconstructors
+    std::mutex program_pipelines_registry_mutex;
     std::unordered_map<
         pikango::graphics_shaders_pipeline_config, 
         GLuint, 
-        graphics_shaders_pipeline_config_hash, 
+        graphics_shaders_pipeline_config_hash,
         graphics_shaders_pipeline_config_equal> 
-    program_registry;
+    program_pipelines_registry;
 }
 
 /*
@@ -254,8 +254,8 @@ std::string pikango::terminate()
         glDeleteVertexArrays(1, &VAO);
         delete default_frame_buffer_handle;
 
-        for (auto& [_, id] : program_registry)
-            glDeleteProgram(id);
+        for (auto& [_, id] : program_pipelines_registry)
+            glDeleteProgramPipelines(1, &id);
     };
 
     enqueue_task(func, {}, pikango::queue_type::general);
