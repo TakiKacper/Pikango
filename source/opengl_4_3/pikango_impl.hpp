@@ -150,27 +150,41 @@ void pikango::wait_fence(fence_handle target)
     fi->condition.wait(lock, [&] { return fi->is_signaled || !fi->subbmitted; });
 }
 
-struct graphics_shaders_pipeline_config_hash
-{
-    std::size_t operator()(const pikango::graphics_shaders_pipeline_config& config) const
+//Utilities enabling use of graphics shaders configuration as key for
+//program pipeline registry
+namespace{
+    struct graphics_shaders_pipeline_config_impl_ptr_identifier
     {
-        std::size_t seed = 0;
-        seed = seed ^ (size_t)pikango_internal::get_handle_meta_block_address(config.vertex_shader);
-        seed = seed ^ (size_t)pikango_internal::get_handle_meta_block_address(config.pixel_shader);
-        seed = seed ^ (size_t)pikango_internal::get_handle_meta_block_address(config.geometry_shader);
-        return seed;
-    }
-};
+        void* vertex_shader_impl_ptr;
+        void* pixel_shader_impl_ptr;
+        void* geometry_shader_impl_ptr;
+    };
 
-struct graphics_shaders_pipeline_config_equal
-{
-    bool operator()(const pikango::graphics_shaders_pipeline_config& a, const pikango::graphics_shaders_pipeline_config& b) const
+    struct graphics_shaders_pipeline_config_impl_ptr_identifier_hash
     {
-        return  a.vertex_shader == b.vertex_shader && 
-                a.pixel_shader == b.pixel_shader && 
-                a.geometry_shader == b.geometry_shader;
-    }
-};
+        std::size_t operator()(const graphics_shaders_pipeline_config_impl_ptr_identifier& config) const
+        {
+            std::size_t seed = 0;
+            seed = seed ^ (size_t)config.vertex_shader_impl_ptr;
+            seed = seed ^ (size_t)config.pixel_shader_impl_ptr;
+            seed = seed ^ (size_t)config.geometry_shader_impl_ptr;
+            return seed;
+        }
+    };
+
+    struct graphics_shaders_pipeline_impl_ptr_identifier_equal
+    {
+        bool operator()(
+            const graphics_shaders_pipeline_config_impl_ptr_identifier& a, 
+            const graphics_shaders_pipeline_config_impl_ptr_identifier& b
+        ) const
+        {
+            return  a.vertex_shader_impl_ptr == b.vertex_shader_impl_ptr && 
+                    a.pixel_shader_impl_ptr == b.pixel_shader_impl_ptr && 
+                    a.geometry_shader_impl_ptr == b.geometry_shader_impl_ptr;
+        }
+    };
+}
 
 /*
     Common Opengl Objects
@@ -188,10 +202,10 @@ namespace {
     //by both exection thread when applying bindings and other threads in shaders deconstructors
     std::mutex program_pipelines_registry_mutex;
     std::unordered_map<
-        pikango::graphics_shaders_pipeline_config, 
-        GLuint, 
-        graphics_shaders_pipeline_config_hash,
-        graphics_shaders_pipeline_config_equal> 
+        graphics_shaders_pipeline_config_impl_ptr_identifier, 
+        GLuint,
+        graphics_shaders_pipeline_config_impl_ptr_identifier_hash,
+        graphics_shaders_pipeline_impl_ptr_identifier_equal> 
     program_pipelines_registry;
 }
 
@@ -254,8 +268,13 @@ std::string pikango::terminate()
         glDeleteVertexArrays(1, &VAO);
         delete default_frame_buffer_handle;
 
+        program_pipelines_registry_mutex.lock();
+
         for (auto& [_, id] : program_pipelines_registry)
             glDeleteProgramPipelines(1, &id);
+        program_pipelines_registry.clear();
+
+        program_pipelines_registry_mutex.unlock();
     };
 
     enqueue_task(func, {}, pikango::queue_type::general);
@@ -297,8 +316,6 @@ size_t pikango::get_uniform_pool_size()
 #include "buffers/index_buffer.hpp"
 #include "buffers/instance_buffer.hpp"
 #include "buffers/uniform_buffer.hpp"
-
-#include "shaders/graphics_shader.hpp"
 
 #include "textures/generic.hpp"
 #include "textures/texture_1d.hpp"

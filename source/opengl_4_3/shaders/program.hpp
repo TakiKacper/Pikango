@@ -2,12 +2,21 @@
 
 GLuint get_program_pipeline(pikango::graphics_shaders_pipeline_config& config)
 {
+    graphics_shaders_pipeline_config_impl_ptr_identifier idtf;
+    idtf.vertex_shader_impl_ptr = pikango_internal::get_handle_object_raw(config.vertex_shader);
+    idtf.pixel_shader_impl_ptr = pikango_internal::get_handle_object_raw(config.pixel_shader);
+    idtf.geometry_shader_impl_ptr = pikango_internal::get_handle_object_raw(config.geometry_shader);
+
     program_pipelines_registry_mutex.lock();
 
     //Search for existing pipeline
-    auto it = program_pipelines_registry.find(config);
+    auto it = program_pipelines_registry.find(idtf);
     if (it != program_pipelines_registry.end())
-        return it->second;
+    {
+        GLuint id = it->second;
+        program_pipelines_registry_mutex.unlock();
+        return id;
+    }
 
     program_pipelines_registry_mutex.unlock();
     
@@ -23,7 +32,7 @@ GLuint get_program_pipeline(pikango::graphics_shaders_pipeline_config& config)
 
     //Insert pipeline for future use
     program_pipelines_registry_mutex.lock();
-    program_pipelines_registry.insert({config, pipeline});
+    program_pipelines_registry.insert({idtf, pipeline});
     program_pipelines_registry_mutex.unlock();
 
     //Todo: Handle Errors

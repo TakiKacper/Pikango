@@ -13,6 +13,7 @@ PIKANGO_NEW(pixel_shader)
 pikango_internal::pixel_shader_impl::~pixel_shader_impl()
 {
     delete_shader_generic(this);
+    delete_dangling_program_pipelines<offsetof(graphics_shaders_pipeline_config_impl_ptr_identifier, pixel_shader_impl_ptr)>(this);
 }
 
 void pikango::compile_pixel_shader(pixel_shader_handle target, const std::string& source)

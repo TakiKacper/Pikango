@@ -13,6 +13,7 @@ PIKANGO_NEW(geometry_shader)
 pikango_internal::geometry_shader_impl::~geometry_shader_impl()
 {
     delete_shader_generic(this);
+    delete_dangling_program_pipelines<offsetof(graphics_shaders_pipeline_config_impl_ptr_identifier, geometry_shader_impl_ptr)>(this);
 }
 
 void pikango::compile_geometry_shader(geometry_shader_handle target, const std::string& source)

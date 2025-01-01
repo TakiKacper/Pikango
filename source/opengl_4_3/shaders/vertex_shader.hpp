@@ -12,6 +12,7 @@ PIKANGO_NEW(vertex_shader)
 
 pikango_internal::vertex_shader_impl::~vertex_shader_impl()
 {
+    delete_dangling_program_pipelines<offsetof(graphics_shaders_pipeline_config_impl_ptr_identifier, vertex_shader_impl_ptr)>(this);
     delete_shader_generic(this);
 }
 
