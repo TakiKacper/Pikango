@@ -223,6 +223,14 @@ namespace pikango
     }
 }
 
+#ifdef PIKANGO_OPENGL_4_3
+namespace pikango
+{
+    using opengl_thread_task = void(*)(std::vector<std::any>);
+    void OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args);
+}
+#endif
+
 //Queues
 namespace pikango
 {
@@ -267,7 +275,7 @@ namespace pikango
 namespace pikango
 {
     void configure_resources_descriptor(resources_descriptor_handle target, std::vector<resources_descriptor_binding_type>& layout);
-    void bind_to_descriptor_set(resources_descriptor_handle target, std::vector<resources_descriptor_resource_handle>& bindings);
+    void bind_to_resources_descriptor(resources_descriptor_handle target, std::vector<resources_descriptor_resource_handle>& bindings);
 }
 
 //Command Buffer
@@ -320,6 +328,20 @@ namespace pikango
     void compile_geometry_shader (geometry_shader_handle target, const std::string& source);
     //void compile_compute_shader(compute_shader_handle target, const std::string& source);
 }
+
+#ifdef PIKANGO_OPENGL_4_3
+
+namespace pikango
+{
+    // {binding name, descriptor id, binding id, binding type}
+    using OPENGL_ONLY_shader_bindings = std::vector<std::tuple<std::string, size_t, size_t, resources_descriptor_binding_type>>;
+
+    void OPENGL_ONLY_link_shader_bindings_info(vertex_shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
+    void OPENGL_ONLY_link_shader_bindings_info(pixel_shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
+    void OPENGL_ONLY_link_shader_bindings_info(geometry_shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
+    //void OPENGL_ONLY_link_shader_bindings_info(compute_shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
+}
+#endif
 
 //Textures
 namespace pikango
@@ -479,6 +501,10 @@ namespace pikango
 
     texture_2d_handle get_framebuffer_depth_buffer(frame_buffer_handle target);
     texture_2d_handle get_framebuffer_stencil_buffer(frame_buffer_handle target);
+
+#ifdef PIKANGO_OPENGL_4_3
+    frame_buffer_handle OPENGL_ONLY_get_default_frame_buffer();
+#endif
 };
 
 /*
@@ -525,18 +551,5 @@ namespace pikango::cmd
         size_t          instances_count
     );
 }
-
-/*
-    API SPECIFIC
-*/
-
-#ifdef PIKANGO_OPENGL_4_3
-namespace pikango
-{
-    using opengl_thread_task = void(*)(std::vector<std::any>);
-    void OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args);
-    frame_buffer_handle OPENGL_ONLY_get_default_frame_buffer();
-}
-#endif
 
 #endif

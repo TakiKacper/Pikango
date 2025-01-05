@@ -15,7 +15,7 @@ namespace {
     pikango::index_buffer_handle        binded_index_buffer;
     bool ibo_bindings_changed = true;
 
-    std::array<pikango::resources_descriptor_handle, max_resources_descriptors> binded_resources_descriptor;
+    std::array<pikango::resources_descriptor_handle, max_resources_descriptors> binded_resources_descriptors;
     std::set<size_t> changed_resources_descriptors;
 };
 
@@ -42,9 +42,9 @@ void pikango::cmd::bind_resources_descriptor(resources_descriptor_handle descrip
         auto descriptor = std::any_cast<resources_descriptor_handle>(args[0]);
         auto descriptor_index = std::any_cast<size_t>(args[1]);
 
-        if (binded_resources_descriptor.at(descriptor_index) == descriptor) return;
+        if (binded_resources_descriptors.at(descriptor_index) == descriptor) return;
 
-        binded_resources_descriptor.at(descriptor_index) = descriptor;
+        binded_resources_descriptors.at(descriptor_index) = descriptor;
         changed_resources_descriptors.insert(descriptor_index);
     };
 
@@ -112,7 +112,8 @@ void pikango::cmd::bind_index_buffer(index_buffer_handle index_buffer)
 }
 
 static void apply_vertex_layout();
-static void apply_graphics_pipeline();
+static void apply_graphics_pipeline_shaders();
+static void apply_graphics_pipeline_settings();
 static void apply_resources_descriptors();
 
 //we wait with actual binding until the draw because of openGl desing the bindings
@@ -132,12 +133,16 @@ static void apply_bindings()
     fbo_bindings_changed = false;
 
     if (graphics_pipeline_changed)
-        apply_graphics_pipeline();
+        apply_graphics_pipeline_settings();
     graphics_pipeline_changed = false;
 
     if (changed_resources_descriptors.size() != 0)
         apply_resources_descriptors();
     changed_resources_descriptors.clear();
+
+    //Always bind the program pipeline because it could have been
+    //overwritten by shaders functions
+    apply_graphics_pipeline_shaders();
 }
 
 static size_t calc_attributes_size(std::vector<pikango::data_type>& attributes)
@@ -197,37 +202,71 @@ void apply_vertex_layout()
         glDisableVertexAttribArray(attrib_id);
 }
 
-void apply_graphics_pipeline()
+void apply_graphics_pipeline_shaders()
 {
+    //Apply shaders
     auto gpi = pikango_internal::object_write_access(binded_graphics_pipeline);
 
-    //Vertex Layout already applied
-
-    //Apply shaders
     GLuint program_pipeline = get_program_pipeline(gpi->config.shaders_config);
     glUseProgram(0);
     glBindProgramPipeline(program_pipeline);
+}
+
+void apply_graphics_pipeline_settings()
+{
+    auto gpi = pikango_internal::object_write_access(binded_graphics_pipeline);
 
     //Apply rasterization settings  
 }
 
 void apply_resources_descriptors()
 {
-    for (auto& index : changed_resources_descriptors)
+    auto gpi = pikango_internal::object_write_access(binded_graphics_pipeline);
+    auto& shaders = gpi->config.shaders_config;
+
+    auto set_shader_uniforms = [](shader_uniforms_to_descriptors_maping& desc_mapping)
     {
-        auto descriptor = pikango_internal::object_read_access(binded_resources_descriptor.at(index));
-        auto& bindings = descriptor->bindings;
-
-        /*for (auto& binding : bindings.sampled_textures)
+        for (auto& d_id : changed_resources_descriptors)
         {
+            auto descriptor = pikango_internal::object_read_access(binded_resources_descriptors.at(d_id));
+            auto& desc_bindings = descriptor->bindings;
+            auto& desc_layout = descriptor->layout;
 
+            for (size_t b_id = 0; b_id < desc_bindings.size(); b_id++)
+            {
+                auto itr = desc_mapping.find({d_id, b_id});
+                if (itr == desc_mapping.end()) continue;
+                auto addr = itr->second;
+
+                auto& type = desc_layout.at(d_id);
+                auto& binding = desc_bindings.at(d_id);
+
+                switch (type)
+                {
+                case pikango::resources_descriptor_binding_type::sampled_texture:
+                    glActiveTexture(GL_TEXTURE0 + addr);
+
+                    if (std::holds_alternative<pikango::texture_2d_handle>(binding))
+                    {
+                        auto txt = std::get<pikango::texture_2d_handle>(binding);
+                        glBindTexture(GL_TEXTURE_2D, pikango_internal::get_handle_object_raw(txt)->id);
+                    }     
+
+                    break;
+                }
+            };
         }
+    };
 
-        for (auto& binding : bindings.uniform_buffers)
-        {
+    auto vsi = pikango_internal::object_write_access(shaders.vertex_shader);
+    set_shader_uniforms(vsi->desc_mapping);
 
-        }*/
-    
-        //...
+    auto psi = pikango_internal::object_write_access(shaders.pixel_shader);
+    set_shader_uniforms(psi->desc_mapping);
+
+    if (!pikango_internal::is_empty(shaders.geometry_shader)) 
+    {
+        auto gsi = pikango_internal::object_write_access(shaders.geometry_shader);
+        set_shader_uniforms(gsi->desc_mapping);
     }
 }

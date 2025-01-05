@@ -1,6 +1,7 @@
 PIKANGO_IMPL(vertex_shader)
 {
     GLuint id = 0;
+    shader_uniforms_to_descriptors_maping desc_mapping;
     ~vertex_shader_impl();
 };
 
@@ -19,4 +20,9 @@ pikango_internal::vertex_shader_impl::~vertex_shader_impl()
 void pikango::compile_vertex_shader(vertex_shader_handle target, const std::string& source)
 {
     enqueue_task(compile_shader_task<vertex_shader_handle, GL_VERTEX_SHADER>, {target, source}, pikango::queue_type::general);
+}
+
+void pikango::OPENGL_ONLY_link_shader_bindings_info(vertex_shader_handle target, OPENGL_ONLY_shader_bindings& bindings)
+{
+    OPENGL_ONLY_link_shader_bindings_info_generic(target, bindings);
 }

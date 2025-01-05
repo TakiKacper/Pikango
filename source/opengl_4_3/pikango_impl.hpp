@@ -186,6 +186,31 @@ namespace{
     };
 }
 
+//Utility
+namespace pikango_internal
+{
+    struct size_t_pair 
+    {
+        size_t first;
+        size_t second;
+
+        bool operator==(const size_t_pair& other) const 
+        {
+            return first == other.first && second == other.second;
+        }
+    };
+
+    struct size_t_pair_hash 
+    {
+        size_t operator()(const size_t_pair& p) const 
+        {
+            size_t h1 = std::hash<size_t>{}(p.first);
+            size_t h2 = std::hash<size_t>{}(p.second);
+            return h1 ^ (h2 << 1);
+        }
+    };
+} 
+
 /*
     Common Opengl Objects
 */
@@ -303,6 +328,7 @@ size_t pikango::get_max_resources_descriptors_bindings()
 
 #include "descriptors/resources_descriptors.hpp"
 
+using shader_uniforms_to_descriptors_maping = std::unordered_map<pikango_internal::size_t_pair, GLint, pikango_internal::size_t_pair_hash>;
 #include "shaders/generic.hpp"
 #include "shaders/vertex_shader.hpp"
 #include "shaders/pixel_shader.hpp"
