@@ -45,7 +45,7 @@ pikango::frame_buffer_handle* create_default_framebuffer_handle()
     return handle_ptr;
 }
 
-size_t pikango::get_max_framebuffer_color_buffers_amount()
+size_t pikango::get_max_framebuffer_color_buffers_attachments()
 {
     return max_color_attachments;
 }

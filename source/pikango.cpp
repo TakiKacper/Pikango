@@ -79,6 +79,7 @@ size_t pikango::size_of(data_type dt)
     
 IMPLEMENT_DESTRUCTOR(graphics_pipeline);
 //IMPLEMENT_DESTRUCTOR(compute_pipeline);
+IMPLEMENT_DESTRUCTOR(resources_descriptor);
 IMPLEMENT_DESTRUCTOR(vertex_shader);
 IMPLEMENT_DESTRUCTOR(pixel_shader);
 IMPLEMENT_DESTRUCTOR(geometry_shader);

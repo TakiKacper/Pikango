@@ -193,10 +193,12 @@ namespace{
 namespace {
     GLuint VAO;
     pikango::frame_buffer_handle* default_frame_buffer_handle = nullptr;
+
     GLint textures_pool_size;
     GLint uniforms_pool_size;
     GLint textures_operation_unit;
     GLint max_color_attachments;
+    constexpr GLint max_resources_descriptors = 16; 
 
     //program pipelines reigstry needs to be mutexed since it can be accessed 
     //by both exection thread when applying bindings and other threads in shaders deconstructors
@@ -288,14 +290,9 @@ const char* pikango::get_used_shading_language_name()
     return glsl;
 }
 
-size_t pikango::get_texture_pool_size()
+size_t pikango::get_max_resources_descriptors_bindings()
 {
-    return textures_pool_size;
-}
-
-size_t pikango::get_uniform_pool_size()
-{
-    return uniforms_pool_size;
+    return max_resources_descriptors;
 }
 
 /*
@@ -303,6 +300,8 @@ size_t pikango::get_uniform_pool_size()
 */
 
 #include "pipelines/graphics_pipeline.hpp"
+
+#include "descriptors/resources_descriptors.hpp"
 
 #include "shaders/generic.hpp"
 #include "shaders/vertex_shader.hpp"

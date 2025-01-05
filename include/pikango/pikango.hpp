@@ -6,6 +6,7 @@
 #include <string>
 #include <functional>
 #include <any>
+#include <variant>
 
 /*
     ENUMERATIONS
@@ -100,13 +101,15 @@ This macro for name = xyz would create folowing objects:
 PIKANGO_HANDLE_FWD(graphics_pipeline);
 //PIKANGO_HANDLE_FWD(compute_pipeline)
 
+PIKANGO_HANDLE_FWD(command_buffer);
+PIKANGO_HANDLE_FWD(fence);
+
+PIKANGO_HANDLE_FWD(resources_descriptor);
+
 PIKANGO_HANDLE_FWD(vertex_shader);
 PIKANGO_HANDLE_FWD(pixel_shader);
 PIKANGO_HANDLE_FWD(geometry_shader);
 //PIKANGO_HANDLE_FWD(compute_shader);
-
-PIKANGO_HANDLE_FWD(command_buffer);
-PIKANGO_HANDLE_FWD(fence);
 
 PIKANGO_HANDLE_FWD(frame_buffer);
 
@@ -114,6 +117,7 @@ PIKANGO_HANDLE_FWD(vertex_buffer);
 PIKANGO_HANDLE_FWD(index_buffer);
 PIKANGO_HANDLE_FWD(instance_buffer);
 PIKANGO_HANDLE_FWD(uniform_buffer);
+//PIKANGO_HANDLE_FWD(storage_buffer);
 
 PIKANGO_HANDLE_FWD(texture_1d);
 PIKANGO_HANDLE_FWD(texture_2d);
@@ -175,6 +179,26 @@ namespace pikango
         graphics_shaders_pipeline_config  shaders_config;
         rasterization_pipeline_config     rasterization_config;
     };
+
+    enum class resources_descriptor_binding_type
+    {
+        sampled_texture, written_texture, uniform_buffer, storage_buffer
+    };
+
+    using resources_descriptor_resource_handle = std::variant<
+        vertex_buffer_handle,
+        index_buffer_handle,
+        instance_buffer_handle,
+        uniform_buffer_handle,
+        //storage_buffer_handle
+
+        texture_1d_handle,
+        texture_2d_handle,
+        texture_3d_handle,
+        texture_cube_handle
+        //texture_1d_array_handle,
+        //texture_2d_array_handle
+    >;
 }
 
 /*
@@ -219,17 +243,14 @@ namespace pikango
 //Getters
 namespace pikango
 {
-    //Uniform Buffers
-    size_t get_uniform_pool_size();
-
     //Shaders
     const char* get_used_shading_language_name();
 
-    //Textures
-    size_t get_texture_pool_size();
+    //Descriptors
+    size_t get_max_resources_descriptors_bindings();
 
     //Framebuffers
-    size_t get_max_framebuffer_color_buffers_amount();
+    size_t get_max_framebuffer_color_buffers_attachments();
 }
 
 /*
@@ -240,6 +261,13 @@ namespace pikango
 namespace pikango
 {
     void configure_graphics_pipeline(graphics_pipeline_handle target, graphics_pipeline_config& config);
+}
+
+//Resources Descriptor
+namespace pikango
+{
+    void configure_resources_descriptor(resources_descriptor_handle target, std::vector<resources_descriptor_binding_type>& layout);
+    void bind_to_descriptor_set(resources_descriptor_handle target, std::vector<resources_descriptor_resource_handle>& bindings);
 }
 
 //Command Buffer
@@ -291,22 +319,6 @@ namespace pikango
     void compile_pixel_shader    (pixel_shader_handle target, const std::string& source);
     void compile_geometry_shader (geometry_shader_handle target, const std::string& source);
     //void compile_compute_shader(compute_shader_handle target, const std::string& source);
-}
-
-//Shaders Commands
-namespace pikango::cmd
-{
-    /*void bind_shader_sampler_to_pool(
-        graphics_shader_handle target,
-        const std::string& sampler_access,
-        size_t pool_index
-    );
-    
-    void bind_shader_uniform_to_pool(
-        graphics_shader_handle target,
-        const std::string& uniform_access,
-        size_t pool_index
-    );*/
 }
 
 //Textures
@@ -477,6 +489,7 @@ namespace pikango
 namespace pikango::cmd
 {
     void bind_graphics_pipeline(graphics_pipeline_handle pipeline);
+    void bind_resources_descriptor(resources_descriptor_handle descriptor, size_t descriptor_index);
     
     void bind_frame_buffer(frame_buffer_handle frame_buffer);
 
