@@ -100,7 +100,18 @@ void OPENGL_ONLY_link_shader_bindings_info_generic(handle_type handle, pikango::
 
         for (auto& [name, d_id, b_id, type] : bindings)
         {
-            GLint loc = glGetUniformLocation(si->id, name.c_str());
+            GLint loc = 0;
+
+            switch (type)
+            {
+            case pikango::resources_descriptor_binding_type::sampled_texture:
+            case pikango::resources_descriptor_binding_type::written_texture:
+                loc = glGetUniformLocation(si->id, name.c_str());
+            case pikango::resources_descriptor_binding_type::uniform_buffer:
+                loc = glGetUniformBlockIndex(si->id, name.c_str());
+            case pikango::resources_descriptor_binding_type::storage_buffer:
+                loc = 0; //TODO WITH STORAGE BUFFERS
+            }
             si->bindings.insert({{d_id, b_id}, {loc, type}});
         }
     };

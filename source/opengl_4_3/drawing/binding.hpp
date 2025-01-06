@@ -244,6 +244,51 @@ static void set_shaders_uniforms(handle_type handle)
     }
 }
 
+void bind_any_texture(const pikango::resources_descriptor_resource_handle& vhandle)
+{
+    GLenum type;
+    GLint id;
+
+    if (std::holds_alternative<pikango::texture_1d_handle>(vhandle)) {
+        auto handle = std::get<pikango::texture_1d_handle>(vhandle);
+        auto ti = pikango_internal::object_read_access(handle);
+        type = GL_TEXTURE_1D;
+        id = ti->id;
+    } 
+    else if (std::holds_alternative<pikango::texture_2d_handle>(vhandle)) {
+        auto handle = std::get<pikango::texture_2d_handle>(vhandle);
+        auto ti = pikango_internal::object_read_access(handle);
+        type = GL_TEXTURE_2D;
+        id = ti->id;
+    } 
+    else if (std::holds_alternative<pikango::texture_3d_handle>(vhandle)) {
+        auto handle = std::get<pikango::texture_3d_handle>(vhandle);
+        auto ti = pikango_internal::object_read_access(handle);
+        type = GL_TEXTURE_3D;
+        id = ti->id;
+    } 
+    else if (std::holds_alternative<pikango::texture_cube_handle>(vhandle)) {
+        auto handle = std::get<pikango::texture_cube_handle>(vhandle);
+        auto ti = pikango_internal::object_read_access(handle);
+        type = GL_TEXTURE_CUBE_MAP;
+        id = ti->id;
+    } 
+    /*else if (std::holds_alternative<pikango::texture_array_1d_handle>(vhandle)) {
+        auto handle = std::get<pikango::texture_array_1d_handle>(vhandle);
+        auto ti = pikango_internal::object_read_access(handle);
+        type = 
+        id = ti->id;
+    } 
+    else if (std::holds_alternative<pikango::texture_array_2d_handle>(vhandle)) {
+        auto handle = std::get<pikango::texture_array_2d_handle>(vhandle);
+        auto ti = pikango_internal::object_read_access(handle);
+        type = 
+        id = ti->id;
+    } */
+
+   glBindTexture(type, id);
+}
+
 void apply_resources_descriptors_and_shaders_uniforms()
 {
     //1: bind resources to their pools
@@ -258,12 +303,7 @@ void apply_resources_descriptors_and_shaders_uniforms()
     auto bind_texture = [&](const pikango::resources_descriptor_resource_handle& handle)
     {
         glActiveTexture(GL_TEXTURE0 + texture_pool_itr);
-        
-        if (std::holds_alternative<pikango::texture_2d_handle>(handle))
-        {
-            auto ti = pikango_internal::object_read_access(std::get<pikango::texture_2d_handle>(handle));
-            glBindTexture(GL_TEXTURE_2D, ti->id);
-        }
+        bind_any_texture(handle);
 
         descriptors_to_opengl_pools_mapping.insert({{d_id, b_id}, texture_pool_itr});
         texture_pool_itr++;
@@ -271,7 +311,13 @@ void apply_resources_descriptors_and_shaders_uniforms()
 
     auto bind_uniform = [&](const pikango::resources_descriptor_resource_handle& handle)
     {
+        auto ub_handle = std::get<pikango::uniform_buffer_handle>(handle);
+        auto ubi = pikango_internal::object_read_access(ub_handle);
 
+        glBindBufferBase(GL_UNIFORM_BUFFER, uniform_pool_itr, ubi->id);
+
+        descriptors_to_opengl_pools_mapping.insert({{d_id, b_id}, uniform_pool_itr});
+        uniform_pool_itr++;
     };
 
     auto bind_storage = [&](const pikango::resources_descriptor_resource_handle& handle)
