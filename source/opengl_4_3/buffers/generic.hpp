@@ -1,5 +1,5 @@
 template <class impl_type>
-void destroy_buffer_generic(impl_type* _this)
+void delete_buffer_generic(impl_type* _this)
 {
     auto func = [](std::vector<std::any> args)
     {

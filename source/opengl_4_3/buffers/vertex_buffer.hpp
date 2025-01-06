@@ -15,7 +15,7 @@ PIKANGO_NEW(vertex_buffer)
 
 pikango_internal::vertex_buffer_impl::~vertex_buffer_impl()
 {
-    destroy_buffer_generic(this);
+    delete_buffer_generic(this);
 }
 
 size_t pikango::get_buffer_size(vertex_buffer_handle target)

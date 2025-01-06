@@ -6,6 +6,7 @@
 #include <string>
 #include <functional>
 #include <any>
+#include <variant>
 
 /*
     ENUMERATIONS
@@ -34,7 +35,7 @@ namespace pikango
         gpu_to_gpu  //gpu data is read by gpu
     };
 
-    enum class data_types
+    enum class data_type
     {
         int32,
         vec2i32,
@@ -46,7 +47,7 @@ namespace pikango
         vec3f32,
         vec4f32
     };
-    size_t size_of(data_types dt);
+    size_t size_of(data_type dt);
 
     enum class texture_filtering
 	{
@@ -97,17 +98,26 @@ This macro for name = xyz would create folowing objects:
         name##_handle new_##name ();            \
     }
 
+PIKANGO_HANDLE_FWD(graphics_pipeline);
+//PIKANGO_HANDLE_FWD(compute_pipeline)
+
 PIKANGO_HANDLE_FWD(command_buffer);
 PIKANGO_HANDLE_FWD(fence);
+
+PIKANGO_HANDLE_FWD(resources_descriptor);
+
+PIKANGO_HANDLE_FWD(vertex_shader);
+PIKANGO_HANDLE_FWD(pixel_shader);
+PIKANGO_HANDLE_FWD(geometry_shader);
+//PIKANGO_HANDLE_FWD(compute_shader);
+
+PIKANGO_HANDLE_FWD(frame_buffer);
 
 PIKANGO_HANDLE_FWD(vertex_buffer);
 PIKANGO_HANDLE_FWD(index_buffer);
 PIKANGO_HANDLE_FWD(instance_buffer);
 PIKANGO_HANDLE_FWD(uniform_buffer);
-
-PIKANGO_HANDLE_FWD(data_layout);
-
-PIKANGO_HANDLE_FWD(graphics_shader);
+//PIKANGO_HANDLE_FWD(storage_buffer);
 
 PIKANGO_HANDLE_FWD(texture_1d);
 PIKANGO_HANDLE_FWD(texture_2d);
@@ -115,9 +125,7 @@ PIKANGO_HANDLE_FWD(texture_3d);
 PIKANGO_HANDLE_FWD(texture_cube);
 PIKANGO_HANDLE_FWD(texture_1d_array);
 PIKANGO_HANDLE_FWD(texture_2d_array);
-
-PIKANGO_HANDLE_FWD(renderbuffer);
-PIKANGO_HANDLE_FWD(frame_buffer);
+//PIKANGO_HANDLE_FWD(renderbuffer);
 
 #undef PIKANGO_HANDLE_FWD
 
@@ -146,42 +154,51 @@ namespace pikango
             : ax(_ax), ay(_ay), bx(_bx), by(_by) {};
     };
 
-    struct draw_target_args
+    struct vertex_layout_pipeline_config
     {
-        frame_buffer_handle     frame_buffer;
+        std::vector<data_type> vertex_attributes;
+        std::vector<data_type> instance_attributes;
+        size_t                  stride;
     };
 
-    struct draw_vertices_args
+    struct graphics_shaders_pipeline_config
     {
-        draw_primitive          primitive = draw_primitive::traingles;
-        size_t                  first_vertex_index = 0;
-        size_t                  vertices_count = 0;
-
-        vertex_buffer_handle    vertex_buffer;
-        data_layout_handle      vertex_layout;
-
-        graphics_shader_handle  graphics_shader;
+        vertex_shader_handle    vertex_shader;
+        pixel_shader_handle     pixel_shader;
+        geometry_shader_handle  geometry_shader;
     };
 
-    struct draw_indexed_args
+    struct rasterization_pipeline_config
     {
-        draw_primitive          primitive = draw_primitive::traingles;
-        size_t                  indicies_count = 0;
-
-        vertex_buffer_handle    vertex_buffer;
-        data_layout_handle      vertex_layout;
-        
-        index_buffer_handle     index_buffer;
-
-        graphics_shader_handle  graphics_shader;
+        //TODO
     };
 
-    struct draw_instanced_args
+    struct graphics_pipeline_config
     {
-        size_t                  instances_count = 0;
-        instance_buffer_handle  instance_buffer;
-        data_layout_handle      instance_layout;
+        vertex_layout_pipeline_config     vertex_layout_config;
+        graphics_shaders_pipeline_config  shaders_config;
+        rasterization_pipeline_config     rasterization_config;
     };
+
+    enum class resources_descriptor_binding_type
+    {
+        sampled_texture, written_texture, uniform_buffer, storage_buffer
+    };
+
+    using resources_descriptor_resource_handle = std::variant<
+        vertex_buffer_handle,
+        index_buffer_handle,
+        instance_buffer_handle,
+        uniform_buffer_handle,
+        //storage_buffer_handle
+
+        texture_1d_handle,
+        texture_2d_handle,
+        texture_3d_handle,
+        texture_cube_handle
+        //texture_1d_array_handle,
+        //texture_2d_array_handle
+    >;
 }
 
 /*
@@ -206,15 +223,13 @@ namespace pikango
     }
 }
 
-//Command Buffer
+#ifdef PIKANGO_OPENGL_4_3
 namespace pikango
 {
-    enum class queue_type;
-    void configure_command_buffer(command_buffer_handle target, queue_type target_queue_type);
-    void begin_command_buffer_recording(command_buffer_handle target);
-    void end_command_buffer_recording(command_buffer_handle target);
-    void clear_command_buffer(command_buffer_handle target);
+    using opengl_thread_task = void(*)(std::vector<std::any>);
+    void OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args);
 }
+#endif
 
 //Queues
 namespace pikango
@@ -233,32 +248,51 @@ namespace pikango
     void submit_command_buffer_with_fence(command_buffer_handle target, queue_type type, size_t queue_index, fence_handle wait_fence);
 }
 
+//Getters
+namespace pikango
+{
+    //Shaders
+    const char* get_used_shading_language_name();
+
+    //Descriptors
+    size_t get_max_resources_descriptors_bindings();
+
+    //Framebuffers
+    size_t get_max_framebuffer_color_buffers_attachments();
+}
+
+/*
+    COMMNANDS AND UTILITY METHODS
+*/
+
+//PIPELINES
+namespace pikango
+{
+    void configure_graphics_pipeline(graphics_pipeline_handle target, graphics_pipeline_config& config);
+}
+
+//Resources Descriptor
+namespace pikango
+{
+    void configure_resources_descriptor(resources_descriptor_handle target, std::vector<resources_descriptor_binding_type>& layout);
+    void bind_to_resources_descriptor(resources_descriptor_handle target, std::vector<resources_descriptor_resource_handle>& bindings);
+}
+
+//Command Buffer
+namespace pikango
+{
+    void configure_command_buffer(command_buffer_handle target, queue_type target_queue_type);
+    void begin_command_buffer_recording(command_buffer_handle target);
+    void end_command_buffer_recording(command_buffer_handle target);
+    void clear_command_buffer(command_buffer_handle target);
+}
+
 //Fences
 namespace pikango
 {
     void wait_fence(fence_handle target);
     void wait_multiple_fences(std::vector<fence_handle> targets);
 }
-
-//Getters
-namespace pikango
-{
-    //Uniform Buffers
-    size_t get_uniform_pool_size();
-
-    //Shaders
-    const char* get_used_shading_language_name();
-
-    //Textures
-    size_t get_texture_pool_size();
-
-    //Framebuffers
-    size_t get_max_framebuffer_color_buffers_amount();
-}
-
-/*
-    COMMNANDS AND METHODS
-*/
 
 //Buffers
 namespace pikango
@@ -286,52 +320,28 @@ namespace pikango::cmd
 
 #undef BUFFER_METHODS
 
-//Data Layout
-namespace pikango
-{
-    size_t get_layout_size(data_layout_handle target);
-    size_t get_layout_size_with_stride(data_layout_handle target);
-    void assign_data_layout(data_layout_handle target, std::vector<data_types> layout, size_t layouts_stride);
-}
-
 //Shaders Compilation
 namespace pikango
 {
-    struct shader_part_vertex;
-    struct shader_part_geometry;
-    struct shader_part_pixel;
-
-    shader_part_vertex*     compile_shader_part_vertex(const std::string& source);
-    shader_part_geometry*   compile_shader_part_geometry(const std::string& source);
-    shader_part_pixel*      compile_shader_part_pixel(const std::string& source);
-
-    void free_shader_part_vertex(shader_part_vertex* spv);
-    void free_shader_part_geometry(shader_part_geometry* spg);
-    void free_shader_part_pixel(shader_part_pixel* spp);
-
-    void link_graphics_shader(
-        graphics_shader_handle target, 
-        const shader_part_vertex* spv, 
-        const shader_part_geometry* spg, 
-        const shader_part_pixel* spp
-    );
+    void compile_vertex_shader   (vertex_shader_handle target, const std::string& source);
+    void compile_pixel_shader    (pixel_shader_handle target, const std::string& source);
+    void compile_geometry_shader (geometry_shader_handle target, const std::string& source);
+    //void compile_compute_shader(compute_shader_handle target, const std::string& source);
 }
 
-//Shaders Commands
-namespace pikango::cmd
+#ifdef PIKANGO_OPENGL_4_3
+
+namespace pikango
 {
-    void bind_shader_sampler_to_pool(
-        graphics_shader_handle target,
-        const std::string& sampler_access,
-        size_t pool_index
-    );
-    
-    void bind_shader_uniform_to_pool(
-        graphics_shader_handle target,
-        const std::string& uniform_access,
-        size_t pool_index
-    );
+    // {binding name, descriptor id, binding id, binding type}
+    using OPENGL_ONLY_shader_bindings = std::vector<std::tuple<std::string, size_t, size_t, resources_descriptor_binding_type>>;
+
+    void OPENGL_ONLY_link_shader_bindings_info(vertex_shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
+    void OPENGL_ONLY_link_shader_bindings_info(pixel_shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
+    void OPENGL_ONLY_link_shader_bindings_info(geometry_shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
+    //void OPENGL_ONLY_link_shader_bindings_info(compute_shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
 }
+#endif
 
 //Textures
 namespace pikango
@@ -491,46 +501,55 @@ namespace pikango
 
     texture_2d_handle get_framebuffer_depth_buffer(frame_buffer_handle target);
     texture_2d_handle get_framebuffer_stencil_buffer(frame_buffer_handle target);
+
+#ifdef PIKANGO_OPENGL_4_3
+    frame_buffer_handle OPENGL_ONLY_get_default_frame_buffer();
+#endif
 };
 
+/*
+    DRAWING AND STATE
+*/
+
+//Binding
+namespace pikango::cmd
+{
+    void bind_graphics_pipeline(graphics_pipeline_handle pipeline);
+    void bind_resources_descriptor(resources_descriptor_handle descriptor, size_t descriptor_index);
+    
+    void bind_frame_buffer(frame_buffer_handle frame_buffer);
+
+    void bind_vertex_buffer(vertex_buffer_handle vertex_buffer);
+    void bind_index_buffer(index_buffer_handle index_buffer);
+    void bind_instance_buffer(instance_buffer_handle instance_buffer);
+}
 
 //Drawing
 namespace pikango::cmd
 {
     void draw_vertices(
-        draw_target_args&   dta, 
-        draw_vertices_args& dva
+        draw_primitive  primitive,
+        size_t          first_vertex_index,
+        size_t          vertices_count
     );
 
     void draw_vertices_instanced(
-        draw_target_args&   dta, 
-        draw_vertices_args& dva,
-        draw_instanced_args dia
+        draw_primitive  primitive,
+        size_t          first_vertex_index,
+        size_t          vertices_count,
+        size_t          instances_count
     );
 
     void draw_indexed(
-        draw_target_args&   dta, 
-        draw_indexed_args&  dia
+        draw_primitive  primitive,
+        size_t          indices_count
     );
 
     void draw_indexed_instanced(
-        draw_target_args&   dta, 
-        draw_indexed_args&  dia, 
-        draw_instanced_args dia2
+        draw_primitive  primitive,
+        size_t          indices_count,
+        size_t          instances_count
     );
 }
-
-/*
-    API SPECIFIC
-*/
-
-#ifdef PIKANGO_OPENGL_4_3
-namespace pikango
-{
-    using opengl_thread_task = void(*)(std::vector<std::any>);
-    void OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args);
-    frame_buffer_handle OPENGL_ONLY_get_default_frame_buffer();
-}
-#endif
 
 #endif

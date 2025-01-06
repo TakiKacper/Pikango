@@ -13,6 +13,8 @@ namespace pikango_internal
         template<class T> friend bool       is_empty(const handle<T>& handle);
         template<class T> friend handle<T>  make_handle (T* object);
         template<class T> friend handle<T>* alloc_handle(T* object);
+        template<class T> friend void*      get_handle_meta_block_address(const handle<T>& handle);
+        template<class T> friend T*         get_handle_object_raw(const handle<T>& handle);
         template<class T> friend struct object_read_access;
         template<class T> friend struct object_write_access;
         
@@ -88,6 +90,19 @@ namespace pikango_internal
     handle<T>* alloc_handle(T* object)
     {
         return new handle<T>{object};
+    }
+    
+    //this function exist only so the implementation could use meta addresses as hashes
+    //do not use it in any other way
+    template<class T> void* get_handle_meta_block_address(const handle<T>& handle)
+    {
+        return handle.meta;
+    }
+
+    template<class T> 
+    T* get_handle_object_raw(const handle<T>& handle)
+    {
+        return handle.object;
     }
 
     template<class T>

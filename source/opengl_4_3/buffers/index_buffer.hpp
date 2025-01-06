@@ -15,7 +15,7 @@ PIKANGO_NEW(index_buffer)
 
 pikango_internal::index_buffer_impl::~index_buffer_impl()
 {
-    destroy_buffer_generic(this);
+    delete_buffer_generic(this);
 }
 
 size_t pikango::get_buffer_size(index_buffer_handle target)
