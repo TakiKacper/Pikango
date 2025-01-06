@@ -17,6 +17,8 @@ namespace {
 
     std::array<pikango::resources_descriptor_handle, max_resources_descriptors> binded_resources_descriptors;
     std::set<size_t> changed_resources_descriptors;
+
+    std::unordered_map<pikango_internal::size_t_pair, GLint, pikango_internal::size_t_pair_hash> descriptors_to_opengl_pools_mapping;
 };
 
 void pikango::cmd::bind_graphics_pipeline(graphics_pipeline_handle pipeline)
@@ -114,7 +116,7 @@ void pikango::cmd::bind_index_buffer(index_buffer_handle index_buffer)
 static void apply_vertex_layout();
 static void apply_graphics_pipeline_shaders();
 static void apply_graphics_pipeline_settings();
-static void apply_resources_descriptors();
+static void apply_resources_descriptors_and_shaders_uniforms();
 
 //we wait with actual binding until the draw because of openGl desing the bindings
 //could be overriden by other non-related stuff like writing to unrelated buffer or something
@@ -136,8 +138,8 @@ static void apply_bindings()
         apply_graphics_pipeline_settings();
     graphics_pipeline_changed = false;
 
-    if (changed_resources_descriptors.size() != 0)
-        apply_resources_descriptors();
+    if (changed_resources_descriptors.size() != 0 || graphics_pipeline_changed)
+        apply_resources_descriptors_and_shaders_uniforms();
     changed_resources_descriptors.clear();
 
     //Always bind the program pipeline because it could have been
@@ -219,54 +221,94 @@ void apply_graphics_pipeline_settings()
     //Apply rasterization settings  
 }
 
-void apply_resources_descriptors()
+template<class handle_type>
+static void set_shaders_uniforms(handle_type handle)
 {
+    if (pikango_internal::is_empty(handle)) return;
+    auto si = pikango_internal::object_read_access(handle);
+
+    glUseProgram(si->id);
+
+    for (auto& binding : si->bindings)
+    {
+        GLint pool_id = 0;
+        
+        auto itr = descriptors_to_opengl_pools_mapping.find(binding.first);
+
+        if (itr == descriptors_to_opengl_pools_mapping.end())
+            pool_id = 0;
+        else 
+            pool_id = (*itr).second;
+
+        glUniform1i(binding.second.first, pool_id);
+    }
+}
+
+void apply_resources_descriptors_and_shaders_uniforms()
+{
+    //1: bind resources to their pools
+    descriptors_to_opengl_pools_mapping.clear();
+
+    size_t d_id = 0;
+    size_t b_id = 0;
+
+    GLint texture_pool_itr = 0;
+    GLint uniform_pool_itr = 0;
+
+    auto bind_texture = [&](const pikango::resources_descriptor_resource_handle& handle)
+    {
+        glActiveTexture(GL_TEXTURE0 + texture_pool_itr);
+        
+        if (std::holds_alternative<pikango::texture_2d_handle>(handle))
+        {
+            auto ti = pikango_internal::object_read_access(std::get<pikango::texture_2d_handle>(handle));
+            glBindTexture(GL_TEXTURE_2D, ti->id);
+        }
+
+        descriptors_to_opengl_pools_mapping.insert({{d_id, b_id}, texture_pool_itr});
+        texture_pool_itr++;
+    };
+
+    auto bind_uniform = [&](const pikango::resources_descriptor_resource_handle& handle)
+    {
+
+    };
+
+    auto bind_storage = [&](const pikango::resources_descriptor_resource_handle& handle)
+    {
+
+    };
+
+    for (auto& res_desc : binded_resources_descriptors)
+    {
+        b_id = 0;
+
+        if (pikango_internal::is_empty(res_desc)) {d_id++; continue;};
+        auto rdi = pikango_internal::object_read_access(res_desc);
+
+        for (; b_id < rdi->layout.size(); b_id++)
+        {
+            switch (rdi->layout[b_id])
+            {
+            case pikango::resources_descriptor_binding_type::sampled_texture:
+                bind_texture(rdi->bindings[b_id]); break;
+            case pikango::resources_descriptor_binding_type::written_texture:
+                bind_texture(rdi->bindings[b_id]); break;
+            case pikango::resources_descriptor_binding_type::uniform_buffer:
+                bind_uniform(rdi->bindings[b_id]); break;
+            case pikango::resources_descriptor_binding_type::storage_buffer:
+                bind_storage(rdi->bindings[b_id]); break;
+            }
+        }
+
+        d_id++;
+    }
+
+    //2. set shaders uniforms to point to those resources 
     auto gpi = pikango_internal::object_write_access(binded_graphics_pipeline);
     auto& shaders = gpi->config.shaders_config;
 
-    auto set_shader_uniforms = [](shader_uniforms_to_descriptors_maping& desc_mapping)
-    {
-        for (auto& d_id : changed_resources_descriptors)
-        {
-            auto descriptor = pikango_internal::object_read_access(binded_resources_descriptors.at(d_id));
-            auto& desc_bindings = descriptor->bindings;
-            auto& desc_layout = descriptor->layout;
-
-            for (size_t b_id = 0; b_id < desc_bindings.size(); b_id++)
-            {
-                auto itr = desc_mapping.find({d_id, b_id});
-                if (itr == desc_mapping.end()) continue;
-                auto addr = itr->second;
-
-                auto& type = desc_layout.at(d_id);
-                auto& binding = desc_bindings.at(d_id);
-
-                switch (type)
-                {
-                case pikango::resources_descriptor_binding_type::sampled_texture:
-                    glActiveTexture(GL_TEXTURE0 + addr);
-
-                    if (std::holds_alternative<pikango::texture_2d_handle>(binding))
-                    {
-                        auto txt = std::get<pikango::texture_2d_handle>(binding);
-                        glBindTexture(GL_TEXTURE_2D, pikango_internal::get_handle_object_raw(txt)->id);
-                    }     
-
-                    break;
-                }
-            };
-        }
-    };
-
-    auto vsi = pikango_internal::object_write_access(shaders.vertex_shader);
-    set_shader_uniforms(vsi->desc_mapping);
-
-    auto psi = pikango_internal::object_write_access(shaders.pixel_shader);
-    set_shader_uniforms(psi->desc_mapping);
-
-    if (!pikango_internal::is_empty(shaders.geometry_shader)) 
-    {
-        auto gsi = pikango_internal::object_write_access(shaders.geometry_shader);
-        set_shader_uniforms(gsi->desc_mapping);
-    }
+    set_shaders_uniforms(shaders.vertex_shader);
+    set_shaders_uniforms(shaders.pixel_shader);
+    set_shaders_uniforms(shaders.geometry_shader);
 }

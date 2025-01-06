@@ -1,7 +1,7 @@
 PIKANGO_IMPL(vertex_shader)
 {
     GLuint id = 0;
-    shader_uniforms_to_descriptors_maping desc_mapping;
+    shader_uniforms_to_descriptors_maping bindings;
     ~vertex_shader_impl();
 };
 

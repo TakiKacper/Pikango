@@ -51,38 +51,6 @@ void delete_shader_generic(impl_type* _this)
         enqueue_task(func, {_this->id}, pikango::queue_type::general);
 }
 
-template<class handle_type>
-void OPENGL_ONLY_link_shader_bindings_info_generic(handle_type handle, pikango::OPENGL_ONLY_shader_bindings& bindings)
-{
-    auto func = [](std::vector<std::any> args)
-    {
-        auto handle = std::any_cast<handle_type>(args[0]);
-        auto bindings = std::any_cast<pikango::OPENGL_ONLY_shader_bindings>(args[1]);
-
-        auto si = pikango_internal::object_write_access(handle);
-        glUseProgram(si->id);
-
-        GLint textures_pool_itr = 0;
-
-        for (auto& [name, d_id, b_id, type] : bindings)
-        {
-            switch (type)
-            {
-            case pikango::resources_descriptor_binding_type::sampled_texture:
-                auto location = glGetUniformLocation(si->id, "texture1");
-                glUniform1i(location, textures_pool_itr);
-                
-                si->desc_mapping.insert({{d_id, b_id}, textures_pool_itr});
-                
-                textures_pool_itr++;
-                break;
-            }
-        }
-    };
-
-    enqueue_task(func, {handle, bindings}, pikango::queue_type::general);
-}
-
 template<class shader_handle_type, GLuint ShaderTypeFlag>
 void compile_shader_task(std::vector<std::any> args)
 {
@@ -118,4 +86,24 @@ void compile_shader_task(std::vector<std::any> args)
     glDeleteShader(shader);
 
     si->id = program;
+}
+
+template<class handle_type>
+void OPENGL_ONLY_link_shader_bindings_info_generic(handle_type handle, pikango::OPENGL_ONLY_shader_bindings& bindings)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto handle = std::any_cast<handle_type>(args[0]);
+        auto bindings = std::any_cast<pikango::OPENGL_ONLY_shader_bindings>(args[1]);
+
+        auto si = pikango_internal::object_write_access(handle);
+
+        for (auto& [name, d_id, b_id, type] : bindings)
+        {
+            GLint loc = glGetUniformLocation(si->id, name.c_str());
+            si->bindings.insert({{d_id, b_id}, {loc, type}});
+        }
+    };
+
+    enqueue_task(func, {handle, bindings}, pikango::queue_type::general);
 }

@@ -1,7 +1,7 @@
 PIKANGO_IMPL(geometry_shader)
 {
     GLuint id = 0;
-    shader_uniforms_to_descriptors_maping desc_mapping;
+    shader_uniforms_to_descriptors_maping bindings;
     ~geometry_shader_impl();
 };
 
