@@ -173,3 +173,48 @@ GLuint combine_min_filters(pikango::texture_filtering min, pikango::texture_filt
     //will never happen
     return GL_LINEAR_MIPMAP_LINEAR;
 }
+
+GLenum get_rasterization_fill(pikango::rasterization_polygon_fill_mode mode)
+{
+    switch (mode)
+    {
+    case pikango::rasterization_polygon_fill_mode::fill_shape:
+        return GL_FILL;
+    case pikango::rasterization_polygon_fill_mode::fill_edges:
+        return GL_LINE; 
+    case pikango::rasterization_polygon_fill_mode::fill_vertices:
+        return GL_POINT; 
+    }
+    //will never happen
+    return GL_FILL;
+}
+
+GLenum get_front_face(pikango::rasterization_culling_front_face face)
+{
+    switch (face)
+    {
+    case pikango::rasterization_culling_front_face::clockwise:
+        return GL_CW;
+    case pikango::rasterization_culling_front_face::couter_clockwise:
+        return GL_CCW;
+    }
+    //will never happen
+    return GL_CCW;
+}
+
+GLenum get_culling_mode(pikango::rasterization_culling_mode mode)
+{
+    switch (mode)
+    {
+    case pikango::rasterization_culling_mode::none:
+        return GL_NONE;
+    case pikango::rasterization_culling_mode::front:
+        return GL_FRONT;
+    case pikango::rasterization_culling_mode::back:
+        return GL_BACK;
+    case pikango::rasterization_culling_mode::front_and_back:
+        return GL_FRONT_AND_BACK;
+    }
+    //will never happen
+    return GL_NONE;
+}

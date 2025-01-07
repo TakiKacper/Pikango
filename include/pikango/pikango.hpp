@@ -70,6 +70,39 @@ namespace pikango
 		rgb,	r3_g3_b2, rgb4, rgb5, rgb8, rgb10, rgb12, 
 		rgba,	rgba2, rgba4, rgba8, rgba12, rgba16, rgba32f
 	};
+
+    enum class rasterization_culling_mode : unsigned char
+    {
+        none = 0,
+        front = 1,
+        back = 2,
+        front_and_back = 3,
+    };
+
+    enum class rasterization_culling_front_face : unsigned char
+    {
+        couter_clockwise = 0,
+        clockwise = 1
+    };
+
+    enum class rasterization_polygon_fill_mode : unsigned char
+    {
+        fill_shape, 
+        fill_edges, 
+        fill_vertices
+    };
+
+    enum class depth_compare_operator : unsigned char
+    {
+        nerer = 0,
+        less = 1,
+        equal = 2,
+        less_or_equal = 3,
+        greater = 4,
+        not_equal = 5,
+        greater_or_equal = 6,
+        always = 7
+    };
 }
 
 /*
@@ -170,7 +203,19 @@ namespace pikango
 
     struct rasterization_pipeline_config
     {
-        //TODO
+        bool enable_culling = false;
+
+        rasterization_polygon_fill_mode   polygon_fill = rasterization_polygon_fill_mode::fill_shape;
+        rasterization_culling_mode        culling_mode = rasterization_culling_mode::none;
+        rasterization_culling_front_face  culling_front_face = rasterization_culling_front_face::couter_clockwise;
+
+        float line_width = 1.0f;
+    };
+
+    struct depth_stencil_pipeline_config
+    {
+        bool enable_depth_test = false;
+        bool enable_depth_write = false;
     };
 
     struct graphics_pipeline_config
@@ -178,6 +223,7 @@ namespace pikango
         vertex_layout_pipeline_config     vertex_layout_config;
         graphics_shaders_pipeline_config  shaders_config;
         rasterization_pipeline_config     rasterization_config;
+        depth_stencil_pipeline_config     depth_stencil_config;
     };
 
     enum class resources_descriptor_binding_type

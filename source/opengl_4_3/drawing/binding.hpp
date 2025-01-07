@@ -5,6 +5,9 @@ namespace {
     pikango::graphics_pipeline_handle   binded_graphics_pipeline;
     bool graphics_pipeline_changed = true;
 
+    pikango::rasterization_pipeline_config recent_rasterization_config;
+    pikango::depth_stencil_pipeline_config recent_depth_stencil_config;
+
     pikango::vertex_buffer_handle       binded_vertex_buffer;
     pikango::instance_buffer_handle     binded_instance_buffer;
     bool vao_bindings_changed = true;
@@ -219,6 +222,46 @@ void apply_graphics_pipeline_settings()
     auto gpi = pikango_internal::object_write_access(binded_graphics_pipeline);
 
     //Apply rasterization settings  
+    auto& rast = gpi->config.rasterization_config;
+    auto& r_rast = recent_rasterization_config;
+
+    if (rast.enable_culling != r_rast.enable_culling)
+    {
+        if (rast.enable_culling) glEnable(GL_CULL_FACE);
+        else                     glDisable(GL_CULL_FACE);  
+    }
+
+    if (rast.polygon_fill != r_rast.polygon_fill)
+        glPolygonMode(GL_FRONT_AND_BACK, get_rasterization_fill(rast.polygon_fill));
+
+    if (rast.culling_mode != r_rast.culling_mode)
+        glCullFace(get_culling_mode(rast.culling_mode));
+
+    if (rast.culling_front_face != r_rast.culling_front_face)
+        glFrontFace(get_front_face(rast.culling_front_face));
+
+    if (rast.line_width != r_rast.line_width)
+        glLineWidth(rast.line_width);
+
+    r_rast = rast;
+
+    //Apply depth stencil settings
+    auto& ds = gpi->config.depth_stencil_config;
+    auto& r_ds = recent_depth_stencil_config;
+
+    if (ds.enable_depth_test != r_ds.enable_depth_test)
+    {
+        if (ds.enable_depth_test) glEnable(GL_DEPTH_TEST);
+        else                      glDisable(GL_DEPTH_TEST);  
+    }
+
+    if (ds.enable_depth_write != r_ds.enable_depth_write)
+    {
+        if (ds.enable_depth_write) glDepthMask(true);
+        else                       glDepthMask(false);  
+    }
+
+    r_ds = ds;
 }
 
 template<class handle_type>
