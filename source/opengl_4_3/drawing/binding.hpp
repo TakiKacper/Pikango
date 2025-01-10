@@ -279,11 +279,33 @@ static void set_shaders_uniforms(handle_type handle)
         auto itr = descriptors_to_opengl_pools_mapping.find(binding.first);
 
         if (itr == descriptors_to_opengl_pools_mapping.end())
+        {
+            pikango_internal::log_error(
+                (
+                    std::string("Invalid descriptor mapping: desc: ") + 
+                    std::to_string(binding.first.first) +
+                    ", binding: " + 
+                    std::to_string(binding.first.second)
+                ).c_str()
+            );
             pool_id = 0;
+        }
         else 
             pool_id = (*itr).second;
 
-        glUniform1i(binding.second.first, pool_id);
+        switch (binding.second.second)
+        {
+        case pikango::resources_descriptor_binding_type::sampled_texture:
+        case pikango::resources_descriptor_binding_type::written_texture:
+            glUniform1i(binding.second.first, pool_id);
+            break;
+        case pikango::resources_descriptor_binding_type::uniform_buffer:
+            glUniformBlockBinding(si->id, binding.second.first, pool_id);
+            break;
+        case pikango::resources_descriptor_binding_type::storage_buffer:
+            //TODO
+            break;
+        }
     }
 }
 
