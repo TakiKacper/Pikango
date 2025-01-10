@@ -582,26 +582,23 @@ namespace pikango::cmd
 {
     void draw_vertices(
         draw_primitive  primitive,
-        size_t          first_vertex_index,
-        size_t          vertices_count
-    );
 
-    void draw_vertices_instanced(
-        draw_primitive  primitive,
-        size_t          first_vertex_index,
         size_t          vertices_count,
-        size_t          instances_count
+        size_t          vertices_buffer_offset,
+
+        size_t          instances_count,
+        size_t          instances_id_values_offset
     );
 
     void draw_indexed(
         draw_primitive  primitive,
-        size_t          indices_count
-    );
 
-    void draw_indexed_instanced(
-        draw_primitive  primitive,
         size_t          indices_count,
-        size_t          instances_count
+        size_t          indicies_buffer_offset,
+        int32_t         indicies_values_offset,
+
+        size_t          instances_count,
+        size_t          instances_id_values_offset
     );
 }
 
