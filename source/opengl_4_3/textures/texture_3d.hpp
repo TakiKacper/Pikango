@@ -8,11 +8,6 @@ PIKANGO_IMPL(texture_3d)
     ~texture_3d_impl();
 };
 
-pikango_internal::texture_3d_impl::~texture_3d_impl()
-{
-    delete_texture(this);
-}
-
 PIKANGO_NEW(texture_3d)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::texture_3d_impl);
@@ -21,10 +16,10 @@ PIKANGO_NEW(texture_3d)
     return handle;
 };
 
-PIKANGO_DELETE(texture_3d)
+pikango_internal::texture_3d_impl::~texture_3d_impl()
 {
-
-};
+    delete_texture(this);
+}
 
 void pikango::cmd::write_texture(
     texture_3d_handle target, 

@@ -7,6 +7,7 @@ PIKANGO_IMPL(frame_buffer)
     std::map<unsigned int, pikango::texture_2d_handle> color_attachments;
     pikango::texture_2d_handle depth_attachment;
     pikango::texture_2d_handle stencil_attachment;
+    ~frame_buffer_impl();
 };
 
 PIKANGO_NEW(frame_buffer)
@@ -24,10 +25,17 @@ PIKANGO_NEW(frame_buffer)
     return handle;
 }
 
-PIKANGO_DELETE(frame_buffer)
-{ 
+pikango_internal::frame_buffer_impl::~frame_buffer_impl()
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto id = std::any_cast<GLuint>(args[0]);
+        glDeleteFramebuffers(1, &id);
+    };
 
-};
+    if (id != 0)
+        enqueue_task(func, {id}, pikango::queue_type::general);
+}
 
 pikango::frame_buffer_handle* create_default_framebuffer_handle()
 {
@@ -37,7 +45,7 @@ pikango::frame_buffer_handle* create_default_framebuffer_handle()
     return handle_ptr;
 }
 
-size_t pikango::get_max_framebuffer_color_buffers_amount()
+size_t pikango::get_max_framebuffer_color_buffers_attachments()
 {
     return max_color_attachments;
 }

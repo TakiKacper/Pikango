@@ -7,11 +7,6 @@ PIKANGO_IMPL(texture_2d)
     ~texture_2d_impl();
 };
 
-pikango_internal::texture_2d_impl::~texture_2d_impl()
-{
-    delete_texture(this);
-}
-
 PIKANGO_NEW(texture_2d)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::texture_2d_impl);
@@ -20,10 +15,10 @@ PIKANGO_NEW(texture_2d)
     return handle;
 };
 
-PIKANGO_DELETE(texture_2d)
+pikango_internal::texture_2d_impl::~texture_2d_impl()
 {
-
-};
+    delete_texture(this);
+}
 
 void pikango::cmd::write_texture(
     texture_2d_handle target, 

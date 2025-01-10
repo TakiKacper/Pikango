@@ -15,9 +15,6 @@ namespace
 #define PIKANGO_NEW(name)   \
     pikango::name##_handle pikango::new_##name ()
 
-#define PIKANGO_DELETE(name)    \
-    void pikango::delete_##name (pikango::name##_handle handle)
-
 #include "execution_thread/execution_thread.hpp"
 #include "command_buffer/command_buffer.hpp"
 #include "fence/fence.hpp"
@@ -153,18 +150,92 @@ void pikango::wait_fence(fence_handle target)
     fi->condition.wait(lock, [&] { return fi->is_signaled || !fi->subbmitted; });
 }
 
+//Utilities enabling use of graphics shaders configuration as key for
+//program pipeline registry
+namespace{
+    struct graphics_shaders_pipeline_config_impl_ptr_identifier
+    {
+        void* vertex_shader_impl_ptr;
+        void* pixel_shader_impl_ptr;
+        void* geometry_shader_impl_ptr;
+    };
+
+    struct graphics_shaders_pipeline_config_impl_ptr_identifier_hash
+    {
+        std::size_t operator()(const graphics_shaders_pipeline_config_impl_ptr_identifier& config) const
+        {
+            std::size_t seed = 0;
+            seed = seed ^ (size_t)config.vertex_shader_impl_ptr;
+            seed = seed ^ (size_t)config.pixel_shader_impl_ptr;
+            seed = seed ^ (size_t)config.geometry_shader_impl_ptr;
+            return seed;
+        }
+    };
+
+    struct graphics_shaders_pipeline_impl_ptr_identifier_equal
+    {
+        bool operator()(
+            const graphics_shaders_pipeline_config_impl_ptr_identifier& a, 
+            const graphics_shaders_pipeline_config_impl_ptr_identifier& b
+        ) const
+        {
+            return  a.vertex_shader_impl_ptr == b.vertex_shader_impl_ptr && 
+                    a.pixel_shader_impl_ptr == b.pixel_shader_impl_ptr && 
+                    a.geometry_shader_impl_ptr == b.geometry_shader_impl_ptr;
+        }
+    };
+}
+
+//Utility
+namespace pikango_internal
+{
+    struct size_t_pair 
+    {
+        size_t first;
+        size_t second;
+
+        bool operator==(const size_t_pair& other) const 
+        {
+            return first == other.first && second == other.second;
+        }
+
+        size_t_pair(size_t _f, size_t _s) : first(_f), second(_s) {};
+    };
+
+    struct size_t_pair_hash 
+    {
+        size_t operator()(const size_t_pair& p) const 
+        {
+            size_t h1 = std::hash<size_t>{}(p.first);
+            size_t h2 = std::hash<size_t>{}(p.second);
+            return h1 ^ (h2 << 1);
+        }
+    };
+} 
+
 /*
     Common Opengl Objects
 */
 
-namespace
-{
+namespace {
     GLuint VAO;
     pikango::frame_buffer_handle* default_frame_buffer_handle = nullptr;
+
     GLint textures_pool_size;
     GLint uniforms_pool_size;
     GLint textures_operation_unit;
     GLint max_color_attachments;
+    constexpr GLint max_resources_descriptors = 16; 
+
+    //program pipelines reigstry needs to be mutexed since it can be accessed 
+    //by both exection thread when applying bindings and other threads in shaders deconstructors
+    std::mutex program_pipelines_registry_mutex;
+    std::unordered_map<
+        graphics_shaders_pipeline_config_impl_ptr_identifier, 
+        GLuint,
+        graphics_shaders_pipeline_config_impl_ptr_identifier_hash,
+        graphics_shaders_pipeline_impl_ptr_identifier_equal> 
+    program_pipelines_registry;
 }
 
 /*
@@ -212,6 +283,9 @@ std::string pikango::initialize_library_gpu()
 
         //get max color attachments
         glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &max_color_attachments);
+
+        //enable scissors
+        glEnable( GL_SCISSOR_TEST);
     };
 
     enqueue_task(func, {}, pikango::queue_type::general);
@@ -225,6 +299,14 @@ std::string pikango::terminate()
     {
         glDeleteVertexArrays(1, &VAO);
         delete default_frame_buffer_handle;
+
+        program_pipelines_registry_mutex.lock();
+
+        for (auto& [_, id] : program_pipelines_registry)
+            glDeleteProgramPipelines(1, &id);
+        program_pipelines_registry.clear();
+
+        program_pipelines_registry_mutex.unlock();
     };
 
     enqueue_task(func, {}, pikango::queue_type::general);
@@ -238,29 +320,34 @@ const char* pikango::get_used_shading_language_name()
     return glsl;
 }
 
-size_t pikango::get_texture_pool_size()
+size_t pikango::get_max_resources_descriptors_bindings()
 {
-    return textures_pool_size;
-}
-
-size_t pikango::get_uniform_pool_size()
-{
-    return uniforms_pool_size;
+    return max_resources_descriptors;
 }
 
 /*
     Commands Implementations
 */
 
+#include "pipelines/graphics_pipeline.hpp"
+
+#include "descriptors/resources_descriptors.hpp"
+
+using shader_uniforms_to_descriptors_maping = 
+    std::unordered_map<pikango_internal::size_t_pair, std::pair<GLint, pikango::resources_descriptor_binding_type>, pikango_internal::size_t_pair_hash>;
+
+#include "shaders/generic.hpp"
+#include "shaders/vertex_shader.hpp"
+#include "shaders/pixel_shader.hpp"
+#include "shaders/geometry_shader.hpp"
+//#include "shaders/compute_shader.hpp"
+#include "shaders/program.hpp"
+
 #include "buffers/generic.hpp"
 #include "buffers/vertex_buffer.hpp"
 #include "buffers/index_buffer.hpp"
 #include "buffers/instance_buffer.hpp"
 #include "buffers/uniform_buffer.hpp"
-
-#include "data_layout/data_layout.hpp"
-
-#include "shaders/graphics_shader.hpp"
 
 #include "textures/generic.hpp"
 #include "textures/texture_1d.hpp"
@@ -271,4 +358,6 @@ size_t pikango::get_uniform_pool_size()
 #include "frame_buffer/generic.hpp"
 #include "frame_buffer/frame_buffer.hpp"
 
+#include "drawing/binding.hpp"
+#include "drawing/drawing_related.hpp"
 #include "drawing/drawing.hpp"

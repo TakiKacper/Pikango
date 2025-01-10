@@ -6,11 +6,6 @@ PIKANGO_IMPL(texture_cube)
     ~texture_cube_impl();
 };
 
-pikango_internal::texture_cube_impl::~texture_cube_impl()
-{
-    delete_texture(this);
-}
-
 PIKANGO_NEW(texture_cube)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::texture_cube_impl);
@@ -19,10 +14,10 @@ PIKANGO_NEW(texture_cube)
     return handle;
 };
 
-PIKANGO_DELETE(texture_cube)
+pikango_internal::texture_cube_impl::~texture_cube_impl()
 {
-
-};
+    delete_texture(this);
+}
 
 void pikango::cmd::write_texture(
     texture_cube_handle target, 
