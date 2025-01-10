@@ -283,6 +283,9 @@ std::string pikango::initialize_library_gpu()
 
         //get max color attachments
         glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &max_color_attachments);
+
+        //enable scissors
+        glEnable( GL_SCISSOR_TEST);
     };
 
     enqueue_task(func, {}, pikango::queue_type::general);
@@ -356,4 +359,5 @@ using shader_uniforms_to_descriptors_maping =
 #include "frame_buffer/frame_buffer.hpp"
 
 #include "drawing/binding.hpp"
+#include "drawing/drawing_related.hpp"
 #include "drawing/drawing.hpp"

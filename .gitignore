@@ -9,3 +9,6 @@
 /include/*
 !/include/pikango
 !/include/pikango/*
+
+!/docs/
+!/docs/*

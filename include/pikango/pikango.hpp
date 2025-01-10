@@ -311,7 +311,7 @@ namespace pikango
     COMMNANDS AND UTILITY METHODS
 */
 
-//PIPELINES
+//Pipelines
 namespace pikango
 {
     void configure_graphics_pipeline(graphics_pipeline_handle target, graphics_pipeline_config& config);
@@ -568,6 +568,13 @@ namespace pikango::cmd
     void bind_vertex_buffer(vertex_buffer_handle vertex_buffer);
     void bind_index_buffer(index_buffer_handle index_buffer);
     void bind_instance_buffer(instance_buffer_handle instance_buffer);
+}
+
+//Drawing Related Commands
+namespace pikango::cmd
+{
+    void set_viewport(const rectangle& rect);
+    void set_scissors(const rectangle& rect);
 }
 
 //Drawing
