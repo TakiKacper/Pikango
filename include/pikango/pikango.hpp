@@ -111,6 +111,15 @@ namespace pikango
 
 #include "pikango_handle.hpp"
 
+namespace pikango
+{
+    template <class handled_object>
+    bool is_empty(const pikango_internal::handle<handled_object>& handle)
+    {
+        return pikango_internal::is_empty(handle);
+    }
+}
+
 /*
 This macro for name = xyz would create folowing objects:
 

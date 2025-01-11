@@ -61,6 +61,9 @@ namespace pikango_internal
                 delete meta;
             }
         }
+
+        meta = nullptr;
+        object = nullptr;
     }
     
     template<class handled_object>
