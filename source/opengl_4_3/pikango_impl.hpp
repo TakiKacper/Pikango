@@ -139,12 +139,18 @@ void pikango::submit_command_buffer_with_fence(pikango::command_buffer_handle cb
 void pikango::wait_fence(fence_handle target)
 {
     auto fi = pikango_internal::obtain_handle_object(target);
-
     if (fi->subbmitted == false) return;
 
     std::unique_lock<std::mutex> lock(fi->mutex);
     fi->condition.wait(lock, [&] { return fi->is_signaled || !fi->subbmitted; });
 }
+
+void pikango::wait_multiple_fences(std::vector<fence_handle> targets)
+{
+    for (auto& target : targets)
+        wait_fence(target);
+}
+
 
 //Utilities enabling use of graphics shaders configuration as key for
 //program pipeline registry
