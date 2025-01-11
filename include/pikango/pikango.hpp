@@ -192,13 +192,14 @@ namespace pikango
     //  A----------|
     struct rectangle
     {
-        float ax;
-        float ay;
+        int ax;
+        int ay;
 
-        float bx;
-        float by;
+        int bx;
+        int by;
+
         rectangle() : ax(0), ay(0), bx(400), by(400) {};
-        rectangle(float _ax, float _ay, float _bx, float _by)
+        rectangle(int _ax, int _ay, int _bx, int _by)
             : ax(_ax), ay(_ay), bx(_bx), by(_by) {};
     };
 
