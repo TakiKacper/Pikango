@@ -57,7 +57,7 @@ void compile_shader_task(std::vector<std::any> args)
     shader_handle_type handle = std::any_cast<shader_handle_type>(args[0]);
     std::string source = std::any_cast<std::string>(args[1]);
 
-    auto si = pikango_internal::object_write_access(handle);
+    auto si = pikango_internal::obtain_handle_object(handle);
 
     auto source_ptr = source.c_str();
 
@@ -96,7 +96,7 @@ void OPENGL_ONLY_link_shader_bindings_info_generic(handle_type handle, pikango::
         auto handle = std::any_cast<handle_type>(args[0]);
         auto bindings = std::any_cast<pikango::OPENGL_ONLY_shader_bindings>(args[1]);
 
-        auto si = pikango_internal::object_write_access(handle);
+        auto si = pikango_internal::obtain_handle_object(handle);
 
         for (auto& [name, d_id, b_id, type] : bindings)
         {

@@ -19,7 +19,7 @@ void assign_buffer_memory_generic(
     pikango::buffer_access_profile access_profile
 )
 {
-    auto bi = pikango_internal::object_write_access(target);
+    auto bi = pikango_internal::obtain_handle_object(target);
 
     //if size == 0
     //todo error
@@ -35,7 +35,7 @@ void assign_buffer_memory_generic(
         auto memory = std::any_cast<pikango::buffer_memory_profile>(args[2]);
         auto access = std::any_cast<pikango::buffer_access_profile>(args[3]);
 
-        auto bi = pikango_internal::object_write_access(handle);
+        auto bi = pikango_internal::obtain_handle_object(handle);
         if (bi->id == 0)
             glGenBuffers(1, &bi->id);
 
@@ -59,7 +59,7 @@ void write_buffer_memory_generic(
         auto size = std::any_cast<size_t>(args[1]);
         auto data = std::any_cast<void*>(args[2]);
 
-        auto bi = pikango_internal::object_read_access(handle);
+        auto bi = pikango_internal::obtain_handle_object(handle);
         
         //if (bi->id == 0)
         //todo error
@@ -92,7 +92,7 @@ void write_buffer_memory_region_generic(
         auto data   = std::any_cast<void*>(args[2]);
         auto offset = std::any_cast<size_t>(args[3]);
 
-        auto bi = pikango_internal::object_read_access(handle);
+        auto bi = pikango_internal::obtain_handle_object(handle);
         
         //if (bi->id == 0)
         //todo error

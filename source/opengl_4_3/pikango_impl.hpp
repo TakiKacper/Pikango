@@ -23,7 +23,7 @@ namespace
 {
     void record_task(const opengl_task& task, std::vector<std::any> args)
     {
-        auto cbi = pikango_internal::object_write_access(recording_command_buffer);
+        auto cbi = pikango_internal::obtain_handle_object(recording_command_buffer);
         cbi->tasks.push_back({task, std::move(args)});
     }
 
@@ -57,7 +57,7 @@ namespace
 
 void pikango::submit_command_buffer(pikango::command_buffer_handle cb, pikango::queue_type target_queue_type, size_t target_queue_index)
 {
-    auto cbi = pikango_internal::object_read_access(cb);
+    auto cbi = pikango_internal::obtain_handle_object(cb);
     
     std::queue<enqueued_task>*  queue;
     std::mutex*                 mutex;
@@ -90,7 +90,7 @@ void pikango::submit_command_buffer(pikango::command_buffer_handle cb, pikango::
 
 void pikango::submit_command_buffer_with_fence(pikango::command_buffer_handle cb, pikango::queue_type target_queue_type, size_t target_queue_index, fence_handle fence)
 {
-    auto cbi = pikango_internal::object_read_access(cb);
+    auto cbi = pikango_internal::obtain_handle_object(cb);
     
     std::queue<enqueued_task>*  queue;
     std::mutex*                 mutex;
@@ -114,8 +114,7 @@ void pikango::submit_command_buffer_with_fence(pikango::command_buffer_handle cb
     auto func = [](std::vector<std::any> args)
     {
         auto fence = std::any_cast<fence_handle>(args[0]);
-        auto const_fi = pikango_internal::object_read_access(fence);
-        auto fi = const_cast<pikango_internal::fence_impl*>(*const_fi);
+        auto fi = pikango_internal::obtain_handle_object(fence);
 
         fi->is_signaled = true;
         fi->condition.notify_one();
@@ -123,7 +122,7 @@ void pikango::submit_command_buffer_with_fence(pikango::command_buffer_handle cb
 
     mutex->lock();
 
-    auto fi = pikango_internal::object_write_access(fence);
+    auto fi = pikango_internal::obtain_handle_object(fence);
     fi->subbmitted = true;
     fi->is_signaled = false;
 
@@ -139,10 +138,7 @@ void pikango::submit_command_buffer_with_fence(pikango::command_buffer_handle cb
 
 void pikango::wait_fence(fence_handle target)
 {
-    //using read access does not block the handle mutex
-    //it is required so the exectution thread could signal the fence
-    auto const_fi = pikango_internal::object_read_access(target);
-    auto fi = const_cast<pikango_internal::fence_impl*>(*const_fi);
+    auto fi = pikango_internal::obtain_handle_object(target);
 
     if (fi->subbmitted == false) return;
 
@@ -219,7 +215,7 @@ namespace pikango_internal
 
 namespace {
     GLuint VAO;
-    pikango::frame_buffer_handle* default_frame_buffer_handle = nullptr;
+    pikango::frame_buffer_handle default_frame_buffer_handle;
 
     GLint textures_pool_size;
     GLint uniforms_pool_size;
@@ -249,7 +245,7 @@ void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std
 
 pikango::frame_buffer_handle pikango::OPENGL_ONLY_get_default_frame_buffer()
 {
-    return *default_frame_buffer_handle;
+    return default_frame_buffer_handle;
 }
 
 std::string pikango::initialize_library_cpu()
@@ -259,7 +255,7 @@ std::string pikango::initialize_library_cpu()
 }
 
 //fwd
-pikango::frame_buffer_handle* create_default_framebuffer_handle();
+pikango::frame_buffer_handle create_default_framebuffer_handle();
 
 std::string pikango::initialize_library_gpu()
 {
@@ -298,7 +294,7 @@ std::string pikango::terminate()
     auto func = [](std::vector<std::any>)
     {
         glDeleteVertexArrays(1, &VAO);
-        delete default_frame_buffer_handle;
+        default_frame_buffer_handle.~handle();
 
         program_pipelines_registry_mutex.lock();
 

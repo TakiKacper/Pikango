@@ -20,7 +20,7 @@ pikango_internal::uniform_buffer_impl::~uniform_buffer_impl()
 
 size_t pikango::get_buffer_size(uniform_buffer_handle target)
 {
-    auto bi = pikango_internal::object_read_access(target);
+    auto bi = pikango_internal::obtain_handle_object(target);
     return bi->buffer_size;
 }
 
@@ -56,7 +56,7 @@ void pikango::cmd::bind_uniform_buffer_to_pool(uniform_buffer_handle target, siz
         auto handle = std::any_cast<uniform_buffer_handle>(args[0]);
         auto index = std::any_cast<size_t>(args[1]);
 
-        auto bi = pikango_internal::object_read_access(handle);
+        auto bi = pikango_internal::obtain_handle_object(handle);
         glBindBufferBase(GL_UNIFORM_BUFFER, index, bi->id);
     };
     record_task(func, {target, pool_index});

@@ -19,7 +19,7 @@ inline void bind_texture_to_pool_generic(handle_type target, size_t index)
         auto handle = std::any_cast<handle_type>(args[0]);
         auto index = std::any_cast<size_t>(args[1]);
 
-        auto ti = pikango_internal::object_read_access(handle);
+        auto ti = pikango_internal::obtain_handle_object(handle);
 
         glActiveTexture(GL_TEXTURE0 + index);
         glBindTexture(gl_texture_type, ti->id);
@@ -44,7 +44,7 @@ inline void set_texture_filtering_generic(
         auto mag_filter = std::any_cast<GLuint>(args[1]);
         auto min_filter = std::any_cast<GLuint>(args[2]);
 
-        auto ti = pikango_internal::object_read_access(handle);
+        auto ti = pikango_internal::obtain_handle_object(handle);
 
         glBindTexture(gl_texture_type, ti->id);
         glTexParameteri(gl_texture_type, GL_TEXTURE_MAG_FILTER, mag_filter);
@@ -62,7 +62,7 @@ inline void set_texture_wraping_1d_generic(handle_type target, pikango::texture_
         auto handle = std::any_cast<handle_type>(args[0]);
         auto tw_x   = std::any_cast<GLuint>(args[1]);
 
-        auto ti = pikango_internal::object_read_access(handle);
+        auto ti = pikango_internal::obtain_handle_object(handle);
 
         glBindTexture(gl_texture_type, ti->id);
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_S, tw_x);
@@ -79,7 +79,7 @@ inline void set_texture_wraping_2d_generic(handle_type target, pikango::texture_
         auto tw_x   = std::any_cast<GLuint>(args[1]);
         auto tw_y   = std::any_cast<GLuint>(args[2]);
 
-        auto ti = pikango_internal::object_read_access(handle);
+        auto ti = pikango_internal::obtain_handle_object(handle);
 
         glBindTexture(gl_texture_type, ti->id);
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_S, tw_x);
@@ -98,7 +98,7 @@ inline void set_texture_wraping_3d_generic(handle_type target, pikango::texture_
         auto tw_y   = std::any_cast<GLuint>(args[2]);
         auto tw_z   = std::any_cast<GLuint>(args[3]);
 
-        auto ti = pikango_internal::object_read_access(handle);
+        auto ti = pikango_internal::obtain_handle_object(handle);
 
         glBindTexture(gl_texture_type, ti->id);
         glTexParameteri(gl_texture_type, GL_TEXTURE_WRAP_S, tw_x);

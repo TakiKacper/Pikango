@@ -261,12 +261,6 @@ namespace pikango
     std::string terminate();
 
     void set_error_notification_callback(error_notification_callback callback);
-
-    template<class T>
-    bool handle_good(const pikango_internal::handle<T>& handle)
-    {
-        return !pikango_internal::is_empty(handle);
-    }
 }
 
 #ifdef PIKANGO_OPENGL_4_3

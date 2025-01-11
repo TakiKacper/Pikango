@@ -12,7 +12,7 @@ PIKANGO_NEW(command_buffer)
 
 void pikango::configure_command_buffer(command_buffer_handle target, queue_type target_queue_type)
 {
-    auto cbi = pikango_internal::object_write_access(target);
+    auto cbi = pikango_internal::obtain_handle_object(target);
     cbi->target_queue_type = target_queue_type;
 }
 
@@ -28,6 +28,6 @@ void pikango::end_command_buffer_recording(command_buffer_handle target)
 
 void pikango::clear_command_buffer(command_buffer_handle target)
 {
-    auto cbi = pikango_internal::object_write_access(target);
+    auto cbi = pikango_internal::obtain_handle_object(target);
     cbi->tasks.clear();
 }

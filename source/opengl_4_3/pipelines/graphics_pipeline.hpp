@@ -11,6 +11,6 @@ PIKANGO_NEW(graphics_pipeline)
 
 void pikango::configure_graphics_pipeline(graphics_pipeline_handle target, graphics_pipeline_config& configuration)
 {
-    auto gpi = pikango_internal::object_write_access(target);
+    auto gpi = pikango_internal::obtain_handle_object(target);
     gpi->config = configuration;
 }

@@ -10,7 +10,7 @@ PIKANGO_IMPL(texture_2d)
 PIKANGO_NEW(texture_2d)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::texture_2d_impl);
-    auto ti = pikango_internal::object_write_access(handle);
+    auto ti = pikango_internal::obtain_handle_object(handle);
     ti->id = 0;
     return handle;
 };
@@ -38,7 +38,7 @@ void pikango::cmd::write_texture(
         auto height = std::any_cast<size_t>(args[4]);
         auto data = std::any_cast<void*>(args[5]);
 
-        auto ti = pikango_internal::object_write_access(handle);
+        auto ti = pikango_internal::obtain_handle_object(handle);
 
         if (ti->id == 0)
             glGenTextures(1, &ti->id);
