@@ -10,6 +10,7 @@ namespace pikango_internal
     class handle
     {
         template<class T> friend bool       is_empty(const handle<T>& handle);
+        template<class T> friend size_t     handle_hash(const handle<T>& handle);
         template<class T> friend handle<T>  make_handle (T* object);
         template<class T> friend T*         obtain_handle_object(const handle<T>& handle);
         
@@ -88,6 +89,14 @@ namespace pikango_internal
     bool is_empty(const handle<handled_object>& handle)
     {
         return handle.meta == nullptr;
+    }
+
+    template <class handled_object>
+    size_t handle_hash(const handle<handled_object>& handle)
+    {
+        //since pointer is the same size as size_t
+        //return the meta pointer as a hash of handle
+        return (size_t)handle.meta;
     }
 
     template<class handled_object>

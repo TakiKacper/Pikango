@@ -118,6 +118,12 @@ namespace pikango
     {
         return pikango_internal::is_empty(handle);
     }
+    
+    template <class handled_object>
+    size_t handle_hash(const pikango_internal::handle<handled_object>& handle)
+    {
+        return pikango_internal::handle_hash(handle);
+    }
 }
 
 /*
