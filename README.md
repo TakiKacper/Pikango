@@ -11,5 +11,8 @@ Library allows to:
 
 Probably not.  
   
-Pikango is heavily in development, hardly tested and it's api support is really narrow (OpenGL 4.3 only at this point).  
+Pikango is heavily in development, hardly tested and it's api support is really narrow (OpenGL 4.3 only at this point).
+
 As I continue working on other projects involving pikango, it will gradually get more refined, it's specification rigider, and support broader.
+
+As if for today I recommend you taking a look at [bgfx](https://github.com/bkaradzic/bgfx)
