@@ -5,7 +5,11 @@ PIKANGO_IMPL(frame_buffer)
 {
     GLuint id = 0;
     std::map<unsigned int, pikango::texture_2d_handle> color_attachments;
-    pikango::texture_2d_handle depth_attachment;
+    std::variant<
+        pikango::texture_2d_handle,
+        pikango::texture_cube_handle
+    >    
+    depth_attachment;
     pikango::texture_2d_handle stencil_attachment;
     ~frame_buffer_impl();
 };
@@ -57,7 +61,7 @@ void pikango::attach_framebuffer_color_buffer(
 )
 {
     pikango_internal::obtain_handle_object(target)->color_attachments.insert({index, attachment});
-    attach_framebuffer_buffer_generic<GL_COLOR_ATTACHMENT0, frame_buffer_handle>(target, attachment, index);
+    attach_framebuffer_buffer_2d_generic<GL_COLOR_ATTACHMENT0, frame_buffer_handle>(target, attachment, index);
 }
 
 void pikango::attach_framebuffer_depth_buffer(
@@ -66,8 +70,28 @@ void pikango::attach_framebuffer_depth_buffer(
 )
 {
     pikango_internal::obtain_handle_object(target)->depth_attachment = attachment;
-    attach_framebuffer_buffer_generic<GL_DEPTH_ATTACHMENT, frame_buffer_handle>(target, attachment, 0);
+    attach_framebuffer_buffer_2d_generic<GL_DEPTH_ATTACHMENT, frame_buffer_handle>(target, attachment, 0);
 }
+
+void pikango::attach_framebuffer_depth_buffer(
+    frame_buffer_handle target,
+    texture_cube_handle attachment
+)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto target = std::any_cast<frame_buffer_handle>(args[0]);
+        auto attachment = std::any_cast<pikango::texture_cube_handle>(args[1]);
+
+        auto fbi = pikango_internal::obtain_handle_object(target);
+        auto ti = pikango_internal::obtain_handle_object(attachment);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, fbi->id);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, ti->id, 0);
+    };
+
+    enqueue_task(func, {target, attachment}, pikango::queue_type::general);
+};
 
 void pikango::attach_framebuffer_stencil_buffer(
     frame_buffer_handle target,
@@ -75,10 +99,8 @@ void pikango::attach_framebuffer_stencil_buffer(
 )
 {
     pikango_internal::obtain_handle_object(target)->stencil_attachment = attachment;
-    attach_framebuffer_buffer_generic<GL_STENCIL_ATTACHMENT, frame_buffer_handle>(target, attachment, 0);
+    attach_framebuffer_buffer_2d_generic<GL_STENCIL_ATTACHMENT, frame_buffer_handle>(target, attachment, 0);
 }
-
-
 
 void pikango::detach_framebuffer_color_buffer(
     frame_buffer_handle target,
@@ -101,8 +123,6 @@ void pikango::detach_framebuffer_stencil_buffer(frame_buffer_handle target)
     detach_framebuffer_buffer_generic<GL_STENCIL_ATTACHMENT, frame_buffer_handle>(target, 0);
 }
 
-
-
 pikango::texture_2d_handle pikango::get_framebuffer_color_buffer(
     frame_buffer_handle target,
     unsigned int slot
@@ -116,7 +136,7 @@ pikango::texture_2d_handle pikango::get_framebuffer_color_buffer(
     return itr->second;
 }
 
-pikango::texture_2d_handle pikango::get_framebuffer_depth_buffer(frame_buffer_handle target)
+std::variant<pikango::texture_2d_handle, pikango::texture_cube_handle> pikango::get_framebuffer_depth_buffer(frame_buffer_handle target)
 {
     return pikango_internal::obtain_handle_object(target)->depth_attachment;
 }

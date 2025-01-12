@@ -71,11 +71,6 @@ void pikango::cmd::write_texture(
     record_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, top, bottom, left, right, front, back});
 }
 
-void pikango::cmd::bind_texture_to_pool(texture_cube_handle target, size_t index)
-{
-    bind_texture_to_pool_generic<texture_cube_handle, GL_TEXTURE_CUBE_MAP>(target, index);
-}
-
 void pikango::set_texture_wraping(texture_cube_handle target, texture_wraping x, texture_wraping y, texture_wraping z)
 {
     set_texture_wraping_3d_generic<texture_cube_handle, GL_TEXTURE_CUBE_MAP>(target, x, y, z);

@@ -52,11 +52,6 @@ void pikango::cmd::write_texture(
     record_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, height, pixel_data});
 }
 
-void pikango::cmd::bind_texture_to_pool(texture_2d_handle target, size_t index)
-{
-    bind_texture_to_pool_generic<texture_2d_handle, GL_TEXTURE_2D>(target, index);
-}
-
 void pikango::set_texture_wraping(texture_2d_handle target, texture_wraping x, texture_wraping y)
 {
     set_texture_wraping_2d_generic<texture_2d_handle, GL_TEXTURE_2D>(target, x, y);

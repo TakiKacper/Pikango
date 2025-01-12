@@ -1,5 +1,5 @@
 template<GLenum gl_attachment_type, class framebuffer>
-void attach_framebuffer_buffer_generic(
+void attach_framebuffer_buffer_2d_generic(
     framebuffer target,
     pikango::texture_2d_handle attachment,
     size_t index
@@ -18,7 +18,7 @@ void attach_framebuffer_buffer_generic(
         glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment_type + index, GL_TEXTURE_2D, ti->id, 0);
     };
 
-    enqueue_task(func, {target}, pikango::queue_type::general);
+    enqueue_task(func, {target, attachment, index}, pikango::queue_type::general);
 }
 
 template<GLenum gl_attachment_type, class framebuffer>
@@ -35,8 +35,8 @@ void detach_framebuffer_buffer_generic(
         auto fbi = pikango_internal::obtain_handle_object(target);
 
         glBindFramebuffer(GL_FRAMEBUFFER, fbi->id);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, gl_attachment_type + index, GL_TEXTURE_2D, 0, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, gl_attachment_type + index, 0, 0);
     };
 
-    enqueue_task(func, {target}, pikango::queue_type::general);
+    enqueue_task(func, {target, index}, pikango::queue_type::general);
 }

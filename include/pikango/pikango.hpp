@@ -370,8 +370,6 @@ namespace pikango::cmd
     BUFFER_CMD(index_buffer);
     BUFFER_CMD(instance_buffer);
     BUFFER_CMD(uniform_buffer);
-
-    void bind_uniform_buffer_to_pool(uniform_buffer_handle target, size_t pool_index);
 }
 
 #undef BUFFER_METHODS
@@ -457,13 +455,6 @@ namespace pikango
 
 namespace pikango::cmd
 {
-    void bind_texture_to_pool(texture_1d_handle target, size_t pool_index);
-    void bind_texture_to_pool(texture_2d_handle target, size_t pool_index);
-    void bind_texture_to_pool(texture_3d_handle target, size_t pool_index);
-    void bind_texture_to_pool(texture_cube_handle target, size_t pool_index);
-    void bind_texture_to_pool(texture_1d_array_handle target, size_t pool_index);
-    void bind_texture_to_pool(texture_2d_array_handle target, size_t pool_index);
-
     void write_texture(
         texture_1d_handle target, 
         texture_format source_format, 
@@ -535,6 +526,11 @@ namespace pikango
         texture_2d_handle attachment
     );
 
+    void attach_framebuffer_depth_buffer(
+        frame_buffer_handle target,
+        texture_cube_handle attachment
+    );
+
     void attach_framebuffer_stencil_buffer(
         frame_buffer_handle target,
         texture_2d_handle attachment
@@ -555,7 +551,7 @@ namespace pikango
         unsigned int slot
     );
 
-    texture_2d_handle get_framebuffer_depth_buffer(frame_buffer_handle target);
+    std::variant<texture_2d_handle, texture_cube_handle> get_framebuffer_depth_buffer(frame_buffer_handle target);
     texture_2d_handle get_framebuffer_stencil_buffer(frame_buffer_handle target);
 
 #ifdef PIKANGO_OPENGL_4_3
