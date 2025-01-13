@@ -15,11 +15,21 @@
     - **Instance Buffer** is type of buffer for storing *instances* attributes
     - **Uniform Buffer** is type of buffer for storing **shaders** uniforms
 - **Texture** is a type of resource, representing block of memory on the GPU + information on how to *sample** it.
+- **Frame Buffer** is a collection of ***textures** that can be used as a destination of rendering operation
+- **Shader** is a resource representing a GPU program.
+    - **Vertex Shader** is a type of shader for processing vertices
+    - **Geometry Shader** is a type of shader for processing geometry
+    - **Pixel Shader** is a type of shader for processing pixels 
+- **Resource Descriptor** is a type of resource, referencing **buffers** and **textures** that should be used during rendering.
 
 
 # Code Flow
 
+All pikango' functions inside ``pikango::`` namespace, are synchronous and perform their job right after being executed. 
+
+![Normal Pikango Calls Execution](res/functions_execution.png)
+
+It isnt the case under.
 
 
-
-![Execution Diagram](res/execution_diagram.png)
+![Command Buffers Execution](res/command_buffer_execution.png)
