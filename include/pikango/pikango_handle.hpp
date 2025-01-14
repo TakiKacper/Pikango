@@ -49,6 +49,19 @@ namespace pikango_internal
         if (meta != nullptr)
             meta->refs++;
     }
+    
+    //this function exist only so the implementation could use meta addresses as hashes
+    //do not use it in any other way
+    template<class T> void* get_handle_meta_block_address(const handle<T>& handle)
+    {
+        return handle.meta;
+    }
+
+    template<class T> 
+    T* get_handle_object_raw(const handle<T>& handle)
+    {
+        return handle.object;
+    }
 
     template<class handled_object>
     handle<handled_object>::~handle()

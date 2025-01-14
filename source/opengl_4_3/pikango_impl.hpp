@@ -151,7 +151,6 @@ void pikango::wait_multiple_fences(std::vector<fence_handle> targets)
         wait_fence(target);
 }
 
-
 //Utilities enabling use of graphics shaders configuration as key for
 //program pipeline registry
 namespace{
@@ -221,6 +220,7 @@ namespace pikango_internal
 
 namespace {
     GLuint VAO;
+
     pikango::frame_buffer_handle default_frame_buffer_handle;
 
     GLint textures_pool_size;
@@ -300,6 +300,7 @@ std::string pikango::terminate()
     auto func = [](std::vector<std::any>)
     {
         glDeleteVertexArrays(1, &VAO);
+
         default_frame_buffer_handle.~handle();
 
         program_pipelines_registry_mutex.lock();

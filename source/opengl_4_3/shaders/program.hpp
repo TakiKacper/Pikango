@@ -3,6 +3,7 @@
 GLuint get_program_pipeline(pikango::graphics_shaders_pipeline_config& config)
 {
     graphics_shaders_pipeline_config_impl_ptr_identifier idtf;
+
     idtf.vertex_shader_impl_ptr = pikango_internal::obtain_handle_object(config.vertex_shader);
     idtf.pixel_shader_impl_ptr = pikango_internal::obtain_handle_object(config.pixel_shader);
     idtf.geometry_shader_impl_ptr = pikango_internal::obtain_handle_object(config.geometry_shader);

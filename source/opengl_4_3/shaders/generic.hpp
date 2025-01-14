@@ -58,7 +58,6 @@ void compile_shader_task(std::vector<std::any> args)
     std::string source = std::any_cast<std::string>(args[1]);
 
     auto si = pikango_internal::obtain_handle_object(handle);
-
     auto source_ptr = source.c_str();
 
     //Create Shader
