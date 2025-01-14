@@ -15,7 +15,7 @@ PIKANGO_NEW(resources_descriptor)
 
 void pikango::configure_resources_descriptor(resources_descriptor_handle target, std::vector<resources_descriptor_binding_type>& layout)
 {
-    auto rdi = pikango_internal::object_write_access(target);
+    auto rdi = pikango_internal::obtain_handle_object(target);
     
     if (rdi->layout_set)
     {
@@ -29,7 +29,7 @@ void pikango::configure_resources_descriptor(resources_descriptor_handle target,
 
 void pikango::bind_to_resources_descriptor(resources_descriptor_handle target, std::vector<resources_descriptor_resource_handle>& bindings)
 {
-    auto rdi = pikango_internal::object_write_access(target);
+    auto rdi = pikango_internal::obtain_handle_object(target);
 
     if (!rdi->layout_set)
     {

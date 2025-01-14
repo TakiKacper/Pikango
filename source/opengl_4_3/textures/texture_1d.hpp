@@ -9,7 +9,7 @@ PIKANGO_IMPL(texture_1d)
 PIKANGO_NEW(texture_1d)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::texture_1d_impl);
-    auto ti = pikango_internal::object_write_access(handle);
+    auto ti = pikango_internal::obtain_handle_object(handle);
     ti->id = 0;
     return handle;
 };
@@ -35,7 +35,7 @@ void pikango::cmd::write_texture(
         auto width = std::any_cast<size_t>(args[3]);
         auto data = std::any_cast<void*>(args[4]);
 
-        auto ti = pikango_internal::object_write_access(handle);
+        auto ti = pikango_internal::obtain_handle_object(handle);
 
         if (ti->id == 0)
             glGenTextures(1, &ti->id);
@@ -45,11 +45,6 @@ void pikango::cmd::write_texture(
         glGenerateMipmap(GL_TEXTURE_1D);
     };
     record_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, pixel_data});
-}
-
-void pikango::cmd::bind_texture_to_pool(texture_1d_handle target, size_t index)
-{
-    bind_texture_to_pool_generic<texture_1d_handle, GL_TEXTURE_1D>(target, index);
 }
 
 void pikango::set_texture_wraping(texture_1d_handle target, texture_wraping x)

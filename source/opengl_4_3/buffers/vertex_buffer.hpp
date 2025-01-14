@@ -20,7 +20,7 @@ pikango_internal::vertex_buffer_impl::~vertex_buffer_impl()
 
 size_t pikango::get_buffer_size(vertex_buffer_handle target)
 {
-    auto bi = pikango_internal::object_read_access(target);
+    auto bi = pikango_internal::obtain_handle_object(target);
     return bi->buffer_size;
 }
 

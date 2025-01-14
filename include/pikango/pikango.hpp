@@ -111,6 +111,21 @@ namespace pikango
 
 #include "pikango_handle.hpp"
 
+namespace pikango
+{
+    template <class handled_object>
+    bool is_empty(const pikango_internal::handle<handled_object>& handle)
+    {
+        return pikango_internal::is_empty(handle);
+    }
+    
+    template <class handled_object>
+    size_t handle_hash(const pikango_internal::handle<handled_object>& handle)
+    {
+        return pikango_internal::handle_hash(handle);
+    }
+}
+
 /*
 This macro for name = xyz would create folowing objects:
 
@@ -177,13 +192,14 @@ namespace pikango
     //  A----------|
     struct rectangle
     {
-        float ax;
-        float ay;
+        int ax;
+        int ay;
 
-        float bx;
-        float by;
+        int bx;
+        int by;
+
         rectangle() : ax(0), ay(0), bx(400), by(400) {};
-        rectangle(float _ax, float _ay, float _bx, float _by)
+        rectangle(int _ax, int _ay, int _bx, int _by)
             : ax(_ax), ay(_ay), bx(_bx), by(_by) {};
     };
 
@@ -261,12 +277,6 @@ namespace pikango
     std::string terminate();
 
     void set_error_notification_callback(error_notification_callback callback);
-
-    template<class T>
-    bool handle_good(const pikango_internal::handle<T>& handle)
-    {
-        return !pikango_internal::is_empty(handle);
-    }
 }
 
 #ifdef PIKANGO_OPENGL_4_3
@@ -360,8 +370,6 @@ namespace pikango::cmd
     BUFFER_CMD(index_buffer);
     BUFFER_CMD(instance_buffer);
     BUFFER_CMD(uniform_buffer);
-
-    void bind_uniform_buffer_to_pool(uniform_buffer_handle target, size_t pool_index);
 }
 
 #undef BUFFER_METHODS
@@ -447,13 +455,6 @@ namespace pikango
 
 namespace pikango::cmd
 {
-    void bind_texture_to_pool(texture_1d_handle target, size_t pool_index);
-    void bind_texture_to_pool(texture_2d_handle target, size_t pool_index);
-    void bind_texture_to_pool(texture_3d_handle target, size_t pool_index);
-    void bind_texture_to_pool(texture_cube_handle target, size_t pool_index);
-    void bind_texture_to_pool(texture_1d_array_handle target, size_t pool_index);
-    void bind_texture_to_pool(texture_2d_array_handle target, size_t pool_index);
-
     void write_texture(
         texture_1d_handle target, 
         texture_format source_format, 
@@ -525,6 +526,11 @@ namespace pikango
         texture_2d_handle attachment
     );
 
+    void attach_framebuffer_depth_buffer(
+        frame_buffer_handle target,
+        texture_cube_handle attachment
+    );
+
     void attach_framebuffer_stencil_buffer(
         frame_buffer_handle target,
         texture_2d_handle attachment
@@ -545,7 +551,7 @@ namespace pikango
         unsigned int slot
     );
 
-    texture_2d_handle get_framebuffer_depth_buffer(frame_buffer_handle target);
+    std::variant<texture_2d_handle, texture_cube_handle> get_framebuffer_depth_buffer(frame_buffer_handle target);
     texture_2d_handle get_framebuffer_stencil_buffer(frame_buffer_handle target);
 
 #ifdef PIKANGO_OPENGL_4_3

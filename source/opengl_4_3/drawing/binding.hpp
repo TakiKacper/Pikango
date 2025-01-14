@@ -130,11 +130,13 @@ static void apply_bindings()
     vao_bindings_changed = false;
 
     if (ibo_bindings_changed)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pikango_internal::object_read_access(binded_index_buffer)->id);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pikango_internal::obtain_handle_object(binded_index_buffer)->id);
     ibo_bindings_changed = false;
 
     if (fbo_bindings_changed)
-        glBindFramebuffer(GL_FRAMEBUFFER, pikango_internal::object_read_access(binded_frame_buffer)->id);
+        glBindFramebuffer(GL_FRAMEBUFFER, pikango_internal::obtain_handle_object(binded_frame_buffer)->id);
+
     fbo_bindings_changed = false;
 
     if (graphics_pipeline_changed)
@@ -160,7 +162,7 @@ static size_t calc_attributes_size(std::vector<pikango::data_type>& attributes)
 
 void apply_vertex_layout()
 {
-    auto& vlc = pikango_internal::object_write_access(binded_graphics_pipeline)->config.vertex_layout_config;
+    auto& vlc = pikango_internal::obtain_handle_object(binded_graphics_pipeline)->config.vertex_layout_config;
 
     int attrib_id = 0;
     size_t offset = 0;
@@ -171,8 +173,9 @@ void apply_vertex_layout()
         size_t size = calc_attributes_size(attributes);
 
         GLuint target_buffer_id;
-        if (instance) target_buffer_id = pikango_internal::object_read_access(binded_instance_buffer)->id;
-        else          target_buffer_id = pikango_internal::object_read_access(binded_vertex_buffer)->id;
+
+        if (instance) target_buffer_id = pikango_internal::obtain_handle_object(binded_instance_buffer)->id;
+        else          target_buffer_id = pikango_internal::obtain_handle_object(binded_vertex_buffer)->id;
 
         glBindBuffer(GL_ARRAY_BUFFER, target_buffer_id);
 
@@ -210,7 +213,7 @@ void apply_vertex_layout()
 void apply_graphics_pipeline_shaders()
 {
     //Apply shaders
-    auto gpi = pikango_internal::object_write_access(binded_graphics_pipeline);
+    auto gpi = pikango_internal::obtain_handle_object(binded_graphics_pipeline);
 
     GLuint program_pipeline = get_program_pipeline(gpi->config.shaders_config);
     glUseProgram(0);
@@ -219,7 +222,7 @@ void apply_graphics_pipeline_shaders()
 
 void apply_graphics_pipeline_settings()
 {
-    auto gpi = pikango_internal::object_write_access(binded_graphics_pipeline);
+    auto gpi = pikango_internal::obtain_handle_object(binded_graphics_pipeline);
 
     //Apply rasterization settings  
     auto& rast = gpi->config.rasterization_config;
@@ -268,7 +271,8 @@ template<class handle_type>
 static void set_shaders_uniforms(handle_type handle)
 {
     if (pikango_internal::is_empty(handle)) return;
-    auto si = pikango_internal::object_read_access(handle);
+
+    auto si = pikango_internal::obtain_handle_object(handle);
 
     glUseProgram(si->id);
 
@@ -279,11 +283,34 @@ static void set_shaders_uniforms(handle_type handle)
         auto itr = descriptors_to_opengl_pools_mapping.find(binding.first);
 
         if (itr == descriptors_to_opengl_pools_mapping.end())
+
+        {
+            pikango_internal::log_error(
+                (
+                    std::string("Invalid descriptor mapping: desc: ") + 
+                    std::to_string(binding.first.first) +
+                    ", binding: " + 
+                    std::to_string(binding.first.second)
+                ).c_str()
+            );
             pool_id = 0;
+        }
         else 
             pool_id = (*itr).second;
 
-        glUniform1i(binding.second.first, pool_id);
+        switch (binding.second.second)
+        {
+        case pikango::resources_descriptor_binding_type::sampled_texture:
+        case pikango::resources_descriptor_binding_type::written_texture:
+            glUniform1i(binding.second.first, pool_id);
+            break;
+        case pikango::resources_descriptor_binding_type::uniform_buffer:
+            glUniformBlockBinding(si->id, binding.second.first, pool_id);
+            break;
+        case pikango::resources_descriptor_binding_type::storage_buffer:
+            //TODO
+            break;
+        }
     }
 }
 
@@ -294,37 +321,49 @@ void bind_any_texture(const pikango::resources_descriptor_resource_handle& vhand
 
     if (std::holds_alternative<pikango::texture_1d_handle>(vhandle)) {
         auto handle = std::get<pikango::texture_1d_handle>(vhandle);
-        auto ti = pikango_internal::object_read_access(handle);
+
+        auto ti = pikango_internal::obtain_handle_object(handle);
+
         type = GL_TEXTURE_1D;
         id = ti->id;
     } 
     else if (std::holds_alternative<pikango::texture_2d_handle>(vhandle)) {
         auto handle = std::get<pikango::texture_2d_handle>(vhandle);
-        auto ti = pikango_internal::object_read_access(handle);
+
+        auto ti = pikango_internal::obtain_handle_object(handle);
+
         type = GL_TEXTURE_2D;
         id = ti->id;
     } 
     else if (std::holds_alternative<pikango::texture_3d_handle>(vhandle)) {
         auto handle = std::get<pikango::texture_3d_handle>(vhandle);
-        auto ti = pikango_internal::object_read_access(handle);
+
+        auto ti = pikango_internal::obtain_handle_object(handle);
+
         type = GL_TEXTURE_3D;
         id = ti->id;
     } 
     else if (std::holds_alternative<pikango::texture_cube_handle>(vhandle)) {
         auto handle = std::get<pikango::texture_cube_handle>(vhandle);
-        auto ti = pikango_internal::object_read_access(handle);
+
+        auto ti = pikango_internal::obtain_handle_object(handle);
+
         type = GL_TEXTURE_CUBE_MAP;
         id = ti->id;
     } 
     /*else if (std::holds_alternative<pikango::texture_array_1d_handle>(vhandle)) {
         auto handle = std::get<pikango::texture_array_1d_handle>(vhandle);
-        auto ti = pikango_internal::object_read_access(handle);
+
+        auto ti = pikango_internal::obtain_handle_object(handle);
+
         type = 
         id = ti->id;
     } 
     else if (std::holds_alternative<pikango::texture_array_2d_handle>(vhandle)) {
         auto handle = std::get<pikango::texture_array_2d_handle>(vhandle);
-        auto ti = pikango_internal::object_read_access(handle);
+
+        auto ti = pikango_internal::obtain_handle_object(handle);
+
         type = 
         id = ti->id;
     } */
@@ -355,7 +394,8 @@ void apply_resources_descriptors_and_shaders_uniforms()
     auto bind_uniform = [&](const pikango::resources_descriptor_resource_handle& handle)
     {
         auto ub_handle = std::get<pikango::uniform_buffer_handle>(handle);
-        auto ubi = pikango_internal::object_read_access(ub_handle);
+
+        auto ubi = pikango_internal::obtain_handle_object(ub_handle);
 
         glBindBufferBase(GL_UNIFORM_BUFFER, uniform_pool_itr, ubi->id);
 
@@ -373,7 +413,8 @@ void apply_resources_descriptors_and_shaders_uniforms()
         b_id = 0;
 
         if (pikango_internal::is_empty(res_desc)) {d_id++; continue;};
-        auto rdi = pikango_internal::object_read_access(res_desc);
+
+        auto rdi = pikango_internal::obtain_handle_object(res_desc);
 
         for (; b_id < rdi->layout.size(); b_id++)
         {
@@ -394,7 +435,8 @@ void apply_resources_descriptors_and_shaders_uniforms()
     }
 
     //2. set shaders uniforms to point to those resources 
-    auto gpi = pikango_internal::object_write_access(binded_graphics_pipeline);
+    auto gpi = pikango_internal::obtain_handle_object(binded_graphics_pipeline);
+
     auto& shaders = gpi->config.shaders_config;
 
     set_shaders_uniforms(shaders.vertex_shader);

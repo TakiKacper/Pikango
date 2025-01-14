@@ -9,7 +9,7 @@ PIKANGO_IMPL(texture_cube)
 PIKANGO_NEW(texture_cube)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::texture_cube_impl);
-    auto ti = pikango_internal::object_write_access(handle);
+    auto ti = pikango_internal::obtain_handle_object(handle);
     ti->id = 0;
     return handle;
 };
@@ -45,7 +45,7 @@ void pikango::cmd::write_texture(
         auto front = std::any_cast<void*>(args[8]);
         auto back = std::any_cast<void*>(args[9]);
 
-        auto ti = pikango_internal::object_write_access(handle);
+        auto ti = pikango_internal::obtain_handle_object(handle);
 
         if (ti->id == 0)
             glGenTextures(1, &ti->id);
@@ -69,11 +69,6 @@ void pikango::cmd::write_texture(
     };
 
     record_task(func, {target, get_texture_format(source_format), get_texture_format(inner_format), width, top, bottom, left, right, front, back});
-}
-
-void pikango::cmd::bind_texture_to_pool(texture_cube_handle target, size_t index)
-{
-    bind_texture_to_pool_generic<texture_cube_handle, GL_TEXTURE_CUBE_MAP>(target, index);
 }
 
 void pikango::set_texture_wraping(texture_cube_handle target, texture_wraping x, texture_wraping y, texture_wraping z)

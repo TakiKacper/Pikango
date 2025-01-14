@@ -3,9 +3,10 @@
 GLuint get_program_pipeline(pikango::graphics_shaders_pipeline_config& config)
 {
     graphics_shaders_pipeline_config_impl_ptr_identifier idtf;
-    idtf.vertex_shader_impl_ptr = pikango_internal::get_handle_object_raw(config.vertex_shader);
-    idtf.pixel_shader_impl_ptr = pikango_internal::get_handle_object_raw(config.pixel_shader);
-    idtf.geometry_shader_impl_ptr = pikango_internal::get_handle_object_raw(config.geometry_shader);
+
+    idtf.vertex_shader_impl_ptr = pikango_internal::obtain_handle_object(config.vertex_shader);
+    idtf.pixel_shader_impl_ptr = pikango_internal::obtain_handle_object(config.pixel_shader);
+    idtf.geometry_shader_impl_ptr = pikango_internal::obtain_handle_object(config.geometry_shader);
 
     program_pipelines_registry_mutex.lock();
 
@@ -24,11 +25,11 @@ GLuint get_program_pipeline(pikango::graphics_shaders_pipeline_config& config)
     GLuint pipeline;
     glGenProgramPipelines(1, &pipeline);
     
-    glUseProgramStages(pipeline, GL_VERTEX_SHADER_BIT, pikango_internal::object_read_access(config.vertex_shader)->id);
-    glUseProgramStages(pipeline, GL_FRAGMENT_SHADER_BIT, pikango_internal::object_read_access(config.pixel_shader)->id);
+    glUseProgramStages(pipeline, GL_VERTEX_SHADER_BIT, pikango_internal::obtain_handle_object(config.vertex_shader)->id);
+    glUseProgramStages(pipeline, GL_FRAGMENT_SHADER_BIT, pikango_internal::obtain_handle_object(config.pixel_shader)->id);
 
     if (!pikango_internal::is_empty(config.geometry_shader))
-        glUseProgramStages(pipeline, GL_GEOMETRY_SHADER_BIT, pikango_internal::object_read_access(config.geometry_shader)->id);
+        glUseProgramStages(pipeline, GL_GEOMETRY_SHADER_BIT, pikango_internal::obtain_handle_object(config.geometry_shader)->id);
 
     //Insert pipeline for future use
     program_pipelines_registry_mutex.lock();

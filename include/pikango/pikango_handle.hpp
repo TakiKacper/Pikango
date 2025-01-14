@@ -1,6 +1,5 @@
 #pragma once
 #include <atomic>
-#include <shared_mutex>
 
 namespace pikango_internal
 {
@@ -11,20 +10,12 @@ namespace pikango_internal
     class handle
     {
         template<class T> friend bool       is_empty(const handle<T>& handle);
+        template<class T> friend size_t     handle_hash(const handle<T>& handle);
         template<class T> friend handle<T>  make_handle (T* object);
-        template<class T> friend handle<T>* alloc_handle(T* object);
-        template<class T> friend void*      get_handle_meta_block_address(const handle<T>& handle);
-        template<class T> friend T*         get_handle_object_raw(const handle<T>& handle);
-        template<class T> friend struct object_read_access;
-        template<class T> friend struct object_write_access;
+        template<class T> friend T*         obtain_handle_object(const handle<T>& handle);
         
     private:
-        struct meta_block
-        {
-            bool valid = true;
-            std::atomic<uint64_t> refs;
-            std::shared_mutex mutex{};
-        };
+        struct meta_block;
 
         handled_object* object;
         meta_block* meta;
@@ -33,63 +24,30 @@ namespace pikango_internal
         {
             meta = new meta_block;
             meta->refs = 1;
-            meta->valid = true;
         }
 
     public:
         handle() : meta(nullptr), object(nullptr) {};
-        handle(const handle& other) : 
-            meta(other.meta), 
-            object(other.object)
-        {
-            if (meta != nullptr)
-                meta->refs++;
-        }
-        ~handle()
-        {
-            if (meta != nullptr)
-            {
-                meta->refs--;
-                if (meta->refs == 0)
-                {
-                    implementations_destructor(object);
-                    delete meta;
-                }
-            }
-        }
-        void operator=(const handle& other)
-        {
-            this->~handle();
-
-            object = other.object;
-            meta = other.meta;
-
-            if (meta != nullptr)
-                meta->refs++;
-        }
-
-        bool operator==(const handle<handled_object>& other) const
-        {
-            return meta == other.meta;
-        }
+        handle(const handle& other);
+        ~handle();
+        
+        void operator=(const handle& other);
+        bool operator==(const handle<handled_object>& other) const;
     };
 
-    template<class T>
-    bool is_empty(const handle<T>& handle)
+    template<class handled_object>
+    struct handle<handled_object>::meta_block
     {
-        return handle.meta == nullptr || handle.object == nullptr;
-    }
+        std::atomic<uint64_t> refs;
+    };
 
-    template<class T>
-    handle<T> make_handle(T* object)
+    template<class handled_object>
+    handle<handled_object>::handle(const handle& other): 
+        meta(other.meta), 
+        object(other.object)
     {
-        return handle<T>{object};
-    }
-
-    template<class T>
-    handle<T>* alloc_handle(T* object)
-    {
-        return new handle<T>{object};
+        if (meta != nullptr)
+            meta->refs++;
     }
     
     //this function exist only so the implementation could use meta addresses as hashes
@@ -105,71 +63,64 @@ namespace pikango_internal
         return handle.object;
     }
 
-    template<class T>
-    struct object_read_access
+    template<class handled_object>
+    handle<handled_object>::~handle()
     {
-    private:
-        T* object;
-        std::shared_mutex* mutex;
-
-    public:
-        object_read_access(const handle<T>& handle) :
-            object(handle.object), mutex(&handle.meta->mutex)
+        if (meta != nullptr)
         {
-            mutex->lock_shared();
+            meta->refs--;
+            if (meta->refs == 0)
+            {
+                implementations_destructor(object);
+                delete meta;
+            }
         }
 
-        ~object_read_access()
-        {
-            mutex->unlock_shared();
-        }
+        meta = nullptr;
+        object = nullptr;
+    }
+    
+    template<class handled_object>
+    void handle<handled_object>::operator=(const handle& other)
+    {
+        this->~handle();
 
-        const T* operator->()
-        {
-            return object;
-        }
+        object = other.object;
+        meta = other.meta;
 
-        const T* operator*()
-        {
-            return object;
-        }
+        if (meta != nullptr)
+            meta->refs++;
+    }
 
-        object_read_access(const object_read_access<T>& cpy) = delete; 
-        object_read_access(const object_read_access<T>&& cpy) = delete;
-        object_read_access& operator=(const object_read_access<T>& cpy) = delete;
+    template <class handled_object>
+    bool handle<handled_object>::operator==(const handle<handled_object>& other) const
+    {
+        return meta == other.meta;
     };
 
-    template<class T>
-    struct object_write_access
+    template <class handled_object>
+    bool is_empty(const handle<handled_object>& handle)
     {
-    private:
-        T* object;
-        std::shared_mutex* mutex;
-        
-    public:
-        object_write_access(const handle<T>& handle) :
-            object(handle.object), mutex(&handle.meta->mutex)
-        {
-            mutex->lock();
-        }
+        return handle.meta == nullptr;
+    }
 
-        ~object_write_access()
-        {
-            mutex->unlock();
-        }
+    template <class handled_object>
+    size_t handle_hash(const handle<handled_object>& handle)
+    {
+        //since pointer is the same size as size_t
+        //return the meta pointer as a hash of handle
+        return (size_t)handle.meta;
+    }
 
-        T* operator->()
-        {
-            return object;
-        }
+    template<class handled_object>
+    handle<handled_object> make_handle(handled_object* object)
+    {
+        return handle<handled_object>{object};
+    }
 
-        T* operator*()
-        {
-            return object;
-        }
-
-        object_write_access(const object_read_access<T>& cpy) = delete; 
-        object_write_access(const object_read_access<T>&& cpy) = delete;
-        object_write_access& operator=(const object_read_access<T>& cpy) = delete;
-    };
+    template<class handled_object> 
+    handled_object* obtain_handle_object(const handle<handled_object>& handle)
+    {
+        return handle.object;
+    }
 }
