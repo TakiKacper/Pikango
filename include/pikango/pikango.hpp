@@ -572,7 +572,7 @@ namespace pikango::cmd
         draw_primitive  primitive,
 
         size_t          vertices_count,
-        size_t          vertices_buffer_offset,
+        size_t          vertices_buffer_offset_index,
 
         size_t          instances_count,
         size_t          instances_id_values_offset
@@ -582,7 +582,7 @@ namespace pikango::cmd
         draw_primitive  primitive,
 
         size_t          indices_count,
-        size_t          indicies_buffer_offset,
+        size_t          indicies_buffer_offset_index,
         int32_t         indicies_values_offset,
 
         size_t          instances_count,
