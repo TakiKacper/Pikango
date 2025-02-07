@@ -8,14 +8,14 @@ namespace {
     pikango::rasterization_pipeline_config recent_rasterization_config;
     pikango::depth_stencil_pipeline_config recent_depth_stencil_config;
 
-    pikango::vertex_buffer_handle       binded_vertex_buffer;
-    pikango::instance_buffer_handle     binded_instance_buffer;
+    pikango::buffer_handle              binded_vertex_buffer;
+    pikango::buffer_handle              binded_instance_buffer;
     bool vao_bindings_changed = true;
 
     pikango::frame_buffer_handle        binded_frame_buffer;
     bool fbo_bindings_changed = true;
 
-    pikango::index_buffer_handle        binded_index_buffer;
+    pikango::buffer_handle              binded_index_buffer;
     bool ibo_bindings_changed = true;
 
     std::array<pikango::resources_descriptor_handle, max_resources_descriptors> binded_resources_descriptors;
@@ -71,11 +71,11 @@ void pikango::cmd::bind_frame_buffer(frame_buffer_handle frame_buffer)
     record_task(func, {frame_buffer});
 }
 
-void pikango::cmd::bind_vertex_buffer(vertex_buffer_handle vertex_buffer)
+void pikango::cmd::bind_vertex_buffer(buffer_handle vertex_buffer)
 {
     auto func = [](std::vector<std::any> args)
     {
-        auto vertex_buffer = std::any_cast<vertex_buffer_handle>(args[0]);
+        auto vertex_buffer = std::any_cast<buffer_handle>(args[0]);
 
         if (vertex_buffer == binded_vertex_buffer) return;
 
@@ -86,11 +86,11 @@ void pikango::cmd::bind_vertex_buffer(vertex_buffer_handle vertex_buffer)
     record_task(func, {vertex_buffer});
 }
 
-void pikango::cmd::bind_instance_buffer(instance_buffer_handle instance_buffer)
+void pikango::cmd::bind_instance_buffer(buffer_handle instance_buffer)
 {
     auto func = [](std::vector<std::any> args)
     {
-        auto instance_buffer = std::any_cast<instance_buffer_handle>(args[0]);
+        auto instance_buffer = std::any_cast<buffer_handle>(args[0]);
 
         if (instance_buffer == binded_instance_buffer) return;
 
@@ -101,11 +101,11 @@ void pikango::cmd::bind_instance_buffer(instance_buffer_handle instance_buffer)
     record_task(func, {instance_buffer});
 }
 
-void pikango::cmd::bind_index_buffer(index_buffer_handle index_buffer)
+void pikango::cmd::bind_index_buffer(buffer_handle index_buffer)
 {
     auto func = [](std::vector<std::any> args)
     {
-        auto index_buffer = std::any_cast<index_buffer_handle>(args[0]);
+        auto index_buffer = std::any_cast<buffer_handle>(args[0]);
 
         if (index_buffer == binded_index_buffer) return;
 
@@ -393,8 +393,7 @@ void apply_resources_descriptors_and_shaders_uniforms()
 
     auto bind_uniform = [&](const pikango::resources_descriptor_resource_handle& handle)
     {
-        auto ub_handle = std::get<pikango::uniform_buffer_handle>(handle);
-
+        auto ub_handle = std::get<pikango::buffer_handle>(handle);
         auto ubi = pikango_internal::obtain_handle_object(ub_handle);
 
         glBindBufferBase(GL_UNIFORM_BUFFER, uniform_pool_itr, ubi->id);

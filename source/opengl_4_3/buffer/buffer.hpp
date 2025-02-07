@@ -1,5 +1,19 @@
-template <class impl_type>
-void delete_buffer_generic(impl_type* _this)
+PIKANGO_IMPL(buffer)
+{
+    GLuint id = 0;
+    size_t buffer_size = 0;
+    pikango::buffer_memory_profile memory_profile;
+    pikango::buffer_access_profile access_profile;
+    ~buffer_impl();
+};
+
+PIKANGO_NEW(buffer)
+{
+    auto handle = pikango_internal::make_handle(new pikango_internal::buffer_impl);
+    return handle;
+}
+
+pikango_internal::buffer_impl::~buffer_impl()
 {
     auto func = [](std::vector<std::any> args)
     {
@@ -7,22 +21,23 @@ void delete_buffer_generic(impl_type* _this)
         glDeleteBuffers(1, &id);
     };
 
-    if (_this->id != 0)
-        enqueue_task(func, {_this->id}, pikango::queue_type::general);
+    if (id != 0) enqueue_task(func, {id}, pikango::queue_type::general);
 }
 
-template<class handle_type>
-void assign_buffer_memory_generic(
-    handle_type target,
+size_t pikango::get_buffer_size(buffer_handle target)
+{
+    auto bi = pikango_internal::obtain_handle_object(target);
+    return bi->buffer_size;
+}
+
+void pikango::cmd::assign_buffer_memory(
+    buffer_handle target,
     size_t memory_block_size_bytes, 
-    pikango::buffer_memory_profile memory_profile, 
-    pikango::buffer_access_profile access_profile
+    buffer_memory_profile memory_profile, 
+    buffer_access_profile access_profile
 )
 {
     auto bi = pikango_internal::obtain_handle_object(target);
-
-    //if size == 0
-    //todo error
 
     bi->buffer_size    = memory_block_size_bytes;
     bi->memory_profile = memory_profile;
@@ -30,7 +45,7 @@ void assign_buffer_memory_generic(
 
     auto func = [](std::vector<std::any> args)
     {
-        auto handle = std::any_cast<handle_type>(args[0]);
+        auto handle = std::any_cast<buffer_handle>(args[0]);
         auto size   = std::any_cast<size_t>(args[1]);
         auto memory = std::any_cast<pikango::buffer_memory_profile>(args[2]);
         auto access = std::any_cast<pikango::buffer_access_profile>(args[3]);
@@ -46,29 +61,15 @@ void assign_buffer_memory_generic(
     record_task(func, {target, memory_block_size_bytes, memory_profile, access_profile});
 }
 
-template<class handle_type>
-void write_buffer_memory_generic(
-    handle_type target, 
-    size_t data_size_bytes, 
-    void* data
-)
+void pikango::cmd::write_buffer(buffer_handle target, size_t data_size_bytes, void* data)
 {
     auto func = [](std::vector<std::any> args)
     {
-        auto handle = std::any_cast<handle_type>(args[0]);
+        auto handle = std::any_cast<buffer_handle>(args[0]);
         auto size = std::any_cast<size_t>(args[1]);
         auto data = std::any_cast<void*>(args[2]);
 
         auto bi = pikango_internal::obtain_handle_object(handle);
-        
-        //if (bi->id == 0)
-        //todo error
-        
-        //if (size > vbi->buffer_size)
-        //todo error
-
-        //if (data == nullptr)
-        //todo error
 
         glBindBuffer(GL_COPY_WRITE_BUFFER, bi->id);
         glBufferSubData(GL_COPY_WRITE_BUFFER, 0, size, data);
@@ -77,31 +78,16 @@ void write_buffer_memory_generic(
     record_task(func, {target, data_size_bytes, data});
 }
 
-template<class handle_type>
-void write_buffer_memory_region_generic(
-    handle_type target, 
-    size_t data_size_bytes,
-    void* data, 
-    size_t data_offset_bytes
-)
+void pikango::cmd::write_buffer_region(buffer_handle target, size_t data_size_bytes, void* data, size_t data_offset_bytes)
 {
     auto func = [](std::vector<std::any> args)
     {
-        auto handle = std::any_cast<handle_type>(args[0]);
+        auto handle = std::any_cast<buffer_handle>(args[0]);
         auto size   = std::any_cast<size_t>(args[1]);
         auto data   = std::any_cast<void*>(args[2]);
         auto offset = std::any_cast<size_t>(args[3]);
 
         auto bi = pikango_internal::obtain_handle_object(handle);
-        
-        //if (bi->id == 0)
-        //todo error
-        
-        //if (size + offset > bi->buffer_size)
-        //todo error
-
-        //if (data == nullptr)
-        //todo error
 
         glBindBuffer(GL_COPY_WRITE_BUFFER, bi->id);
         glBufferSubData(GL_COPY_WRITE_BUFFER, offset, size, data);
