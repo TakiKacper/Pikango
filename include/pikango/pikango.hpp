@@ -351,9 +351,33 @@ namespace pikango
 
 namespace pikango::cmd
 {
-    void assign_buffer_memory(buffer_handle target, size_t memory_block_size_bytes, buffer_memory_profile memory_profile, buffer_access_profile access_profile);
-    void write_buffer(buffer_handle target, size_t data_size_bytes, void* data);
-    void write_buffer_region(buffer_handle target, size_t data_size_bytes, void* data, size_t data_offset_bytes);
+    void assign_buffer_memory(
+        buffer_handle target, 
+        size_t memory_block_size_bytes, 
+        buffer_memory_profile memory_profile, 
+        buffer_access_profile access_profile
+    );
+
+    void write_buffer(
+        buffer_handle target, 
+        size_t data_size_bytes, 
+        void* data
+    );
+
+    void write_buffer_region(
+        buffer_handle target, 
+        size_t data_size_bytes, 
+        void* data, 
+        size_t data_offset_bytes
+    );
+
+    void copy_buffer_to_buffer(
+        buffer_handle source, 
+        buffer_handle destination,
+        size_t read_offset, 
+        size_t read_size, 
+        size_t write_offset
+    );
 }
 
 //Shaders Compilation

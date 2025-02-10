@@ -95,3 +95,31 @@ void pikango::cmd::write_buffer_region(buffer_handle target, size_t data_size_by
     
     record_task(func, {target, data_size_bytes, data, data_offset_bytes});
 }
+
+void pikango::cmd::copy_buffer_to_buffer(
+    buffer_handle source, 
+    buffer_handle destination,
+    size_t read_offset, 
+    size_t read_size, 
+    size_t write_offset
+)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto source         = std::any_cast<buffer_handle>(args[0]);
+        auto destination    = std::any_cast<buffer_handle>(args[1]);
+        auto read_offset    = std::any_cast<size_t>(args[2]);
+        auto read_size      = std::any_cast<size_t>(args[3]);
+        auto write_offset   = std::any_cast<size_t>(args[4]);
+
+        auto sbi = pikango_internal::obtain_handle_object(source);
+        auto dbi = pikango_internal::obtain_handle_object(destination);
+
+        glBindBuffer(GL_COPY_READ_BUFFER, sbi->id);
+        glBindBuffer(GL_COPY_WRITE_BUFFER, dbi->id);
+
+        glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, read_offset, write_offset, read_size);
+    };
+
+    record_task(func, {source, destination, read_offset, read_size, write_offset});
+}
