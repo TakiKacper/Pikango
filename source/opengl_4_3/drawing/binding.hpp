@@ -3,20 +3,20 @@
 
 namespace {
     pikango::graphics_pipeline_handle   binded_graphics_pipeline;
-    bool graphics_pipeline_changed = true;
+    bool graphics_pipeline_changed = false;
 
     pikango::rasterization_pipeline_config recent_rasterization_config;
     pikango::depth_stencil_pipeline_config recent_depth_stencil_config;
 
     pikango::buffer_handle              binded_vertex_buffer;
     pikango::buffer_handle              binded_instance_buffer;
-    bool vao_bindings_changed = true;
+    bool vao_bindings_changed = false;
 
     pikango::frame_buffer_handle        binded_frame_buffer;
-    bool fbo_bindings_changed = true;
+    bool fbo_bindings_changed = false;
 
     pikango::buffer_handle              binded_index_buffer;
-    bool ibo_bindings_changed = true;
+    bool ibo_bindings_changed = false;
 
     std::array<pikango::resources_descriptor_handle, max_resources_descriptors> binded_resources_descriptors;
     std::set<size_t> changed_resources_descriptors;
@@ -130,22 +130,21 @@ static void apply_bindings()
     vao_bindings_changed = false;
 
     if (ibo_bindings_changed)
-
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pikango_internal::obtain_handle_object(binded_index_buffer)->id);
     ibo_bindings_changed = false;
 
     if (fbo_bindings_changed)
         glBindFramebuffer(GL_FRAMEBUFFER, pikango_internal::obtain_handle_object(binded_frame_buffer)->id);
-
     fbo_bindings_changed = false;
 
     if (graphics_pipeline_changed)
         apply_graphics_pipeline_settings();
-    graphics_pipeline_changed = false;
 
     if (changed_resources_descriptors.size() != 0 || graphics_pipeline_changed)
         apply_resources_descriptors_and_shaders_uniforms();
+        
     changed_resources_descriptors.clear();
+    graphics_pipeline_changed = false;
 
     //Always bind the program pipeline because it could have been
     //overwritten by shaders functions
