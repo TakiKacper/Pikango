@@ -346,11 +346,7 @@ using shader_uniforms_to_descriptors_maping =
 //#include "shaders/compute_shader.hpp"
 #include "shaders/program.hpp"
 
-#include "buffers/generic.hpp"
-#include "buffers/vertex_buffer.hpp"
-#include "buffers/index_buffer.hpp"
-#include "buffers/instance_buffer.hpp"
-#include "buffers/uniform_buffer.hpp"
+#include "buffer/buffer.hpp"
 
 #include "textures/generic.hpp"
 #include "textures/texture_1d.hpp"

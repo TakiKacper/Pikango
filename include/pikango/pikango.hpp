@@ -161,11 +161,7 @@ PIKANGO_HANDLE_FWD(geometry_shader);
 
 PIKANGO_HANDLE_FWD(frame_buffer);
 
-PIKANGO_HANDLE_FWD(vertex_buffer);
-PIKANGO_HANDLE_FWD(index_buffer);
-PIKANGO_HANDLE_FWD(instance_buffer);
-PIKANGO_HANDLE_FWD(uniform_buffer);
-//PIKANGO_HANDLE_FWD(storage_buffer);
+PIKANGO_HANDLE_FWD(buffer);
 
 PIKANGO_HANDLE_FWD(texture_1d);
 PIKANGO_HANDLE_FWD(texture_2d);
@@ -248,10 +244,7 @@ namespace pikango
     };
 
     using resources_descriptor_resource_handle = std::variant<
-        vertex_buffer_handle,
-        index_buffer_handle,
-        instance_buffer_handle,
-        uniform_buffer_handle,
+        buffer_handle,
         //storage_buffer_handle
 
         texture_1d_handle,
@@ -350,29 +343,42 @@ namespace pikango
     void wait_multiple_fences(std::vector<fence_handle> targets);
 }
 
-//Buffers
+//Buffer
 namespace pikango
 {
-    size_t get_buffer_size(vertex_buffer_handle target);
-    size_t get_buffer_size(index_buffer_handle target);
-    size_t get_buffer_size(instance_buffer_handle target);
-    size_t get_buffer_size(uniform_buffer_handle target);
+    size_t get_buffer_size(buffer_handle target);
 }
-
-#define BUFFER_CMD(buffer_name) \
-    void assign_buffer_memory(buffer_name##_handle target, size_t memory_block_size_bytes, buffer_memory_profile memory_profile, buffer_access_profile access_profile);   \
-    void write_buffer(buffer_name##_handle target, size_t data_size_bytes, void* data);   \
-    void write_buffer_region(buffer_name##_handle target, size_t data_size_bytes, void* data, size_t data_offset_bytes);   \
 
 namespace pikango::cmd
 {
-    BUFFER_CMD(vertex_buffer);
-    BUFFER_CMD(index_buffer);
-    BUFFER_CMD(instance_buffer);
-    BUFFER_CMD(uniform_buffer);
-}
+    void assign_buffer_memory(
+        buffer_handle target, 
+        size_t memory_block_size_bytes, 
+        buffer_memory_profile memory_profile, 
+        buffer_access_profile access_profile
+    );
 
-#undef BUFFER_METHODS
+    void write_buffer(
+        buffer_handle target, 
+        size_t data_size_bytes, 
+        void* data
+    );
+
+    void write_buffer_region(
+        buffer_handle target, 
+        size_t data_size_bytes, 
+        void* data, 
+        size_t data_offset_bytes
+    );
+
+    void copy_buffer_to_buffer(
+        buffer_handle source, 
+        buffer_handle destination,
+        size_t read_offset, 
+        size_t read_size, 
+        size_t write_offset
+    );
+}
 
 //Shaders Compilation
 namespace pikango
@@ -571,9 +577,9 @@ namespace pikango::cmd
     
     void bind_frame_buffer(frame_buffer_handle frame_buffer);
 
-    void bind_vertex_buffer(vertex_buffer_handle vertex_buffer);
-    void bind_index_buffer(index_buffer_handle index_buffer);
-    void bind_instance_buffer(instance_buffer_handle instance_buffer);
+    void bind_vertex_buffer(buffer_handle vertex_buffer);
+    void bind_index_buffer(buffer_handle index_buffer);
+    void bind_instance_buffer(buffer_handle instance_buffer);
 }
 
 //Drawing Related Commands
@@ -590,7 +596,7 @@ namespace pikango::cmd
         draw_primitive  primitive,
 
         size_t          vertices_count,
-        size_t          vertices_buffer_offset,
+        size_t          vertices_buffer_offset_index,
 
         size_t          instances_count,
         size_t          instances_id_values_offset
@@ -600,7 +606,7 @@ namespace pikango::cmd
         draw_primitive  primitive,
 
         size_t          indices_count,
-        size_t          indicies_buffer_offset,
+        size_t          indicies_buffer_offset_index,
         int32_t         indicies_values_offset,
 
         size_t          instances_count,

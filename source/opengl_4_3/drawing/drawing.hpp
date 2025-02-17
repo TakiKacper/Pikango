@@ -8,7 +8,7 @@ void pikango::cmd::draw_vertices(
     draw_primitive  primitive,
 
     size_t          vertices_count,
-    size_t          vertices_buffer_offset,
+    size_t          vertices_buffer_offset_index,
 
     size_t          instances_count,
     size_t          instances_id_values_offset
@@ -19,7 +19,7 @@ void pikango::cmd::draw_vertices(
         auto primitive = std::any_cast<draw_primitive>(args[0]);
 
         auto vertices_count = std::any_cast<size_t>(args[1]);
-        auto vertices_buffer_offset = std::any_cast<size_t>(args[2]);
+        auto vertices_buffer_offset_index = std::any_cast<size_t>(args[2]);
 
         auto instances_count = std::any_cast<size_t>(args[3]);
         auto instances_id_values_offset = std::any_cast<size_t>(args[4]);
@@ -28,7 +28,7 @@ void pikango::cmd::draw_vertices(
 
         glDrawArraysInstancedBaseInstance(
             get_primitive(primitive),
-            vertices_buffer_offset,
+            vertices_buffer_offset_index,
             vertices_count,
             instances_count,
             instances_id_values_offset
@@ -38,7 +38,7 @@ void pikango::cmd::draw_vertices(
     record_task(func, {
         primitive, 
         vertices_count, 
-        vertices_buffer_offset,
+        vertices_buffer_offset_index,
         instances_count,
         instances_id_values_offset
     });
