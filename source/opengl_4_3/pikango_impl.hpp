@@ -348,13 +348,17 @@ using shader_uniforms_to_descriptors_maping =
 
 #include "buffer/buffer.hpp"
 
+/*
 #include "textures/generic.hpp"
 #include "textures/texture_1d.hpp"
 #include "textures/texture_2d.hpp"
 #include "textures/texture_3d.hpp"
-#include "textures/texture_cube.hpp"
+#include "textures/texture_cube.hpp
+"*/
 
-#include "frame_buffer/generic.hpp"
+#include "textures/texture_sampler.hpp"
+#include "textures/texture_buffer.hpp"
+
 #include "frame_buffer/frame_buffer.hpp"
 
 #include "drawing/binding.hpp"

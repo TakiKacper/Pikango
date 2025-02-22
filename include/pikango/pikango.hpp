@@ -9,103 +9,6 @@
 #include <variant>
 
 /*
-    ENUMERATIONS
-*/
-
-namespace pikango
-{
-    enum class draw_primitive
-    {
-        points, 
-        lines, lines_loop, line_strip,
-        traingles, traingles_strip
-    };
-
-    enum class buffer_memory_profile
-    {
-        rare_write_rare_read,   //data is rarely in use
-        rare_write_often_read,  //data is often overwritten and often used
-        often_write_often_read  //data is rarely overwritten and often used
-    };
-
-    enum class buffer_access_profile
-    {
-        cpu_to_gpu, //application writes data to gpu
-        gpu_to_cpu, //gpu data is read by application 
-        gpu_to_gpu  //gpu data is read by gpu
-    };
-
-    enum class data_type
-    {
-        int32,
-        vec2i32,
-        vec3i32,
-        vec4i32,
-
-        float32,
-        vec2f32,
-        vec3f32,
-        vec4f32
-    };
-    size_t size_of(data_type dt);
-
-    enum class texture_filtering
-	{
-		nearest, linear
-	};
-
-    enum class texture_wraping
-	{
-		repeat, 
-        mirror_repeat,
-		clamp_coords, 
-        clamp_texture
-	};
-
-    enum class texture_format
-	{
-		depth,  depth_stencil,	depth24_stencil8,
-		r,		r8, r16,
-		rg,		rg8, rg16,
-		rgb,	r3_g3_b2, rgb4, rgb5, rgb8, rgb10, rgb12, 
-		rgba,	rgba2, rgba4, rgba8, rgba12, rgba16, rgba32f
-	};
-
-    enum class rasterization_culling_mode : unsigned char
-    {
-        none = 0,
-        front = 1,
-        back = 2,
-        front_and_back = 3,
-    };
-
-    enum class rasterization_culling_front_face : unsigned char
-    {
-        couter_clockwise = 0,
-        clockwise = 1
-    };
-
-    enum class rasterization_polygon_fill_mode : unsigned char
-    {
-        fill_shape, 
-        fill_edges, 
-        fill_vertices
-    };
-
-    enum class depth_compare_operator : unsigned char
-    {
-        nerer = 0,
-        less = 1,
-        equal = 2,
-        less_or_equal = 3,
-        greater = 4,
-        not_equal = 5,
-        greater_or_equal = 6,
-        always = 7
-    };
-}
-
-/*
     HANDLES
 */
 
@@ -163,15 +66,130 @@ PIKANGO_HANDLE_FWD(frame_buffer);
 
 PIKANGO_HANDLE_FWD(buffer);
 
-PIKANGO_HANDLE_FWD(texture_1d);
-PIKANGO_HANDLE_FWD(texture_2d);
-PIKANGO_HANDLE_FWD(texture_3d);
-PIKANGO_HANDLE_FWD(texture_cube);
-PIKANGO_HANDLE_FWD(texture_1d_array);
-PIKANGO_HANDLE_FWD(texture_2d_array);
-//PIKANGO_HANDLE_FWD(renderbuffer);
+PIKANGO_HANDLE_FWD(texture_sampler);
+PIKANGO_HANDLE_FWD(texture_buffer);
 
 #undef PIKANGO_HANDLE_FWD
+
+/*
+    ENUMERATIONS
+*/
+
+namespace pikango
+{
+    enum class draw_primitive
+    {
+        points, 
+        lines, lines_loop, line_strip,
+        traingles, traingles_strip
+    };
+
+    enum class buffer_memory_profile
+    {
+        rare_write_rare_read,   //data is rarely in use
+        rare_write_often_read,  //data is often overwritten and often used
+        often_write_often_read  //data is rarely overwritten and often used
+    };
+
+    enum class buffer_access_profile
+    {
+        cpu_to_gpu, //application writes data to gpu
+        gpu_to_cpu, //gpu data is read by application 
+        gpu_to_gpu  //gpu data is read by gpu
+    };
+
+    enum class data_type
+    {
+        int32,
+        vec2i32,
+        vec3i32,
+        vec4i32,
+
+        float32,
+        vec2f32,
+        vec3f32,
+        vec4f32
+    };
+    size_t size_of(data_type dt);
+
+    enum class texture_type
+    {
+        texture_1d, 
+        texture_2d, 
+        texture_3d,
+        texture_cubemap
+    };
+
+    enum class texture_filtering
+	{
+		nearest, linear
+	};
+
+    enum class texture_wraping
+	{
+		repeat, 
+        mirror_repeat,
+		clamp_coords, 
+        clamp_texture
+	};
+
+    enum class texture_source_format
+    {
+        r,
+        rg,
+        rgb,
+        rgba
+    };
+
+    enum class texture_sized_format
+	{
+		r8, r16,
+		rg8, rg16,
+		r3_g3_b2, rgb4, rgb5, rgb8, rgb10, rgb12, 
+		rgba2, rgba4, rgba8, rgba12, rgba16, rgba32f
+	};
+
+    enum class rasterization_culling_mode : unsigned char
+    {
+        none = 0,
+        front = 1,
+        back = 2,
+        front_and_back = 3,
+    };
+
+    enum class rasterization_culling_front_face : unsigned char
+    {
+        couter_clockwise = 0,
+        clockwise = 1
+    };
+
+    enum class rasterization_polygon_fill_mode : unsigned char
+    {
+        fill_shape, 
+        fill_edges, 
+        fill_vertices
+    };
+
+    enum class depth_compare_operator : unsigned char
+    {
+        nerer = 0,
+        less = 1,
+        equal = 2,
+        less_or_equal = 3,
+        greater = 4,
+        not_equal = 5,
+        greater_or_equal = 6,
+        always = 7
+    };
+
+    enum class resources_descriptor_binding_type
+    {
+        sampled_texture, 
+        written_texture, 
+        uniform_buffer, 
+        storage_buffer
+    };
+}
 
 /*
     STRUCTS
@@ -238,21 +256,15 @@ namespace pikango
         depth_stencil_pipeline_config     depth_stencil_config;
     };
 
-    enum class resources_descriptor_binding_type
+    struct sampled_texture
     {
-        sampled_texture, written_texture, uniform_buffer, storage_buffer
+        texture_sampler_handle sampler;
+        texture_buffer_handle  buffer;
     };
 
     using resources_descriptor_resource_handle = std::variant<
         buffer_handle,
-        //storage_buffer_handle
-
-        texture_1d_handle,
-        texture_2d_handle,
-        texture_3d_handle,
-        texture_cube_handle
-        //texture_1d_array_handle,
-        //texture_2d_array_handle
+        sampled_texture
     >;
 }
 
@@ -403,163 +415,56 @@ namespace pikango
 }
 #endif
 
-//Textures
+//Texture Samplers
 namespace pikango
 {
-    void set_texture_wraping(texture_1d_handle target, texture_wraping x);
-    void set_texture_wraping(texture_2d_handle target, texture_wraping x, texture_wraping y);
-    void set_texture_wraping(texture_3d_handle target, texture_wraping x, texture_wraping y, texture_wraping z);
-
-    void set_texture_wraping(texture_cube_handle target, texture_wraping x, texture_wraping y, texture_wraping z);
-
-    void set_texture_wraping(texture_1d_array_handle target, texture_wraping x);
-    void set_texture_wraping(texture_2d_array_handle target, texture_wraping x, texture_wraping y);
-
-
-    void set_texture_filtering(
-        texture_1d_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying,
-        texture_filtering mipmap
+    void set_sampler_wraping(
+        texture_sampler_handle target, 
+        texture_wraping x, 
+        texture_wraping y, 
+        texture_wraping z
     );
 
-    void set_texture_filtering(
-        texture_2d_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying, 
-        texture_filtering mipmap
-    );
-
-    void set_texture_filtering(
-        texture_3d_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying, 
-        texture_filtering mipmap
-    );
-
-    void set_texture_filtering(
-        texture_cube_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying, 
-        texture_filtering mipmap
-    );
-
-    void set_texture_filtering(
-        texture_1d_array_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying, 
-        texture_filtering mipmap
-    );
-
-    void set_texture_filtering(
-        texture_2d_array_handle target, 
+    void set_sampler_filtering(
+        texture_sampler_handle target, 
         texture_filtering magnifying, 
         texture_filtering minifying, 
         texture_filtering mipmap
     );
 }
 
+//Texture Storages
 namespace pikango::cmd
 {
-    void write_texture(
-        texture_1d_handle target, 
-        texture_format source_format, 
-        texture_format inner_format, 
-        size_t width, 
-        void* pixel_data
+    void assign_texture_buffer_memory(
+        texture_buffer_handle   target,
+        texture_type            type,
+        texture_sized_format    memory_format,
+        size_t                  mipmap_layers,
+        size_t                  array_layers,
+        size_t                  width,
+        size_t                  height,
+        size_t                  depth
     );
 
-    void write_texture(
-        texture_2d_handle target, 
-        texture_format source_format, 
-        texture_format inner_format,
-        size_t width, 
-        size_t height, 
-        void* pixel_data
-    );
-
-    void write_texture(
-        texture_3d_handle target, 
-        texture_format source_format, 
-        texture_format inner_format, 
-        size_t width, 
-        size_t height, 
-        size_t depth, 
-        void* pixel_data
-    );
-
-    void write_texture(
-        texture_cube_handle target, 
-        texture_format source_format, 
-        texture_format inner_format, 
-        size_t width, 
-        void* top, 
-        void* bottom, 
-        void* left, 
-        void* right, 
-        void* front,
-        void* back
-    );
-
-    void write_texture(
-        texture_1d_array_handle target,
-        texture_format source_format, 
-        texture_format inner_format, 
-        size_t width, 
-        std::vector<void*> pixel_data
-    );
-    void write_texture(
-        texture_2d_array_handle target,
-        texture_format source_format, 
-        texture_format inner_format, 
-        size_t width, 
-        size_t height, 
-        std::vector<void*> pixel_data
+    void write_texture_buffer(
+        texture_buffer_handle   target,
+        size_t                  mipmap_layer,
+        size_t                  array_layer,
+        texture_source_format   source_format,
+        size_t                  data_width,
+        size_t                  data_height,
+        size_t                  data_depth,
+        void*                   data,
+        size_t                  write_offset_width,
+        size_t                  write_offset_height,
+        size_t                  write_offset_depth
     );
 }
 
 //Framebuffers
 namespace pikango
 {
-    void attach_framebuffer_color_buffer(
-        frame_buffer_handle target,
-        texture_2d_handle attachment,
-        unsigned int slot
-    );
-
-    void attach_framebuffer_depth_buffer(
-        frame_buffer_handle target,
-        texture_2d_handle attachment
-    );
-
-    void attach_framebuffer_depth_buffer(
-        frame_buffer_handle target,
-        texture_cube_handle attachment
-    );
-
-    void attach_framebuffer_stencil_buffer(
-        frame_buffer_handle target,
-        texture_2d_handle attachment
-    );
-    
-
-    void detach_framebuffer_color_buffer(
-        frame_buffer_handle target,
-        unsigned int slot
-    );
-
-    void detach_framebuffer_depth_buffer(frame_buffer_handle target);
-    void detach_framebuffer_stencil_buffer(frame_buffer_handle target);
-
-
-    texture_2d_handle get_framebuffer_color_buffer(
-        frame_buffer_handle target,
-        unsigned int slot
-    );
-
-    std::variant<texture_2d_handle, texture_cube_handle> get_framebuffer_depth_buffer(frame_buffer_handle target);
-    texture_2d_handle get_framebuffer_stencil_buffer(frame_buffer_handle target);
-
 #ifdef PIKANGO_OPENGL_4_3
     frame_buffer_handle OPENGL_ONLY_get_default_frame_buffer();
 #endif
