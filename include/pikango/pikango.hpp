@@ -117,7 +117,9 @@ namespace pikango
         texture_1d, 
         texture_2d, 
         texture_3d,
-        texture_cubemap
+        texture_cubemap,
+        texture_1d_array,
+        texture_2d_array
     };
 
     enum class texture_filtering
@@ -439,26 +441,24 @@ namespace pikango::cmd
     void assign_texture_buffer_memory(
         texture_buffer_handle   target,
         texture_type            type,
-        texture_sized_format    memory_format,
         size_t                  mipmap_layers,
-        size_t                  array_layers,
-        size_t                  width,
-        size_t                  height,
-        size_t                  depth
+        texture_sized_format    memory_format,
+        size_t                  dim_1,
+        size_t                  dim_2,
+        size_t                  dim_3
     );
 
     void write_texture_buffer(
         texture_buffer_handle   target,
         size_t                  mipmap_layer,
-        size_t                  array_layer,
         texture_source_format   source_format,
-        size_t                  data_width,
-        size_t                  data_height,
-        size_t                  data_depth,
         void*                   data,
-        size_t                  write_offset_width,
-        size_t                  write_offset_height,
-        size_t                  write_offset_depth
+        size_t                  off_1,
+        size_t                  off_2,
+        size_t                  off_3,
+        size_t                  dim_1,
+        size_t                  dim_2,
+        size_t                  dim_3
     );
 }
 
