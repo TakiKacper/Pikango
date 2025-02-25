@@ -219,11 +219,20 @@ namespace pikango
             : ax(_ax), ay(_ay), bx(_bx), by(_by) {};
     };
 
+    struct vertex_attribute_config
+    {
+        size_t      binding;
+        size_t      location;
+
+        data_type   type;
+        size_t      offset;
+
+        bool        per_instance;
+    };
+
     struct vertex_layout_pipeline_config
     {
-        std::vector<data_type> vertex_attributes;
-        std::vector<data_type> instance_attributes;
-        size_t                  stride;
+        std::vector<vertex_attribute_config> attributes;
     };
 
     struct graphics_shaders_pipeline_config
@@ -482,9 +491,8 @@ namespace pikango::cmd
     
     void bind_frame_buffer(frame_buffer_handle frame_buffer);
 
-    void bind_vertex_buffer(buffer_handle vertex_buffer);
+    void bind_vertex_buffer(buffer_handle vertex_buffer, size_t binding);
     void bind_index_buffer(buffer_handle index_buffer);
-    void bind_instance_buffer(buffer_handle instance_buffer);
 }
 
 //Drawing Related Commands

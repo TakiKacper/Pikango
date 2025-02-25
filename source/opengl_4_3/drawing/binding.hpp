@@ -8,12 +8,11 @@ namespace {
     pikango::rasterization_pipeline_config recent_rasterization_config;
     pikango::depth_stencil_pipeline_config recent_depth_stencil_config;
 
-    pikango::buffer_handle              binded_vertex_buffer;
-    pikango::buffer_handle              binded_instance_buffer;
-    bool vao_bindings_changed = false;
-
     pikango::frame_buffer_handle        binded_frame_buffer;
     bool fbo_bindings_changed = false;
+
+    std::array<pikango::buffer_handle, 16>  binded_vertex_buffers;
+    bool vao_bindings_changed = false;
 
     pikango::buffer_handle              binded_index_buffer;
     bool ibo_bindings_changed = false;
@@ -71,34 +70,20 @@ void pikango::cmd::bind_frame_buffer(frame_buffer_handle frame_buffer)
     record_task(func, {frame_buffer});
 }
 
-void pikango::cmd::bind_vertex_buffer(buffer_handle vertex_buffer)
+void pikango::cmd::bind_vertex_buffer(buffer_handle vertex_buffer, size_t binding)
 {
     auto func = [](std::vector<std::any> args)
     {
         auto vertex_buffer = std::any_cast<buffer_handle>(args[0]);
+        auto binding       = std::any_cast<size_t>(args[1]);
 
-        if (vertex_buffer == binded_vertex_buffer) return;
+        if (vertex_buffer == binded_vertex_buffers.at(binding)) return;
 
-        binded_vertex_buffer = vertex_buffer;
+        binded_vertex_buffers.at(binding) = vertex_buffer;
         vao_bindings_changed = true;
     };
 
-    record_task(func, {vertex_buffer});
-}
-
-void pikango::cmd::bind_instance_buffer(buffer_handle instance_buffer)
-{
-    auto func = [](std::vector<std::any> args)
-    {
-        auto instance_buffer = std::any_cast<buffer_handle>(args[0]);
-
-        if (instance_buffer == binded_instance_buffer) return;
-
-        binded_instance_buffer = instance_buffer;
-        vao_bindings_changed = true;
-    };
-
-    record_task(func, {instance_buffer});
+    record_task(func, {vertex_buffer, binding});
 }
 
 void pikango::cmd::bind_index_buffer(buffer_handle index_buffer)
@@ -161,52 +146,47 @@ static size_t calc_attributes_size(std::vector<pikango::data_type>& attributes)
 
 void apply_vertex_layout()
 {
+    for (int i = 0; i < 16; i++)
+        glDisableVertexAttribArray(i);
+
     auto& vlc = pikango_internal::obtain_handle_object(binded_graphics_pipeline)->config.vertex_layout_config;
 
-    int attrib_id = 0;
-    size_t offset = 0;
+    std::array<size_t, 16> sequence_size_per_binding = {0};
 
-    auto bind_layout = [&](bool instance)
+    for (auto& attrib : vlc.attributes)
     {
-        auto& attributes = instance ? vlc.instance_attributes : vlc.vertex_attributes;
-        size_t size = calc_attributes_size(attributes);
+        sequence_size_per_binding[attrib.binding] = std::max(
+            sequence_size_per_binding[attrib.binding],
+            attrib.offset + pikango::size_of(attrib.type)
+        );
+    }
 
-        GLuint target_buffer_id;
+    for (auto& attrib : vlc.attributes)
+    {
+        auto& buffer    = binded_vertex_buffers.at(attrib.binding);
+        auto& buffer_id = pikango_internal::obtain_handle_object(buffer)->id;
 
-        if (instance) target_buffer_id = pikango_internal::obtain_handle_object(binded_instance_buffer)->id;
-        else          target_buffer_id = pikango_internal::obtain_handle_object(binded_vertex_buffer)->id;
+        glBindBuffer(
+            GL_ARRAY_BUFFER, 
+            buffer_id
+        );
 
-        glBindBuffer(GL_ARRAY_BUFFER, target_buffer_id);
+        glEnableVertexAttribArray(attrib.location);
 
-        int i = 0;
+        glVertexAttribPointer(
+            attrib.location, 
+            get_elements_in_data_type(attrib.type), 
+            get_data_type(attrib.type), 
+            GL_FALSE, 
+            sequence_size_per_binding[attrib.binding], 
+            (void*)(uintptr_t)(attrib.offset)
+        );
 
-        for (; i < attributes.size(); i++)
-        {
-            auto dt = attributes.at(i);
-
-            glEnableVertexAttribArray(attrib_id + i);
-            glVertexAttribPointer(
-                attrib_id + i, 
-                get_elements_in_data_type(dt), 
-                get_data_type(dt), 
-                GL_FALSE, 
-                size, 
-                (void*)(uintptr_t)(offset)
-            );
-            glVertexAttribDivisor(attrib_id + i, instance ? 1 : 0);
-
-            offset += pikango::size_of(dt);
-        }
-
-        attrib_id += i;
-    };
-
-    bind_layout(false);
-    if (!pikango_internal::is_empty(binded_instance_buffer)) 
-        bind_layout(true);
-
-    for (; attrib_id < 16; attrib_id++)
-        glDisableVertexAttribArray(attrib_id);
+        glVertexAttribDivisor(
+            attrib.location, 
+            attrib.per_instance ? 1 : 0
+        );
+    }
 }
 
 void apply_graphics_pipeline_shaders()
@@ -265,7 +245,7 @@ void apply_graphics_pipeline_settings()
 
     r_ds = ds;
 }
-
+#include <iostream>
 template<class handle_type>
 static void set_shaders_uniforms(handle_type handle)
 {
@@ -282,7 +262,6 @@ static void set_shaders_uniforms(handle_type handle)
         auto itr = descriptors_to_opengl_pools_mapping.find(binding.first);
 
         if (itr == descriptors_to_opengl_pools_mapping.end())
-
         {
             pikango_internal::log_error(
                 (
@@ -296,7 +275,7 @@ static void set_shaders_uniforms(handle_type handle)
         }
         else 
             pool_id = (*itr).second;
-
+        
         switch (binding.second.second)
         {
         case pikango::resources_descriptor_binding_type::sampled_texture:
@@ -343,7 +322,7 @@ void apply_resources_descriptors_and_shaders_uniforms()
     {
         auto ub_handle = std::get<pikango::buffer_handle>(handle);
         auto ubi = pikango_internal::obtain_handle_object(ub_handle);
-
+ 
         glBindBufferBase(GL_UNIFORM_BUFFER, uniform_pool_itr, ubi->id);
 
         descriptors_to_opengl_pools_mapping.insert({{d_id, b_id}, uniform_pool_itr});
