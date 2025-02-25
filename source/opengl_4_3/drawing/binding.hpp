@@ -245,7 +245,7 @@ void apply_graphics_pipeline_settings()
 
     r_ds = ds;
 }
-#include <iostream>
+
 template<class handle_type>
 static void set_shaders_uniforms(handle_type handle)
 {
