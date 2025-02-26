@@ -1,9 +1,5 @@
 #pragma once
 
-//delete
-#include "pikango/pikango.hpp"
-#include "glad/glad.h"
-
 GLenum get_buffer_usage_flag(pikango::buffer_memory_profile bmp, pikango::buffer_access_profile bap)
 {
     switch (bmp)

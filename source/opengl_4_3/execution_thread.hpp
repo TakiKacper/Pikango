@@ -1,10 +1,3 @@
-#include <mutex>
-#include <condition_variable>
-#include <thread>
-
-#include <queue>
-#include <any>
-
 //In opengl there is no such concept as queues
 //therefore we emulate this behavior by executing the general queue first 
 //and the other ones when the general queue is empty

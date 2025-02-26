@@ -1,3 +1,10 @@
+#include <mutex>
+#include <condition_variable>
+#include <thread>
+
+#include <queue>
+#include <any>
+
 #include "glad/glad.h"
 #include "enumerations.hpp"
 

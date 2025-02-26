@@ -1,5 +1,4 @@
 #pragma once
-#include <set>
 
 namespace {
     pikango::graphics_pipeline_handle   binded_graphics_pipeline;

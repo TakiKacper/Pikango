@@ -1,5 +1,4 @@
 #pragma once
-#include <map>
 
 PIKANGO_IMPL(frame_buffer)
 {

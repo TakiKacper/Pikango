@@ -3,8 +3,12 @@
 #define PIKANGO_HPP
 
 #include <vector>
+#include <array>
+#include <unordered_map>
+#include <set>
+
 #include <string>
-#include <functional>
+
 #include <any>
 #include <variant>
 
