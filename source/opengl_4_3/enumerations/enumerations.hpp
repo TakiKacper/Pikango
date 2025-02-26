@@ -4,7 +4,7 @@
 #include "pikango/pikango.hpp"
 #include "glad/glad.h"
 
-GLuint get_buffer_usage_flag(pikango::buffer_memory_profile bmp, pikango::buffer_access_profile bap)
+GLenum get_buffer_usage_flag(pikango::buffer_memory_profile bmp, pikango::buffer_access_profile bap)
 {
     switch (bmp)
     {
@@ -43,7 +43,7 @@ GLuint get_buffer_usage_flag(pikango::buffer_memory_profile bmp, pikango::buffer
     return GL_DYNAMIC_DRAW;
 }
 
-GLuint get_primitive(pikango::draw_primitive prim)
+GLenum get_primitive(pikango::draw_primitive prim)
 {
     switch (prim)
     {
@@ -58,7 +58,7 @@ GLuint get_primitive(pikango::draw_primitive prim)
     return GL_TRIANGLES;
 }
 
-GLuint get_data_type(pikango::data_type type)
+GLenum get_data_type(pikango::data_type type)
 {
     switch (type)
     {
@@ -104,7 +104,7 @@ GLuint get_elements_in_data_type(pikango::data_type type)
     return 1;
 }
 
-GLuint get_texture_sized_format(pikango::texture_sized_format format)
+GLenum get_texture_sized_format(pikango::texture_sized_format format)
 {
     switch (format) {
         case pikango::texture_sized_format::r8:       return GL_R8;
@@ -131,7 +131,19 @@ GLuint get_texture_sized_format(pikango::texture_sized_format format)
     return GL_RGBA32F;
 }
 
-GLuint get_texture_source_format(pikango::texture_source_format format) {
+GLenum get_format_shader(pikango::shader_type type)
+{
+    switch (type)
+    {
+        case pikango::shader_type::vertex: return GL_VERTEX_SHADER;
+        case pikango::shader_type::pixel: return GL_FRAGMENT_SHADER;
+        case pikango::shader_type::geometry: return GL_GEOMETRY_SHADER;
+    }
+    //will never happen
+    return GL_VERTEX_SHADER;
+}
+
+GLenum get_texture_source_format(pikango::texture_source_format format) {
     switch (format) {
         case pikango::texture_source_format::r:        return GL_RED;
         case pikango::texture_source_format::rg:       return GL_RG;
@@ -142,7 +154,7 @@ GLuint get_texture_source_format(pikango::texture_source_format format) {
     return GL_RED;
 }
 
-GLuint get_texture_wraping(pikango::texture_wraping wraping)
+GLenum get_texture_wraping(pikango::texture_wraping wraping)
 {
     switch (wraping)
     {
@@ -155,7 +167,7 @@ GLuint get_texture_wraping(pikango::texture_wraping wraping)
     return GL_REPEAT;
 }
 
-GLuint get_texture_filtering(pikango::texture_filtering filtering)
+GLenum get_texture_filtering(pikango::texture_filtering filtering)
 {
     switch (filtering)
     {
@@ -166,7 +178,7 @@ GLuint get_texture_filtering(pikango::texture_filtering filtering)
     return GL_LINEAR;
 }
 
-GLuint combine_min_filters(pikango::texture_filtering min, pikango::texture_filtering mipmap)
+GLenum combine_min_filters(pikango::texture_filtering min, pikango::texture_filtering mipmap)
 {
     if      (min == pikango::texture_filtering::linear && mipmap == pikango::texture_filtering::linear)
         return GL_LINEAR_MIPMAP_LINEAR;

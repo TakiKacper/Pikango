@@ -51,21 +51,12 @@ This macro for name = xyz would create folowing objects:
 
 PIKANGO_HANDLE_FWD(graphics_pipeline);
 //PIKANGO_HANDLE_FWD(compute_pipeline)
-
 PIKANGO_HANDLE_FWD(command_buffer);
 PIKANGO_HANDLE_FWD(fence);
-
 PIKANGO_HANDLE_FWD(resources_descriptor);
-
-PIKANGO_HANDLE_FWD(vertex_shader);
-PIKANGO_HANDLE_FWD(pixel_shader);
-PIKANGO_HANDLE_FWD(geometry_shader);
-//PIKANGO_HANDLE_FWD(compute_shader);
-
+PIKANGO_HANDLE_FWD(shader);
 PIKANGO_HANDLE_FWD(frame_buffer);
-
 PIKANGO_HANDLE_FWD(buffer);
-
 PIKANGO_HANDLE_FWD(texture_sampler);
 PIKANGO_HANDLE_FWD(texture_buffer);
 
@@ -77,28 +68,28 @@ PIKANGO_HANDLE_FWD(texture_buffer);
 
 namespace pikango
 {
-    enum class draw_primitive
+    enum class draw_primitive : unsigned char
     {
         points, 
         lines, lines_loop, line_strip,
         traingles, traingles_strip
     };
 
-    enum class buffer_memory_profile
+    enum class buffer_memory_profile : unsigned char
     {
         rare_write_rare_read,   //data is rarely in use
         rare_write_often_read,  //data is often overwritten and often used
         often_write_often_read  //data is rarely overwritten and often used
     };
 
-    enum class buffer_access_profile
+    enum class buffer_access_profile : unsigned char
     {
         cpu_to_gpu, //application writes data to gpu
         gpu_to_cpu, //gpu data is read by application 
         gpu_to_gpu  //gpu data is read by gpu
     };
 
-    enum class data_type
+    enum class data_type : unsigned char
     {
         int32,
         vec2i32,
@@ -112,7 +103,14 @@ namespace pikango
     };
     size_t size_of(data_type dt);
 
-    enum class texture_type
+    enum class shader_type : unsigned char
+    {
+        vertex,
+        pixel,
+        geometry
+    };
+
+    enum class texture_type : unsigned char
     {
         texture_1d, 
         texture_2d, 
@@ -122,12 +120,12 @@ namespace pikango
         texture_2d_array
     };
 
-    enum class texture_filtering
+    enum class texture_filtering : unsigned char
 	{
 		nearest, linear
 	};
 
-    enum class texture_wraping
+    enum class texture_wraping : unsigned char
 	{
 		repeat, 
         mirror_repeat,
@@ -135,7 +133,7 @@ namespace pikango
         clamp_texture
 	};
 
-    enum class texture_source_format
+    enum class texture_source_format : unsigned char
     {
         r,
         rg,
@@ -143,7 +141,7 @@ namespace pikango
         rgba
     };
 
-    enum class texture_sized_format
+    enum class texture_sized_format : unsigned char
 	{
 		r8, r16,
 		rg8, rg16,
@@ -184,7 +182,7 @@ namespace pikango
         always = 7
     };
 
-    enum class resources_descriptor_binding_type
+    enum class resources_descriptor_binding_type : unsigned char
     {
         sampled_texture, 
         written_texture, 
@@ -237,9 +235,9 @@ namespace pikango
 
     struct graphics_shaders_pipeline_config
     {
-        vertex_shader_handle    vertex_shader;
-        pixel_shader_handle     pixel_shader;
-        geometry_shader_handle  geometry_shader;
+        shader_handle vertex_shader;
+        shader_handle pixel_shader;
+        shader_handle geometry_shader;
     };
 
     struct rasterization_pipeline_config
@@ -406,10 +404,7 @@ namespace pikango::cmd
 //Shaders Compilation
 namespace pikango
 {
-    void compile_vertex_shader   (vertex_shader_handle target, const std::string& source);
-    void compile_pixel_shader    (pixel_shader_handle target, const std::string& source);
-    void compile_geometry_shader (geometry_shader_handle target, const std::string& source);
-    //void compile_compute_shader(compute_shader_handle target, const std::string& source);
+    void compile_shader(shader_handle target, shader_type type, const std::string& source);
 }
 
 #ifdef PIKANGO_OPENGL_4_3
@@ -418,11 +413,7 @@ namespace pikango
 {
     // {binding name, descriptor id, binding id, binding type}
     using OPENGL_ONLY_shader_bindings = std::vector<std::tuple<std::string, size_t, size_t, resources_descriptor_binding_type>>;
-
-    void OPENGL_ONLY_link_shader_bindings_info(vertex_shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
-    void OPENGL_ONLY_link_shader_bindings_info(pixel_shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
-    void OPENGL_ONLY_link_shader_bindings_info(geometry_shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
-    //void OPENGL_ONLY_link_shader_bindings_info(compute_shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
+    void OPENGL_ONLY_link_shader_bindings_info(shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
 }
 #endif
 
