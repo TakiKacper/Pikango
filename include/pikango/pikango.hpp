@@ -151,16 +151,16 @@ namespace pikango
 
     enum class rasterization_culling_mode : unsigned char
     {
-        none = 0,
-        front = 1,
-        back = 2,
-        front_and_back = 3,
+        none,
+        front,
+        back,
+        front_and_back,
     };
 
     enum class rasterization_culling_front_face : unsigned char
     {
-        couter_clockwise = 0,
-        clockwise = 1
+        couter_clockwise,
+        clockwise
     };
 
     enum class rasterization_polygon_fill_mode : unsigned char
@@ -172,14 +172,14 @@ namespace pikango
 
     enum class depth_compare_operator : unsigned char
     {
-        nerer = 0,
-        less = 1,
-        equal = 2,
-        less_or_equal = 3,
-        greater = 4,
-        not_equal = 5,
-        greater_or_equal = 6,
-        always = 7
+        nerer,
+        less,
+        equal,
+        less_or_equal,
+        greater,
+        not_equal,
+        greater_or_equal,
+        always
     };
 
     enum class resources_descriptor_binding_type : unsigned char

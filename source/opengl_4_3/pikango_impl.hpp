@@ -1,5 +1,5 @@
 #include "glad/glad.h"
-#include "enumerations/enumerations.hpp"
+#include "enumerations.hpp"
 
 namespace
 {
@@ -15,9 +15,9 @@ namespace
 #define PIKANGO_NEW(name)   \
     pikango::name##_handle pikango::new_##name ()
 
-#include "execution_thread/execution_thread.hpp"
-#include "command_buffer/command_buffer.hpp"
-#include "fence/fence.hpp"
+#include "execution_thread.hpp"
+#include "command_buffer.hpp"
+#include "fence.hpp"
 
 namespace
 {
@@ -280,23 +280,23 @@ size_t pikango::get_max_resources_descriptors_bindings()
     Commands Implementations
 */
 
-#include "pipelines/graphics_pipeline.hpp"
+#include "graphics_pipeline.hpp"
 
-#include "descriptors/resources_descriptors.hpp"
+#include "resources_descriptors.hpp"
 
 using shader_uniforms_to_descriptors_maping = 
     std::unordered_map<pikango_internal::size_t_pair, std::pair<GLint, pikango::resources_descriptor_binding_type>, pikango_internal::size_t_pair_hash>;
 
-#include "shaders/shader.hpp"
-#include "shaders/program.hpp"
+#include "shader.hpp"
+#include "program.hpp"
 
-#include "buffer/buffer.hpp"
+#include "buffer.hpp"
 
-#include "textures/texture_sampler.hpp"
-#include "textures/texture_buffer.hpp"
+#include "texture_sampler.hpp"
+#include "texture_buffer.hpp"
 
-#include "frame_buffer/frame_buffer.hpp"
+#include "frame_buffer.hpp"
 
-#include "drawing/binding.hpp"
-#include "drawing/drawing_related.hpp"
-#include "drawing/drawing.hpp"
+#include "binding.hpp"
+#include "drawing_related.hpp"
+#include "drawing.hpp"
