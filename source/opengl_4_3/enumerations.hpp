@@ -4,7 +4,7 @@
 #include "pikango/pikango.hpp"
 #include "glad/glad.h"
 
-GLuint get_buffer_usage_flag(pikango::buffer_memory_profile bmp, pikango::buffer_access_profile bap)
+GLenum get_buffer_usage_flag(pikango::buffer_memory_profile bmp, pikango::buffer_access_profile bap)
 {
     switch (bmp)
     {
@@ -43,7 +43,7 @@ GLuint get_buffer_usage_flag(pikango::buffer_memory_profile bmp, pikango::buffer
     return GL_DYNAMIC_DRAW;
 }
 
-GLuint get_primitive(pikango::draw_primitive prim)
+GLenum get_primitive(pikango::draw_primitive prim)
 {
     switch (prim)
     {
@@ -58,7 +58,7 @@ GLuint get_primitive(pikango::draw_primitive prim)
     return GL_TRIANGLES;
 }
 
-GLuint get_data_type(pikango::data_type type)
+GLenum get_data_type(pikango::data_type type)
 {
     switch (type)
     {
@@ -104,38 +104,57 @@ GLuint get_elements_in_data_type(pikango::data_type type)
     return 1;
 }
 
-GLuint get_texture_format(pikango::texture_format format) {
+GLenum get_texture_sized_format(pikango::texture_sized_format format)
+{
     switch (format) {
-        case pikango::texture_format::depth:            return GL_DEPTH_COMPONENT;
-        case pikango::texture_format::depth_stencil:    return GL_DEPTH_STENCIL;
-        case pikango::texture_format::depth24_stencil8: return GL_DEPTH24_STENCIL8;
+        case pikango::texture_sized_format::r8:       return GL_R8;
+        case pikango::texture_sized_format::r16:      return GL_R16;
 
-        case pikango::texture_format::r:        return GL_RED;
-        case pikango::texture_format::r8:       return GL_R8;
-        case pikango::texture_format::r16:      return GL_R16;
-        case pikango::texture_format::rg:       return GL_RG;
-        case pikango::texture_format::rg8:      return GL_RG8;
-        case pikango::texture_format::rg16:     return GL_RG16;
-        case pikango::texture_format::rgb:      return GL_RGB;
-        case pikango::texture_format::r3_g3_b2: return GL_R3_G3_B2;
-        case pikango::texture_format::rgb4:     return GL_RGB4;
-        case pikango::texture_format::rgb5:     return GL_RGB5;
-        case pikango::texture_format::rgb8:     return GL_RGB8;
-        case pikango::texture_format::rgb10:    return GL_RGB10;
-        case pikango::texture_format::rgb12:    return GL_RGB12;
-        case pikango::texture_format::rgba:     return GL_RGBA;
-        case pikango::texture_format::rgba2:    return GL_RGBA2;
-        case pikango::texture_format::rgba4:    return GL_RGBA4;
-        case pikango::texture_format::rgba8:    return GL_RGBA8;
-        case pikango::texture_format::rgba12:   return GL_RGBA12;
-        case pikango::texture_format::rgba16:   return GL_RGBA16;
-        case pikango::texture_format::rgba32f:  return GL_RGBA32F;
+        case pikango::texture_sized_format::rg8:      return GL_RG8;
+        case pikango::texture_sized_format::rg16:     return GL_RG16;
+
+        case pikango::texture_sized_format::r3_g3_b2: return GL_R3_G3_B2;
+        case pikango::texture_sized_format::rgb4:     return GL_RGB4;
+        case pikango::texture_sized_format::rgb5:     return GL_RGB5;
+        case pikango::texture_sized_format::rgb8:     return GL_RGB8;
+        case pikango::texture_sized_format::rgb10:    return GL_RGB10;
+        case pikango::texture_sized_format::rgb12:    return GL_RGB12;
+
+        case pikango::texture_sized_format::rgba2:    return GL_RGBA2;
+        case pikango::texture_sized_format::rgba4:    return GL_RGBA4;
+        case pikango::texture_sized_format::rgba8:    return GL_RGBA8;
+        case pikango::texture_sized_format::rgba12:   return GL_RGBA12;
+        case pikango::texture_sized_format::rgba16:   return GL_RGBA16;
+        case pikango::texture_sized_format::rgba32f:  return GL_RGBA32F;
+    }
+    //will never happen
+    return GL_RGBA32F;
+}
+
+GLenum get_format_shader(pikango::shader_type type)
+{
+    switch (type)
+    {
+        case pikango::shader_type::vertex: return GL_VERTEX_SHADER;
+        case pikango::shader_type::pixel: return GL_FRAGMENT_SHADER;
+        case pikango::shader_type::geometry: return GL_GEOMETRY_SHADER;
+    }
+    //will never happen
+    return GL_VERTEX_SHADER;
+}
+
+GLenum get_texture_source_format(pikango::texture_source_format format) {
+    switch (format) {
+        case pikango::texture_source_format::r:        return GL_RED;
+        case pikango::texture_source_format::rg:       return GL_RG;
+        case pikango::texture_source_format::rgb:      return GL_RGB;
+        case pikango::texture_source_format::rgba:     return GL_RGBA;
     }
     //will never happen
     return GL_RED;
 }
 
-GLuint get_texture_wraping(pikango::texture_wraping wraping)
+GLenum get_texture_wraping(pikango::texture_wraping wraping)
 {
     switch (wraping)
     {
@@ -148,7 +167,7 @@ GLuint get_texture_wraping(pikango::texture_wraping wraping)
     return GL_REPEAT;
 }
 
-GLuint get_texture_filtering(pikango::texture_filtering filtering)
+GLenum get_texture_filtering(pikango::texture_filtering filtering)
 {
     switch (filtering)
     {
@@ -159,7 +178,7 @@ GLuint get_texture_filtering(pikango::texture_filtering filtering)
     return GL_LINEAR;
 }
 
-GLuint combine_min_filters(pikango::texture_filtering min, pikango::texture_filtering mipmap)
+GLenum combine_min_filters(pikango::texture_filtering min, pikango::texture_filtering mipmap)
 {
     if      (min == pikango::texture_filtering::linear && mipmap == pikango::texture_filtering::linear)
         return GL_LINEAR_MIPMAP_LINEAR;

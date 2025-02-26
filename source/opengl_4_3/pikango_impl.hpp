@@ -1,5 +1,5 @@
 #include "glad/glad.h"
-#include "enumerations/enumerations.hpp"
+#include "enumerations.hpp"
 
 namespace
 {
@@ -15,9 +15,9 @@ namespace
 #define PIKANGO_NEW(name)   \
     pikango::name##_handle pikango::new_##name ()
 
-#include "execution_thread/execution_thread.hpp"
-#include "command_buffer/command_buffer.hpp"
-#include "fence/fence.hpp"
+#include "execution_thread.hpp"
+#include "command_buffer.hpp"
+#include "fence.hpp"
 
 namespace
 {
@@ -151,42 +151,6 @@ void pikango::wait_multiple_fences(std::vector<fence_handle> targets)
         wait_fence(target);
 }
 
-//Utilities enabling use of graphics shaders configuration as key for
-//program pipeline registry
-namespace{
-    struct graphics_shaders_pipeline_config_impl_ptr_identifier
-    {
-        void* vertex_shader_impl_ptr;
-        void* pixel_shader_impl_ptr;
-        void* geometry_shader_impl_ptr;
-    };
-
-    struct graphics_shaders_pipeline_config_impl_ptr_identifier_hash
-    {
-        std::size_t operator()(const graphics_shaders_pipeline_config_impl_ptr_identifier& config) const
-        {
-            std::size_t seed = 0;
-            seed = seed ^ (size_t)config.vertex_shader_impl_ptr;
-            seed = seed ^ (size_t)config.pixel_shader_impl_ptr;
-            seed = seed ^ (size_t)config.geometry_shader_impl_ptr;
-            return seed;
-        }
-    };
-
-    struct graphics_shaders_pipeline_impl_ptr_identifier_equal
-    {
-        bool operator()(
-            const graphics_shaders_pipeline_config_impl_ptr_identifier& a, 
-            const graphics_shaders_pipeline_config_impl_ptr_identifier& b
-        ) const
-        {
-            return  a.vertex_shader_impl_ptr == b.vertex_shader_impl_ptr && 
-                    a.pixel_shader_impl_ptr == b.pixel_shader_impl_ptr && 
-                    a.geometry_shader_impl_ptr == b.geometry_shader_impl_ptr;
-        }
-    };
-}
-
 //Utility
 namespace pikango_internal
 {
@@ -228,16 +192,6 @@ namespace {
     GLint textures_operation_unit;
     GLint max_color_attachments;
     constexpr GLint max_resources_descriptors = 16; 
-
-    //program pipelines reigstry needs to be mutexed since it can be accessed 
-    //by both exection thread when applying bindings and other threads in shaders deconstructors
-    std::mutex program_pipelines_registry_mutex;
-    std::unordered_map<
-        graphics_shaders_pipeline_config_impl_ptr_identifier, 
-        GLuint,
-        graphics_shaders_pipeline_config_impl_ptr_identifier_hash,
-        graphics_shaders_pipeline_impl_ptr_identifier_equal> 
-    program_pipelines_registry;
 }
 
 /*
@@ -295,21 +249,15 @@ std::string pikango::initialize_library_gpu()
     return "";
 }
 
+void delete_all_program_pipelines();
+
 std::string pikango::terminate()
 {
     auto func = [](std::vector<std::any>)
     {
         glDeleteVertexArrays(1, &VAO);
-
         default_frame_buffer_handle.~handle();
-
-        program_pipelines_registry_mutex.lock();
-
-        for (auto& [_, id] : program_pipelines_registry)
-            glDeleteProgramPipelines(1, &id);
-        program_pipelines_registry.clear();
-
-        program_pipelines_registry_mutex.unlock();
+        delete_all_program_pipelines();
     };
 
     enqueue_task(func, {}, pikango::queue_type::general);
@@ -332,31 +280,23 @@ size_t pikango::get_max_resources_descriptors_bindings()
     Commands Implementations
 */
 
-#include "pipelines/graphics_pipeline.hpp"
+#include "graphics_pipeline.hpp"
 
-#include "descriptors/resources_descriptors.hpp"
+#include "resources_descriptors.hpp"
 
 using shader_uniforms_to_descriptors_maping = 
     std::unordered_map<pikango_internal::size_t_pair, std::pair<GLint, pikango::resources_descriptor_binding_type>, pikango_internal::size_t_pair_hash>;
 
-#include "shaders/generic.hpp"
-#include "shaders/vertex_shader.hpp"
-#include "shaders/pixel_shader.hpp"
-#include "shaders/geometry_shader.hpp"
-//#include "shaders/compute_shader.hpp"
-#include "shaders/program.hpp"
+#include "shader.hpp"
+#include "program.hpp"
 
-#include "buffer/buffer.hpp"
+#include "buffer.hpp"
 
-#include "textures/generic.hpp"
-#include "textures/texture_1d.hpp"
-#include "textures/texture_2d.hpp"
-#include "textures/texture_3d.hpp"
-#include "textures/texture_cube.hpp"
+#include "texture_sampler.hpp"
+#include "texture_buffer.hpp"
 
-#include "frame_buffer/generic.hpp"
-#include "frame_buffer/frame_buffer.hpp"
+#include "frame_buffer.hpp"
 
-#include "drawing/binding.hpp"
-#include "drawing/drawing_related.hpp"
-#include "drawing/drawing.hpp"
+#include "binding.hpp"
+#include "drawing_related.hpp"
+#include "drawing.hpp"
