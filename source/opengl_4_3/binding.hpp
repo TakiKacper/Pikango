@@ -150,16 +150,6 @@ void apply_vertex_layout()
 
     auto& vlc = pikango_internal::obtain_handle_object(binded_graphics_pipeline)->config.vertex_layout_config;
 
-    std::array<size_t, 16> sequence_size_per_binding = {0};
-
-    for (auto& attrib : vlc.attributes)
-    {
-        sequence_size_per_binding[attrib.binding] = std::max(
-            sequence_size_per_binding[attrib.binding],
-            attrib.offset + pikango::size_of(attrib.type)
-        );
-    }
-
     for (auto& attrib : vlc.attributes)
     {
         auto& buffer    = binded_vertex_buffers.at(attrib.binding);
@@ -177,7 +167,7 @@ void apply_vertex_layout()
             get_elements_in_data_type(attrib.type), 
             get_data_type(attrib.type), 
             GL_FALSE, 
-            sequence_size_per_binding[attrib.binding], 
+            attrib.stride, 
             (void*)(uintptr_t)(attrib.offset)
         );
 

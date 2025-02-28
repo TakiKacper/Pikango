@@ -227,6 +227,7 @@ namespace pikango
         size_t      location;
 
         data_type   type;
+        size_t      stride;
         size_t      offset;
 
         bool        per_instance;
