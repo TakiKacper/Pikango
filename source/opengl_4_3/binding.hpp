@@ -85,11 +85,35 @@ void pikango::cmd::bind_texture(
     size_t slot        
 );
 
+void pikango::cmd::bind_texture(
+    texture_sampler_handle sampler,
+    texture_buffer_handle buffer,
+    size_t slot        
+)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto texture_sampler = std::any_cast<texture_sampler_handle>(args[0]);
+        auto texture_buffer  = std::any_cast<texture_buffer_handle>(args[1]);
+        auto slot   = std::any_cast<size_t>(args[2]);
+
+        auto tsi = pikango_internal::obtain_handle_object(texture_sampler);
+        auto tbi = pikango_internal::obtain_handle_object(texture_buffer);
+
+        glBindSampler(slot, tsi->id);
+        
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(tbi->texture_type, tbi->id);
+    };
+
+    record_task(func, {sampler, buffer, slot});
+}
+
 void pikango::cmd::bind_uniform_buffer(
     buffer_handle uniform_buffer,
     size_t slot,
-    size_t offset,
-    size_t size
+    size_t size,
+    size_t offset
 )
 {
     auto func = [](std::vector<std::any> args)

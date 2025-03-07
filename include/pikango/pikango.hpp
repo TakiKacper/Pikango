@@ -467,8 +467,8 @@ namespace pikango::cmd
     void bind_uniform_buffer(
         buffer_handle uniform_buffer,
         size_t slot,
-        size_t offset,
-        size_t size
+        size_t size,
+        size_t offset
     );
 }
 
