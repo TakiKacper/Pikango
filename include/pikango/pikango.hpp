@@ -277,11 +277,14 @@ namespace pikango
 {
     using error_notification_callback = void(*)(const char* notification);
 
-    std::string initialize_library_cpu();
+    struct initialize_library_cpu_settings
+    {
+        error_notification_callback error_callback = nullptr;
+    };
+
+    std::string initialize_library_cpu(const initialize_library_cpu_settings& settings);
     std::string initialize_library_gpu();
     std::string terminate();
-
-    void set_error_notification_callback(error_notification_callback callback);
 }
 
 #ifdef PIKANGO_OPENGL_4_3

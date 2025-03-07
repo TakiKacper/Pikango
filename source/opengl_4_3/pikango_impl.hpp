@@ -5,6 +5,8 @@
 #include <queue>
 #include <any>
 
+#include <sstream>
+
 #include "glad/glad.h"
 #include "enumerations.hpp"
 
@@ -204,6 +206,82 @@ namespace {
     Library Implementation
 */
 
+namespace {
+    pikango::error_notification_callback error_callback;
+
+    void log_error(const char* text)
+    {
+        if (error_callback != nullptr)
+            error_callback(text);
+        else
+            abort();
+    }
+
+    void GLAPIENTRY gl_log_error
+    ( 
+        GLenum source,
+        GLenum type,
+        GLuint id,
+        GLenum severity,
+        GLsizei length,
+        const GLchar* message,
+        const void* userParam
+    )
+    {
+        if (severity < GL_DEBUG_SEVERITY_LOW) return;
+
+        std::stringstream ss;
+        
+        ss << "\n" << "OPENGL GENERATED ERROR: " << '\n';
+        ss << "message: "<< message << '\n';
+        ss << "type: ";
+
+        switch (type) 
+        {
+        case GL_DEBUG_TYPE_ERROR:
+            ss << "ERROR";
+            break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+            ss << "DEPRECATED_BEHAVIOR";
+            break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+            ss << "UNDEFINED_BEHAVIOR";
+            break;
+        case GL_DEBUG_TYPE_PORTABILITY:
+            ss << "PORTABILITY";
+            break;
+        case GL_DEBUG_TYPE_PERFORMANCE:
+            ss << "PERFORMANCE";
+            break;
+        case GL_DEBUG_TYPE_OTHER:
+            ss << "OTHER";
+            break;
+        }
+
+        ss << '\n';
+        ss << "id: " << id << '\n';
+        
+        ss << "severity: ";
+        switch (severity)
+        {
+        case GL_DEBUG_SEVERITY_LOW:
+            ss << "LOW";
+            break;
+        case GL_DEBUG_SEVERITY_MEDIUM:
+            ss << "MEDIUM";
+            break;
+        case GL_DEBUG_SEVERITY_HIGH:
+            ss << "HIGH";
+            break;
+        }
+        ss << '\n';
+
+        auto str = ss.str();
+        log_error(&str[0]);
+    }
+}
+
+
 void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args)
 {
     enqueue_task(task, std::move(args), pikango::queue_type::general);
@@ -214,8 +292,10 @@ pikango::frame_buffer_handle pikango::OPENGL_ONLY_get_default_frame_buffer()
     return default_frame_buffer_handle;
 }
 
-std::string pikango::initialize_library_cpu()
+std::string pikango::initialize_library_cpu(const initialize_library_cpu_settings& settings)
 {
+    error_callback = settings.error_callback;
+
     start_opengl_execution_thread();
     return "";
 }
@@ -248,6 +328,13 @@ std::string pikango::initialize_library_gpu()
 
         //enable scissors
         glEnable( GL_SCISSOR_TEST);
+
+        //enable error callback
+        if (error_callback)
+        {
+            glEnable(GL_DEBUG_OUTPUT);
+            glDebugMessageCallback(gl_log_error, 0);
+        }
     };
 
     enqueue_task(func, {}, pikango::queue_type::general);

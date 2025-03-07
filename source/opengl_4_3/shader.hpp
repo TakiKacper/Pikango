@@ -50,7 +50,7 @@ void pikango::compile_shader(shader_handle target, pikango::shader_type type, co
         if (!success)
         {
             glGetShaderInfoLog(shader, 512, NULL, infoLog);
-            pikango_internal::log_error(infoLog);
+            log_error(infoLog);
         }
     
         //Create Separatable Program
