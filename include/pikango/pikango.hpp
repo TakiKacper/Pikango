@@ -57,7 +57,6 @@ PIKANGO_HANDLE_FWD(graphics_pipeline);
 //PIKANGO_HANDLE_FWD(compute_pipeline)
 PIKANGO_HANDLE_FWD(command_buffer);
 PIKANGO_HANDLE_FWD(fence);
-PIKANGO_HANDLE_FWD(resources_descriptor);
 PIKANGO_HANDLE_FWD(shader);
 PIKANGO_HANDLE_FWD(frame_buffer);
 PIKANGO_HANDLE_FWD(buffer);
@@ -185,14 +184,6 @@ namespace pikango
         greater_or_equal,
         always
     };
-
-    enum class resources_descriptor_binding_type : unsigned char
-    {
-        sampled_texture, 
-        written_texture, 
-        uniform_buffer, 
-        storage_buffer
-    };
 }
 
 /*
@@ -275,11 +266,6 @@ namespace pikango
         texture_sampler_handle sampler;
         texture_buffer_handle  buffer;
     };
-
-    using resources_descriptor_resource_handle = std::variant<
-        buffer_handle,
-        sampled_texture
-    >;
 }
 
 /*
@@ -329,9 +315,6 @@ namespace pikango
     //Shaders
     const char* get_used_shading_language_name();
 
-    //Descriptors
-    size_t get_max_resources_descriptors_bindings();
-
     //Framebuffers
     size_t get_max_framebuffer_color_buffers_attachments();
 }
@@ -344,13 +327,6 @@ namespace pikango
 namespace pikango
 {
     void configure_graphics_pipeline(graphics_pipeline_handle target, graphics_pipeline_config& config);
-}
-
-//Resources Descriptor
-namespace pikango
-{
-    void configure_resources_descriptor(resources_descriptor_handle target, std::vector<resources_descriptor_binding_type>& layout);
-    void bind_to_resources_descriptor(resources_descriptor_handle target, std::vector<resources_descriptor_resource_handle>& bindings);
 }
 
 //Command Buffer
@@ -411,16 +387,6 @@ namespace pikango
 {
     void compile_shader(shader_handle target, shader_type type, const std::string& source);
 }
-
-#ifdef PIKANGO_OPENGL_4_3
-
-namespace pikango
-{
-    // {binding name, descriptor id, binding id, binding type}
-    using OPENGL_ONLY_shader_bindings = std::vector<std::tuple<std::string, size_t, size_t, resources_descriptor_binding_type>>;
-    void OPENGL_ONLY_link_shader_bindings_info(shader_handle target, OPENGL_ONLY_shader_bindings& bindings);
-}
-#endif
 
 //Texture Samplers
 namespace pikango
@@ -483,12 +449,24 @@ namespace pikango
 namespace pikango::cmd
 {
     void bind_graphics_pipeline(graphics_pipeline_handle pipeline);
-    void bind_resources_descriptor(resources_descriptor_handle descriptor, size_t descriptor_index);
     
     void bind_frame_buffer(frame_buffer_handle frame_buffer);
 
     void bind_vertex_buffer(buffer_handle vertex_buffer, size_t binding);
     void bind_index_buffer(buffer_handle index_buffer);
+
+    void bind_texture(
+        texture_sampler_handle sampler,
+        texture_buffer_handle buffer,
+        size_t slot        
+    );
+
+    void bind_uniform_buffer(
+        buffer_handle uniform_buffer,
+        size_t slot,
+        size_t offset,
+        size_t size
+    );
 }
 
 //Drawing Related Commands

@@ -7,7 +7,6 @@
     
 IMPLEMENT_DESTRUCTOR(graphics_pipeline);
 //IMPLEMENT_DESTRUCTOR(compute_pipeline);
-IMPLEMENT_DESTRUCTOR(resources_descriptor);
 IMPLEMENT_DESTRUCTOR(shader);
 IMPLEMENT_DESTRUCTOR(command_buffer);
 IMPLEMENT_DESTRUCTOR(fence);

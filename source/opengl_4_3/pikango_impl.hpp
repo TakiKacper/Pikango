@@ -198,7 +198,6 @@ namespace {
     GLint uniforms_pool_size;
     GLint textures_operation_unit;
     GLint max_color_attachments;
-    constexpr GLint max_resources_descriptors = 16; 
 }
 
 /*
@@ -278,21 +277,11 @@ const char* pikango::get_used_shading_language_name()
     return glsl;
 }
 
-size_t pikango::get_max_resources_descriptors_bindings()
-{
-    return max_resources_descriptors;
-}
-
 /*
     Commands Implementations
 */
 
 #include "graphics_pipeline.hpp"
-
-#include "resources_descriptors.hpp"
-
-using shader_uniforms_to_descriptors_maping = 
-    std::unordered_map<pikango_internal::size_t_pair, std::pair<GLint, pikango::resources_descriptor_binding_type>, pikango_internal::size_t_pair_hash>;
 
 #include "shader.hpp"
 #include "program.hpp"
