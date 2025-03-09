@@ -193,8 +193,7 @@ namespace pikango_internal
 
 namespace {
     GLuint VAO;
-
-    pikango::frame_buffer_handle default_frame_buffer_handle;
+    GLuint FBO;
 
     GLint textures_pool_size;
     GLint uniforms_pool_size;
@@ -287,11 +286,6 @@ void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std
     enqueue_task(task, std::move(args), pikango::queue_type::general);
 }
 
-pikango::frame_buffer_handle pikango::OPENGL_ONLY_get_default_frame_buffer()
-{
-    return default_frame_buffer_handle;
-}
-
 std::string pikango::initialize_library_cpu(const initialize_library_cpu_settings& settings)
 {
     error_callback = settings.error_callback;
@@ -299,9 +293,6 @@ std::string pikango::initialize_library_cpu(const initialize_library_cpu_setting
     start_opengl_execution_thread();
     return "";
 }
-
-//fwd
-pikango::frame_buffer_handle create_default_framebuffer_handle();
 
 std::string pikango::initialize_library_gpu()
 {
@@ -311,8 +302,8 @@ std::string pikango::initialize_library_gpu()
         glGenVertexArrays(1, &VAO);
         glBindVertexArray(VAO);
 
-        //create default frame buffer
-        default_frame_buffer_handle = create_default_framebuffer_handle();
+        //create FBO object
+        glGenFramebuffers(1, &FBO);
 
         //get textures pool size
         glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &textures_pool_size);
@@ -349,7 +340,7 @@ std::string pikango::terminate()
     auto func = [](std::vector<std::any>)
     {
         glDeleteVertexArrays(1, &VAO);
-        default_frame_buffer_handle.~handle();
+        glDeleteFramebuffers(1, &FBO);
         delete_all_program_pipelines();
     };
 
@@ -377,8 +368,6 @@ const char* pikango::get_used_shading_language_name()
 
 #include "texture_sampler.hpp"
 #include "texture_buffer.hpp"
-
-#include "frame_buffer.hpp"
 
 #include "binding.hpp"
 #include "drawing_related.hpp"
