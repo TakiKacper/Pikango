@@ -441,7 +441,7 @@ namespace pikango::cmd
     void bind_texture(
         texture_sampler_handle sampler,
         texture_buffer_handle buffer,
-        size_t slot        
+        size_t slot
     );
 
     void bind_uniform_buffer(
