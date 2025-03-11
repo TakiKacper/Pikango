@@ -61,6 +61,7 @@ PIKANGO_HANDLE_FWD(shader);
 PIKANGO_HANDLE_FWD(buffer);
 PIKANGO_HANDLE_FWD(texture_sampler);
 PIKANGO_HANDLE_FWD(texture_buffer);
+PIKANGO_HANDLE_FWD(frame_buffer);
 
 #undef PIKANGO_HANDLE_FWD
 
@@ -182,6 +183,13 @@ namespace pikango
         not_equal,
         greater_or_equal,
         always
+    };
+
+    enum class framebuffer_attachment_type : unsigned char
+    {
+        color,
+        depth,
+        stencil
     };
 }
 
@@ -426,6 +434,21 @@ namespace pikango::cmd
     );
 }
 
+//Framebuffer
+namespace pikango
+{
+    void attach_to_frame_buffer(
+        frame_buffer_handle         target, 
+        texture_buffer_handle       attachment,
+        framebuffer_attachment_type attachment_type, 
+        size_t                      slot
+    );
+
+#ifdef PIKANGO_OPENGL_4_3
+    frame_buffer_handle OPENGL_ONLY_get_default_frame_buffer();
+#endif
+};
+
 /*
     DRAWING AND STATE
 */
@@ -434,6 +457,8 @@ namespace pikango::cmd
 namespace pikango::cmd
 {
     void bind_graphics_pipeline(graphics_pipeline_handle pipeline);
+
+    void bind_frame_buffer(frame_buffer_handle frame_buffer);
 
     void bind_vertex_buffer(buffer_handle vertex_buffer, size_t binding);
     void bind_index_buffer(buffer_handle index_buffer);
@@ -450,16 +475,6 @@ namespace pikango::cmd
         size_t size,
         size_t offset
     );
-
-    void bind_color_render_target   (texture_buffer_handle color, size_t slot);
-    void bind_depth_render_target   (texture_buffer_handle depth);
-    void bind_stencil_render_target (texture_buffer_handle stencil);
-    
-    void clear_render_targets_bindings();
-    
-#ifdef PIKANGO_OPENGL_4_3
-    void OPENGL_ONLY_bind_default_render_target();
-#endif
 }
 
 //Drawing Related Commands
@@ -468,9 +483,9 @@ namespace pikango::cmd
     void set_viewport(const rectangle& rect);
     void set_scissors(const rectangle& rect);
 
-    void clear_color_render_targets(float r, float g, float b, float a);
-    void clear_depth_render_target();
-    void clear_stencil_render_target();
+    void clear_render_space_color(float r, float g, float b, float a);
+    void clear_render_space_depth(float d);
+    void clear_render_space_stencil(int s);
 }
 
 //Drawing

@@ -13,8 +13,8 @@ namespace {
     pikango::buffer_handle                  binded_index_buffer;
     bool ibo_bindings_changed = false;
 
-    bool using_default_fbo = true;
-    bool proper_fbo_binded = true;
+    pikango::frame_buffer_handle            binded_frame_buffer;
+    bool fb_binding_changed = false;
 };
 
 void pikango::cmd::bind_graphics_pipeline(graphics_pipeline_handle pipeline)
@@ -64,94 +64,21 @@ void pikango::cmd::bind_index_buffer(buffer_handle index_buffer)
     record_task(func, {index_buffer});
 }
 
-void pikango::cmd::bind_color_render_target(texture_buffer_handle color, size_t slot)
+void pikango::cmd::bind_frame_buffer(frame_buffer_handle frame_buffer)
 {
     auto func = [](std::vector<std::any> args)
     {
-        auto attachment = std::any_cast<texture_buffer_handle>(args[0]);
-        auto slot       = std::any_cast<size_t>(args[1]); 
+        auto frame_buffer = std::any_cast<frame_buffer_handle>(args[0]);
 
-        auto tbi = pikango_internal::obtain_handle_object(attachment);
+        if (frame_buffer == binded_frame_buffer) return;
 
-        if (using_default_fbo && proper_fbo_binded)
-            glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+        binded_frame_buffer = frame_buffer;
+        fb_binding_changed = true;
 
-        using_default_fbo = false;
-        proper_fbo_binded = true;
-
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER,
-            GL_COLOR_ATTACHMENT0 + slot, 
-            GL_TEXTURE_2D, 
-            tbi->id, 
-            0
-        );
+        glBindFramebuffer(GL_FRAMEBUFFER, pikango_internal::obtain_handle_object(binded_frame_buffer)->id);
     };
-
-    record_task(func, {color, slot});
-}
-
-void pikango::cmd::bind_depth_render_target(texture_buffer_handle depth)
-{
-    auto func = [](std::vector<std::any> args)
-    {
-        auto attachment = std::any_cast<texture_buffer_handle>(args[0]);
-
-        auto tbi = pikango_internal::obtain_handle_object(attachment);
-
-        if (using_default_fbo && proper_fbo_binded)
-            glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-
-        using_default_fbo = false;
-        proper_fbo_binded = true;
-
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER,
-            GL_DEPTH_ATTACHMENT,
-            GL_TEXTURE_2D, 
-            tbi->id, 
-            0
-        );
-    };
-
-    record_task(func, {depth});
-}
-
-void pikango::cmd::bind_stencil_render_target(texture_buffer_handle stencil)
-{
-    auto func = [](std::vector<std::any> args)
-    {
-        auto attachment = std::any_cast<texture_buffer_handle>(args[0]);
-
-        auto tbi = pikango_internal::obtain_handle_object(attachment);
-
-        if (using_default_fbo && proper_fbo_binded)
-            glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-
-        using_default_fbo = false;
-        proper_fbo_binded = true;
-
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER,
-            GL_STENCIL_ATTACHMENT,
-            GL_TEXTURE_2D, 
-            tbi->id, 
-            0
-        );
-    };
-
-    record_task(func, {stencil});
-}
-
-void pikango::cmd::OPENGL_ONLY_bind_default_render_target()
-{
-    auto func = [](std::vector<std::any> args)
-    {
-        using_default_fbo = true;
-        proper_fbo_binded = false;
-    };
-
-    record_task(func, {});
+    
+    record_task(func, {frame_buffer});
 }
 
 void pikango::cmd::bind_texture(
@@ -225,11 +152,8 @@ static void apply_bindings()
     if (graphics_pipeline_changed)
         apply_graphics_pipeline_settings();
 
-    if (!proper_fbo_binded)
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, using_default_fbo ? 0 : FBO);
-        proper_fbo_binded = true;
-    }
+    if (fb_binding_changed)
+        glBindFramebuffer(GL_FRAMEBUFFER, pikango_internal::obtain_handle_object(binded_frame_buffer)->id);
 
     //Always bind the program pipeline because it could have been
     //overwritten by shaders functions

@@ -193,7 +193,6 @@ namespace pikango_internal
 
 namespace {
     GLuint VAO;
-    GLuint FBO;
 
     GLint textures_pool_size;
     GLint uniforms_pool_size;
@@ -302,9 +301,6 @@ std::string pikango::initialize_library_gpu()
         glGenVertexArrays(1, &VAO);
         glBindVertexArray(VAO);
 
-        //create FBO object
-        glGenFramebuffers(1, &FBO);
-
         //get textures pool size
         glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &textures_pool_size);
         textures_pool_size--;   //Reserve last active texture for writing
@@ -340,7 +336,6 @@ std::string pikango::terminate()
     auto func = [](std::vector<std::any>)
     {
         glDeleteVertexArrays(1, &VAO);
-        glDeleteFramebuffers(1, &FBO);
         delete_all_program_pipelines();
     };
 
@@ -368,6 +363,8 @@ const char* pikango::get_used_shading_language_name()
 
 #include "texture_sampler.hpp"
 #include "texture_buffer.hpp"
+
+#include "frame_buffer.hpp"
 
 #include "binding.hpp"
 #include "drawing_related.hpp"

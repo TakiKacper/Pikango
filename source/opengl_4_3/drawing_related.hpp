@@ -22,7 +22,7 @@ void pikango::cmd::set_scissors(const rectangle& rect)
     record_task(func, {rect});
 }
 
-void pikango::cmd::clear_color_render_targets(float r, float g, float b, float a)
+void pikango::cmd::clear_render_space_color(float r, float g, float b, float a)
 {
     auto func = [](std::vector<std::any> args)
     {
@@ -31,47 +31,35 @@ void pikango::cmd::clear_color_render_targets(float r, float g, float b, float a
         auto b = std::any_cast<float>(args[2]);
         auto a = std::any_cast<float>(args[3]);
 
-        if (!proper_fbo_binded)
-        {
-            glBindFramebuffer(GL_FRAMEBUFFER, using_default_fbo ? 0 : FBO);
-            proper_fbo_binded = true;
-        }
-
-        glClearColor(r, g, b, a);
+        glClearColor(r, g, b, a); 
         glClear(GL_COLOR_BUFFER_BIT);
     };
 
     record_task(func, {r, g, b, a});
 }
 
-void pikango::cmd::clear_depth_render_target()
+void pikango::cmd::clear_render_space_depth(float d)
 {
     auto func = [](std::vector<std::any> args)
     {
-        if (!proper_fbo_binded)
-        {
-            glBindFramebuffer(GL_FRAMEBUFFER, using_default_fbo ? 0 : FBO);
-            proper_fbo_binded = true;
-        }
+        auto d = std::any_cast<float>(args[0]);
 
+        glClearDepth(d);
         glClear(GL_DEPTH_BUFFER_BIT);
     };
 
-    record_task(func, {});
+    record_task(func, {d});
 }
 
-void pikango::cmd::clear_stencil_render_target()
+void pikango::cmd::clear_render_space_stencil(int s)
 {
     auto func = [](std::vector<std::any> args)
     {
-        if (!proper_fbo_binded)
-        {
-            glBindFramebuffer(GL_FRAMEBUFFER, using_default_fbo ? 0 : FBO);
-            proper_fbo_binded = true;
-        }
+        auto s = std::any_cast<int>(args[0]);
 
+        glClearStencil(s);
         glClear(GL_STENCIL_BUFFER_BIT);
     };
 
-    record_task(func, {});
+    record_task(func, {s});
 }
