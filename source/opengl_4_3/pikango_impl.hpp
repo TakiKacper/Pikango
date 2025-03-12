@@ -160,44 +160,14 @@ void pikango::wait_multiple_fences(std::vector<fence_handle> targets)
         wait_fence(target);
 }
 
-//Utility
-namespace pikango_internal
-{
-    struct size_t_pair 
-    {
-        size_t first;
-        size_t second;
-
-        bool operator==(const size_t_pair& other) const 
-        {
-            return first == other.first && second == other.second;
-        }
-
-        size_t_pair(size_t _f, size_t _s) : first(_f), second(_s) {};
-    };
-
-    struct size_t_pair_hash 
-    {
-        size_t operator()(const size_t_pair& p) const 
-        {
-            size_t h1 = std::hash<size_t>{}(p.first);
-            size_t h2 = std::hash<size_t>{}(p.second);
-            return h1 ^ (h2 << 1);
-        }
-    };
-} 
-
 /*
     Common Opengl Objects
 */
 
 namespace {
     GLuint VAO;
-
     GLint textures_pool_size;
-    GLint uniforms_pool_size;
     GLint textures_operation_unit;
-    GLint max_color_attachments;
 }
 
 /*
@@ -279,7 +249,6 @@ namespace {
     }
 }
 
-
 void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args)
 {
     enqueue_task(task, std::move(args), pikango::queue_type::general);
@@ -292,6 +261,8 @@ std::string pikango::initialize_library_cpu(const initialize_library_cpu_setting
     start_opengl_execution_thread();
     return "";
 }
+
+void initalize_binding_point_structs();
 
 std::string pikango::initialize_library_gpu()
 {
@@ -307,14 +278,8 @@ std::string pikango::initialize_library_gpu()
         textures_operation_unit = textures_pool_size;
         glActiveTexture(GL_TEXTURE0 + textures_operation_unit);
 
-        //get uniforms pool size
-        glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &uniforms_pool_size);
-
-        //get max color attachments
-        glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &max_color_attachments);
-
         //enable scissors
-        glEnable( GL_SCISSOR_TEST);
+        glEnable(GL_SCISSOR_TEST);
 
         //enable error callback
         if (error_callback)
