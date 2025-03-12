@@ -13,24 +13,6 @@ static bool operator!=(const pikango::rectangle& a, const pikango::rectangle& b)
     return !(a == b);
 }
 
-namespace pikango_internal
-{
-    pikango::error_notification_callback error_callback = nullptr;
-
-    void log_error(const char* text)
-    {
-        if (error_callback != nullptr)
-            error_callback(text);
-        else
-            abort();
-    }
-}
-
-void pikango::set_error_notification_callback(error_notification_callback callback)
-{
-    pikango_internal::error_callback = callback;
-}
-
 size_t pikango::size_of(data_type dt)
 {
     switch (dt)

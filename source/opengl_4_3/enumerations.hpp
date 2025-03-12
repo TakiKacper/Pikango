@@ -1,9 +1,5 @@
 #pragma once
 
-//delete
-#include "pikango/pikango.hpp"
-#include "glad/glad.h"
-
 GLenum get_buffer_usage_flag(pikango::buffer_memory_profile bmp, pikango::buffer_access_profile bap)
 {
     switch (bmp)
@@ -236,4 +232,16 @@ GLenum get_culling_mode(pikango::rasterization_culling_mode mode)
     }
     //will never happen
     return GL_NONE;
+}
+
+GLenum get_framebuffer_attachment_type(pikango::framebuffer_attachment_type type)
+{
+    switch (type)
+    {
+    case pikango::framebuffer_attachment_type::color:   return GL_COLOR_ATTACHMENT0;
+    case pikango::framebuffer_attachment_type::depth:   return GL_DEPTH_ATTACHMENT;
+    case pikango::framebuffer_attachment_type::stencil: return GL_STENCIL_ATTACHMENT;
+    }
+    //will never happen
+    return GL_COLOR_ATTACHMENT0;
 }

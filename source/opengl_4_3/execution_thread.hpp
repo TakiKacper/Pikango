@@ -1,10 +1,3 @@
-#include <mutex>
-#include <condition_variable>
-#include <thread>
-
-#include <queue>
-#include <any>
-
 //In opengl there is no such concept as queues
 //therefore we emulate this behavior by executing the general queue first 
 //and the other ones when the general queue is empty
@@ -25,8 +18,8 @@ size_t pikango::get_queues_max_amount(pikango::queue_type type)
 
 void pikango::enable_queues(pikango::queue_type type, size_t amount)
 {
-    if (amount != 1)                          pikango_internal::log_error("OpenGL implementation only supports one queue per type");
-    if (type == pikango::queue_type::general) pikango_internal::log_error("General queue is always enabled");
+    //if (amount != 1)                          pikango_internal::log_error("OpenGL implementation only supports one queue per type");
+    //if (type == pikango::queue_type::general) pikango_internal::log_error("General queue is always enabled");
 
     //Do nothing
     //Theres no queues to be created

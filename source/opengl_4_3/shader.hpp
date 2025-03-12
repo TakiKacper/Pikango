@@ -3,8 +3,6 @@ PIKANGO_IMPL(shader)
     GLuint id = 0;
     pikango::shader_type type = pikango::shader_type::vertex;
 
-    shader_uniforms_to_descriptors_maping bindings;
-
     ~shader_impl();
 };
 
@@ -52,7 +50,7 @@ void pikango::compile_shader(shader_handle target, pikango::shader_type type, co
         if (!success)
         {
             glGetShaderInfoLog(shader, 512, NULL, infoLog);
-            pikango_internal::log_error(infoLog);
+            log_error(infoLog);
         }
     
         //Create Separatable Program
@@ -70,34 +68,4 @@ void pikango::compile_shader(shader_handle target, pikango::shader_type type, co
     };
 
     enqueue_task(func, {target, type, source}, pikango::queue_type::general);
-}
-
-void pikango::OPENGL_ONLY_link_shader_bindings_info(shader_handle target, OPENGL_ONLY_shader_bindings& bindings)
-{
-    auto func = [](std::vector<std::any> args)
-    {
-        auto handle = std::any_cast<shader_handle>(args[0]);
-        auto bindings = std::any_cast<pikango::OPENGL_ONLY_shader_bindings>(args[1]);
-
-        auto si = pikango_internal::obtain_handle_object(handle);
-
-        for (auto& [name, d_id, b_id, type] : bindings)
-        {
-            GLint loc = 0;
-
-            switch (type)
-            {
-            case pikango::resources_descriptor_binding_type::sampled_texture:
-            case pikango::resources_descriptor_binding_type::written_texture:
-                loc = glGetUniformLocation(si->id, name.c_str());
-            case pikango::resources_descriptor_binding_type::uniform_buffer:
-                loc = glGetUniformBlockIndex(si->id, name.c_str());
-            case pikango::resources_descriptor_binding_type::storage_buffer:
-                loc = 0; //TODO WITH STORAGE BUFFERS
-            }
-            si->bindings.insert({{d_id, b_id}, {loc, type}});
-        }
-    };
-
-    enqueue_task(func, {target, bindings}, pikango::queue_type::general);
 }

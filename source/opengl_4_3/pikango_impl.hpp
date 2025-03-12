@@ -1,3 +1,12 @@
+#include <mutex>
+#include <condition_variable>
+#include <thread>
+
+#include <queue>
+#include <any>
+
+#include <sstream>
+
 #include "glad/glad.h"
 #include "enumerations.hpp"
 
@@ -151,71 +160,107 @@ void pikango::wait_multiple_fences(std::vector<fence_handle> targets)
         wait_fence(target);
 }
 
-//Utility
-namespace pikango_internal
-{
-    struct size_t_pair 
-    {
-        size_t first;
-        size_t second;
-
-        bool operator==(const size_t_pair& other) const 
-        {
-            return first == other.first && second == other.second;
-        }
-
-        size_t_pair(size_t _f, size_t _s) : first(_f), second(_s) {};
-    };
-
-    struct size_t_pair_hash 
-    {
-        size_t operator()(const size_t_pair& p) const 
-        {
-            size_t h1 = std::hash<size_t>{}(p.first);
-            size_t h2 = std::hash<size_t>{}(p.second);
-            return h1 ^ (h2 << 1);
-        }
-    };
-} 
-
 /*
     Common Opengl Objects
 */
 
 namespace {
     GLuint VAO;
-
-    pikango::frame_buffer_handle default_frame_buffer_handle;
-
     GLint textures_pool_size;
-    GLint uniforms_pool_size;
     GLint textures_operation_unit;
-    GLint max_color_attachments;
-    constexpr GLint max_resources_descriptors = 16; 
 }
 
 /*
     Library Implementation
 */
 
+namespace {
+    pikango::error_notification_callback error_callback;
+
+    void log_error(const char* text)
+    {
+        if (error_callback != nullptr)
+            error_callback(text);
+        else
+            abort();
+    }
+
+    void GLAPIENTRY gl_log_error
+    ( 
+        GLenum source,
+        GLenum type,
+        GLuint id,
+        GLenum severity,
+        GLsizei length,
+        const GLchar* message,
+        const void* userParam
+    )
+    {
+        if (severity < GL_DEBUG_SEVERITY_LOW) return;
+
+        std::stringstream ss;
+        
+        ss << "\n" << "OPENGL GENERATED ERROR: " << '\n';
+        ss << "message: "<< message << '\n';
+        ss << "type: ";
+
+        switch (type) 
+        {
+        case GL_DEBUG_TYPE_ERROR:
+            ss << "ERROR";
+            break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+            ss << "DEPRECATED_BEHAVIOR";
+            break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+            ss << "UNDEFINED_BEHAVIOR";
+            break;
+        case GL_DEBUG_TYPE_PORTABILITY:
+            ss << "PORTABILITY";
+            break;
+        case GL_DEBUG_TYPE_PERFORMANCE:
+            ss << "PERFORMANCE";
+            break;
+        case GL_DEBUG_TYPE_OTHER:
+            ss << "OTHER";
+            break;
+        }
+
+        ss << '\n';
+        ss << "id: " << id << '\n';
+        
+        ss << "severity: ";
+        switch (severity)
+        {
+        case GL_DEBUG_SEVERITY_LOW:
+            ss << "LOW";
+            break;
+        case GL_DEBUG_SEVERITY_MEDIUM:
+            ss << "MEDIUM";
+            break;
+        case GL_DEBUG_SEVERITY_HIGH:
+            ss << "HIGH";
+            break;
+        }
+        ss << '\n';
+
+        auto str = ss.str();
+        log_error(&str[0]);
+    }
+}
+
 void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args)
 {
     enqueue_task(task, std::move(args), pikango::queue_type::general);
 }
 
-pikango::frame_buffer_handle pikango::OPENGL_ONLY_get_default_frame_buffer()
+std::string pikango::initialize_library_cpu(const initialize_library_cpu_settings& settings)
 {
-    return default_frame_buffer_handle;
-}
+    error_callback = settings.error_callback;
 
-std::string pikango::initialize_library_cpu()
-{
     start_opengl_execution_thread();
     return "";
 }
-
-//fwd
-pikango::frame_buffer_handle create_default_framebuffer_handle();
 
 std::string pikango::initialize_library_gpu()
 {
@@ -225,23 +270,21 @@ std::string pikango::initialize_library_gpu()
         glGenVertexArrays(1, &VAO);
         glBindVertexArray(VAO);
 
-        //create default frame buffer
-        default_frame_buffer_handle = create_default_framebuffer_handle();
-
         //get textures pool size
         glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &textures_pool_size);
         textures_pool_size--;   //Reserve last active texture for writing
         textures_operation_unit = textures_pool_size;
         glActiveTexture(GL_TEXTURE0 + textures_operation_unit);
 
-        //get uniforms pool size
-        glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &uniforms_pool_size);
-
-        //get max color attachments
-        glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &max_color_attachments);
-
         //enable scissors
-        glEnable( GL_SCISSOR_TEST);
+        glEnable(GL_SCISSOR_TEST);
+
+        //enable error callback
+        if (error_callback)
+        {
+            glEnable(GL_DEBUG_OUTPUT);
+            glDebugMessageCallback(gl_log_error, 0);
+        }
     };
 
     enqueue_task(func, {}, pikango::queue_type::general);
@@ -256,7 +299,6 @@ std::string pikango::terminate()
     auto func = [](std::vector<std::any>)
     {
         glDeleteVertexArrays(1, &VAO);
-        default_frame_buffer_handle.~handle();
         delete_all_program_pipelines();
     };
 
@@ -271,9 +313,23 @@ const char* pikango::get_used_shading_language_name()
     return glsl;
 }
 
-size_t pikango::get_max_resources_descriptors_bindings()
+/*
+    Command Buffer Bindings
+*/
+
+namespace cmd_bindings
 {
-    return max_resources_descriptors;
+    bool                    vertex_buffers_changed = false;
+    std::array<GLint, 16>   vertex_buffers;
+
+    bool    index_buffer_changed = false;
+    GLint   index_buffer;
+
+    bool    frame_buffer_changed = false;
+    GLint   frame_buffer;
+
+    bool                                        graphics_pipeline_changed = false;
+    pikango_internal::graphics_pipeline_impl*   graphics_pipeline;
 }
 
 /*
@@ -282,11 +338,6 @@ size_t pikango::get_max_resources_descriptors_bindings()
 
 #include "graphics_pipeline.hpp"
 
-#include "resources_descriptors.hpp"
-
-using shader_uniforms_to_descriptors_maping = 
-    std::unordered_map<pikango_internal::size_t_pair, std::pair<GLint, pikango::resources_descriptor_binding_type>, pikango_internal::size_t_pair_hash>;
-
 #include "shader.hpp"
 #include "program.hpp"
 
@@ -294,6 +345,30 @@ using shader_uniforms_to_descriptors_maping =
 
 #include "texture_sampler.hpp"
 #include "texture_buffer.hpp"
+
+void pikango::cmd::bind_texture(
+    texture_sampler_handle sampler,
+    texture_buffer_handle buffer,
+    size_t slot        
+)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto texture_sampler = std::any_cast<texture_sampler_handle>(args[0]);
+        auto texture_buffer  = std::any_cast<texture_buffer_handle>(args[1]);
+        auto slot   = std::any_cast<size_t>(args[2]);
+
+        auto tsi = pikango_internal::obtain_handle_object(texture_sampler);
+        auto tbi = pikango_internal::obtain_handle_object(texture_buffer);
+
+        glBindSampler(slot, tsi->id);
+        
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(tbi->texture_type, tbi->id);
+    };
+
+    record_task(func, {sampler, buffer, slot});
+}
 
 #include "frame_buffer.hpp"
 

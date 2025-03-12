@@ -30,6 +30,62 @@ size_t pikango::get_buffer_size(buffer_handle target)
     return bi->buffer_size;
 }
 
+void pikango::cmd::bind_vertex_buffer(buffer_handle vertex_buffer, size_t binding)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto vertex_buffer = std::any_cast<buffer_handle>(args[0]);
+        auto binding       = std::any_cast<size_t>(args[1]);
+
+        cmd_bindings::vertex_buffers.at(binding) = 
+            pikango_internal::obtain_handle_object(vertex_buffer)->id;
+        cmd_bindings::vertex_buffers_changed = true;
+    };
+
+    record_task(func, {vertex_buffer, binding});
+}
+
+void pikango::cmd::bind_index_buffer(buffer_handle index_buffer)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto index_buffer = std::any_cast<buffer_handle>(args[0]);
+
+        cmd_bindings::index_buffer = pikango_internal::obtain_handle_object(index_buffer)->id;
+        cmd_bindings::index_buffer_changed = true;
+    };
+
+    record_task(func, {index_buffer});
+}
+
+void pikango::cmd::bind_uniform_buffer(
+    buffer_handle uniform_buffer,
+    size_t slot,
+    size_t size,
+    size_t offset
+)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto uniform_buffer = std::any_cast<buffer_handle>(args[0]);
+        auto slot   = std::any_cast<size_t>(args[1]);
+        auto offset = std::any_cast<size_t>(args[2]);
+        auto size   = std::any_cast<size_t>(args[3]);
+
+        auto ubi = pikango_internal::obtain_handle_object(uniform_buffer);
+
+        glBindBufferRange(
+            GL_UNIFORM_BUFFER, 
+            slot, 
+            ubi->id, 
+            offset, 
+            size
+        );
+    };
+
+    record_task(func, {uniform_buffer, slot, offset, size});
+}
+
 void pikango::cmd::assign_buffer_memory(
     buffer_handle target,
     size_t memory_block_size_bytes, 
