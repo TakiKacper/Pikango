@@ -81,3 +81,16 @@ pikango::frame_buffer_handle pikango::OPENGL_ONLY_get_default_frame_buffer()
 {
     return default_frame_buffer;
 }
+
+void pikango::cmd::bind_frame_buffer(frame_buffer_handle frame_buffer)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto frame_buffer = std::any_cast<frame_buffer_handle>(args[0]);
+
+        cmd_bindings::frame_buffer_changed = true;
+        cmd_bindings::frame_buffer = pikango_internal::obtain_handle_object(frame_buffer)->id;
+    };
+    
+    record_task(func, {frame_buffer});
+}

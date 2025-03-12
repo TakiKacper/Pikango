@@ -262,8 +262,6 @@ std::string pikango::initialize_library_cpu(const initialize_library_cpu_setting
     return "";
 }
 
-void initalize_binding_point_structs();
-
 std::string pikango::initialize_library_gpu()
 {
     auto func = [](std::vector<std::any>)
@@ -316,6 +314,25 @@ const char* pikango::get_used_shading_language_name()
 }
 
 /*
+    Command Buffer Bindings
+*/
+
+namespace cmd_bindings
+{
+    bool                    vertex_buffers_changed = false;
+    std::array<GLint, 16>   vertex_buffers;
+
+    bool    index_buffer_changed = false;
+    GLint   index_buffer;
+
+    bool    frame_buffer_changed = false;
+    GLint   frame_buffer;
+
+    bool                                        graphics_pipeline_changed = false;
+    pikango_internal::graphics_pipeline_impl*   graphics_pipeline;
+}
+
+/*
     Commands Implementations
 */
 
@@ -328,6 +345,30 @@ const char* pikango::get_used_shading_language_name()
 
 #include "texture_sampler.hpp"
 #include "texture_buffer.hpp"
+
+void pikango::cmd::bind_texture(
+    texture_sampler_handle sampler,
+    texture_buffer_handle buffer,
+    size_t slot        
+)
+{
+    auto func = [](std::vector<std::any> args)
+    {
+        auto texture_sampler = std::any_cast<texture_sampler_handle>(args[0]);
+        auto texture_buffer  = std::any_cast<texture_buffer_handle>(args[1]);
+        auto slot   = std::any_cast<size_t>(args[2]);
+
+        auto tsi = pikango_internal::obtain_handle_object(texture_sampler);
+        auto tbi = pikango_internal::obtain_handle_object(texture_buffer);
+
+        glBindSampler(slot, tsi->id);
+        
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(tbi->texture_type, tbi->id);
+    };
+
+    record_task(func, {sampler, buffer, slot});
+}
 
 #include "frame_buffer.hpp"
 

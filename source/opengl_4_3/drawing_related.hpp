@@ -31,6 +31,9 @@ void pikango::cmd::clear_render_space_color(float r, float g, float b, float a)
         auto b = std::any_cast<float>(args[2]);
         auto a = std::any_cast<float>(args[3]);
 
+        if (cmd_bindings::frame_buffer_changed)      
+            glBindFramebuffer(GL_FRAMEBUFFER, cmd_bindings::frame_buffer);
+
         glClearColor(r, g, b, a); 
         glClear(GL_COLOR_BUFFER_BIT);
     };
@@ -44,6 +47,9 @@ void pikango::cmd::clear_render_space_depth(float d)
     {
         auto d = std::any_cast<float>(args[0]);
 
+        if (cmd_bindings::frame_buffer_changed)      
+            glBindFramebuffer(GL_FRAMEBUFFER, cmd_bindings::frame_buffer);
+
         glClearDepth(d);
         glClear(GL_DEPTH_BUFFER_BIT);
     };
@@ -56,6 +62,9 @@ void pikango::cmd::clear_render_space_stencil(int s)
     auto func = [](std::vector<std::any> args)
     {
         auto s = std::any_cast<int>(args[0]);
+
+        if (cmd_bindings::frame_buffer_changed)      
+            glBindFramebuffer(GL_FRAMEBUFFER, cmd_bindings::frame_buffer);
 
         glClearStencil(s);
         glClear(GL_STENCIL_BUFFER_BIT);
