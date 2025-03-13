@@ -122,6 +122,13 @@ GLenum get_texture_sized_format(pikango::texture_sized_format format)
         case pikango::texture_sized_format::rgba12:   return GL_RGBA12;
         case pikango::texture_sized_format::rgba16:   return GL_RGBA16;
         case pikango::texture_sized_format::rgba32f:  return GL_RGBA32F;
+
+        case pikango::texture_sized_format::depth_16: return GL_DEPTH_COMPONENT16;
+        case pikango::texture_sized_format::depth_24: return GL_DEPTH_COMPONENT24;
+        case pikango::texture_sized_format::depth_32: return GL_DEPTH_COMPONENT32F;
+
+        case pikango::texture_sized_format::depth_24_stencil_8: return GL_DEPTH24_STENCIL8;
+        case pikango::texture_sized_format::depth_32_stencil_8: return GL_DEPTH32F_STENCIL8;
     }
     //will never happen
     return GL_RGBA32F;

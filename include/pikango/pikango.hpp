@@ -149,7 +149,10 @@ namespace pikango
 		r8, r16,
 		rg8, rg16,
 		r3_g3_b2, rgb4, rgb5, rgb8, rgb10, rgb12, 
-		rgba2, rgba4, rgba8, rgba12, rgba16, rgba32f
+		rgba2, rgba4, rgba8, rgba12, rgba16, rgba32f,
+
+        depth_16, depth_24, depth_32,
+        depth_24_stencil_8, depth_32_stencil_8
 	};
 
     enum class rasterization_culling_mode : unsigned char
