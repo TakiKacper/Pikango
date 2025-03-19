@@ -94,7 +94,7 @@ static void opengl_execution_thread_logic()
         execution_thread_sleep_mutex.unlock();
 
         //Execute the task
-        task.first(std::move(task.second));
+        task.first(task.second);
 
         //Notify about the tasks completion
         if (all_queues_empty())

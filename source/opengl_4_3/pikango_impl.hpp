@@ -12,7 +12,7 @@
 
 namespace
 {
-    using opengl_task = void(*)(std::vector<std::any>);
+    using opengl_task = void(*)(std::vector<std::any>&);
     using recorded_task = std::pair<opengl_task, std::vector<std::any>>;
     using enqueued_task = recorded_task;
     thread_local pikango::command_buffer_handle recorded_command_buffer;
@@ -24,13 +24,13 @@ namespace
 
 namespace
 {
-    void record_task(const opengl_task& task, std::vector<std::any> args)
+    void record_task(const opengl_task& task, std::vector<std::any>&& args)
     {
         auto cbi = pikango_internal::obtain_handle_object(recorded_command_buffer);
         cbi->tasks.push_back({task, std::move(args)});
     }
 
-    void enqueue_task(const opengl_task& task, std::vector<std::any> args, pikango::queue_type target_queue_type)
+    void enqueue_task(const opengl_task& task, std::vector<std::any>&& args, pikango::queue_type target_queue_type)
     {
         auto push_task = [&](std::queue<enqueued_task>& queue, std::mutex& mutex, std::condition_variable& condition)
         {
@@ -57,13 +57,13 @@ namespace
         execution_thread_sleep_condition.notify_one();
     }
 
-    void enqueue_task_and_wait(const opengl_task& task, std::vector<std::any> args, pikango::queue_type target_queue_type)
+    void enqueue_task_and_wait(const opengl_task& task, std::vector<std::any>&& args, pikango::queue_type target_queue_type)
     {
         std::mutex              mutex;
         std::condition_variable condition;
         bool flag = false;
 
-        auto wrapper = [](std::vector<std::any> args)
+        auto wrapper = [](std::vector<std::any>& args)
         {
             auto task = std::any_cast<opengl_task>(args[args.size() - 3]);
             auto cond = std::any_cast<std::condition_variable*>(args[args.size() - 2]);
@@ -79,7 +79,7 @@ namespace
         args.push_back(&condition);
         args.push_back(&flag);
 
-        enqueue_task(wrapper, args, target_queue_type);
+        enqueue_task(wrapper, std::move(args), target_queue_type);
 
         std::unique_lock lock(mutex);
         condition.wait(lock, [&] { 
@@ -144,7 +144,7 @@ void pikango::submit_command_buffer_with_fence(pikango::command_buffer_handle cb
         break;
     };
 
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto fence = std::any_cast<fence_handle>(args[0]);
         auto fi = pikango_internal::obtain_handle_object(fence);
@@ -272,7 +272,7 @@ namespace {
     }
 }
 
-void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args)
+void pikango::OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any>&& args)
 {
     enqueue_task(task, std::move(args), pikango::queue_type::general);
 }
@@ -287,7 +287,7 @@ std::string pikango::initialize_library_cpu(const initialize_library_cpu_setting
 
 std::string pikango::initialize_library_gpu()
 {
-    auto func = [](std::vector<std::any>)
+    auto func = [](std::vector<std::any>&)
     {
         //create VAO object
         glGenVertexArrays(1, &VAO);
@@ -319,7 +319,7 @@ void delete_all_program_pipelines();
 
 std::string pikango::terminate()
 {
-    auto func = [](std::vector<std::any>)
+    auto func = [](std::vector<std::any>&)
     {
         glDeleteVertexArrays(1, &VAO);
         delete_all_program_pipelines();
@@ -375,7 +375,7 @@ void pikango::cmd::bind_texture(
     size_t slot        
 )
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto texture_sampler = std::any_cast<texture_sampler_handle>(args[0]);
         auto texture_buffer  = std::any_cast<texture_buffer_handle>(args[1]);

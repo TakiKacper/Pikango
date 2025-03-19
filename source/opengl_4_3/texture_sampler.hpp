@@ -8,7 +8,7 @@ pikango::texture_sampler_handle pikango::new_texture_sampler(const texture_sampl
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::texture_sampler_impl);
 
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto handle = std::any_cast<pikango::texture_sampler_handle>(args[0]);
         auto info   = std::any_cast<texture_sampler_create_info>(args[1]);
@@ -31,7 +31,7 @@ pikango::texture_sampler_handle pikango::new_texture_sampler(const texture_sampl
 
 pikango_internal::texture_sampler_impl::~texture_sampler_impl()
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto id = std::any_cast<GLuint>(args[0]);
         glDeleteSamplers(1, &id);

@@ -13,7 +13,7 @@ pikango::shader_handle pikango::new_shader(const shader_create_info& info)
 
     auto handle = pikango_internal::make_handle(si);
 
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto handle = std::any_cast<shader_handle>(args[0]);
         auto source = std::any_cast<const char*>(args[1]);
@@ -60,7 +60,7 @@ pikango_internal::shader_impl::~shader_impl()
 {
     delete_dangling_program_pipelines(this, type);
 
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto id = std::any_cast<GLuint>(args[0]);
         glDeleteShader(id);

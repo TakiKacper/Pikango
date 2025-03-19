@@ -14,7 +14,7 @@ void pikango::cmd::draw_vertices(
     size_t          instances_id_values_offset
 )
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto primitive = std::any_cast<draw_primitive>(args[0]);
 
@@ -55,7 +55,7 @@ void pikango::cmd::draw_indexed(
     size_t          instances_id_values_offset
 )
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto primitive = std::any_cast<draw_primitive>(args[0]);
 

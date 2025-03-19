@@ -31,7 +31,7 @@ pikango::texture_buffer_handle pikango::new_texture_buffer(const texture_buffer_
 
     auto handle = pikango_internal::make_handle(tbi);
 
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto handle  = std::any_cast<texture_buffer_handle>(args[0]);
         auto tbi = pikango_internal::obtain_handle_object(handle);
@@ -67,7 +67,7 @@ pikango::texture_buffer_handle pikango::new_texture_buffer(const texture_buffer_
 
 pikango_internal::texture_buffer_impl::~texture_buffer_impl()
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto id = std::any_cast<GLuint>(args[0]);
         glDeleteTextures(1, &id);
@@ -89,7 +89,7 @@ void pikango::cmd::write_texture_buffer(
     size_t                  dim3
 )
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto handle = std::any_cast<texture_buffer_handle>(args[0]);
 

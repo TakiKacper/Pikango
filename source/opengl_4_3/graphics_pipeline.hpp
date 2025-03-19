@@ -14,7 +14,7 @@ pikango::graphics_pipeline_handle pikango::new_graphics_pipeline(const graphics_
 
 void pikango::cmd::bind_graphics_pipeline(graphics_pipeline_handle pipeline)
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto pipeline = std::any_cast<graphics_pipeline_handle>(args[0]);
 

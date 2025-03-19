@@ -2,7 +2,7 @@
 
 void pikango::cmd::set_viewport(const rectangle& rect)
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto rect = std::any_cast<rectangle>(args[0]);
         glViewport(rect.ax, rect.ay, rect.bx - rect.ax, rect.by - rect.ay);
@@ -13,7 +13,7 @@ void pikango::cmd::set_viewport(const rectangle& rect)
 
 void pikango::cmd::set_scissors(const rectangle& rect)
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto rect = std::any_cast<rectangle>(args[0]);
         glScissor(rect.ax, rect.ay, rect.bx - rect.ax, rect.by - rect.ay);
@@ -24,7 +24,7 @@ void pikango::cmd::set_scissors(const rectangle& rect)
 
 void pikango::cmd::clear_render_space_color(float r, float g, float b, float a)
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto r = std::any_cast<float>(args[0]);
         auto g = std::any_cast<float>(args[1]);
@@ -43,7 +43,7 @@ void pikango::cmd::clear_render_space_color(float r, float g, float b, float a)
 
 void pikango::cmd::clear_render_space_depth(float d)
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto d = std::any_cast<float>(args[0]);
 
@@ -59,7 +59,7 @@ void pikango::cmd::clear_render_space_depth(float d)
 
 void pikango::cmd::clear_render_space_stencil(int s)
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto s = std::any_cast<int>(args[0]);
 

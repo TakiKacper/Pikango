@@ -348,8 +348,8 @@ namespace pikango
 #ifdef PIKANGO_OPENGL_4_3
 namespace pikango
 {
-    using opengl_thread_task = void(*)(std::vector<std::any>);
-    void OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args);
+    using opengl_thread_task = void(*)(std::vector<std::any>&);
+    void OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any>&& args);
 }
 #endif
 

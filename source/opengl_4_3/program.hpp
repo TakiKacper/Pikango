@@ -134,7 +134,7 @@ void delete_dangling_program_pipelines(void* impl_ptr, pikango::shader_type type
 
     program_pipelines_registry_mutex.unlock();
 
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto ids = std::any_cast<std::vector<GLuint>>(args[0]);
         glDeleteProgramPipelines(ids.size(), &ids[0]);
