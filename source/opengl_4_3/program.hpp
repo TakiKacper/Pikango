@@ -3,16 +3,16 @@
 //Utilities enabling use of graphics shaders configuration as key for
 //program pipeline registry
 namespace{
-    struct graphics_shaders_pipeline_config_impl_ptr_identifier
+    struct graphics_shaders_pipeline_info_impl_ptr_identifier
     {
         void* vertex_shader_impl_ptr;
         void* pixel_shader_impl_ptr;
         void* geometry_shader_impl_ptr;
     };
 
-    struct graphics_shaders_pipeline_config_impl_ptr_identifier_hash
+    struct graphics_shaders_pipeline_info_impl_ptr_identifier_hash
     {
-        std::size_t operator()(const graphics_shaders_pipeline_config_impl_ptr_identifier& config) const
+        std::size_t operator()(const graphics_shaders_pipeline_info_impl_ptr_identifier& config) const
         {
             std::size_t seed = 0;
             seed = seed ^ (size_t)config.vertex_shader_impl_ptr;
@@ -25,8 +25,8 @@ namespace{
     struct graphics_shaders_pipeline_impl_ptr_identifier_equal
     {
         bool operator()(
-            const graphics_shaders_pipeline_config_impl_ptr_identifier& a, 
-            const graphics_shaders_pipeline_config_impl_ptr_identifier& b
+            const graphics_shaders_pipeline_info_impl_ptr_identifier& a, 
+            const graphics_shaders_pipeline_info_impl_ptr_identifier& b
         ) const
         {
             return  a.vertex_shader_impl_ptr == b.vertex_shader_impl_ptr && 
@@ -40,15 +40,15 @@ namespace{
 //by both exection thread when applying bindings and other threads in shaders deconstructors
 std::mutex program_pipelines_registry_mutex;
 std::unordered_map<
-    graphics_shaders_pipeline_config_impl_ptr_identifier, 
+    graphics_shaders_pipeline_info_impl_ptr_identifier, 
     GLuint,
-    graphics_shaders_pipeline_config_impl_ptr_identifier_hash,
+    graphics_shaders_pipeline_info_impl_ptr_identifier_hash,
     graphics_shaders_pipeline_impl_ptr_identifier_equal> 
 program_pipelines_registry;
 
-GLuint get_program_pipeline(pikango::graphics_shaders_pipeline_config& config)
+GLuint get_program_pipeline(pikango::graphics_shaders_pipeline_info& config)
 {
-    graphics_shaders_pipeline_config_impl_ptr_identifier idtf;
+    graphics_shaders_pipeline_info_impl_ptr_identifier idtf;
 
     idtf.vertex_shader_impl_ptr     = pikango_internal::obtain_handle_object(config.vertex_shader);
     idtf.pixel_shader_impl_ptr      = pikango_internal::obtain_handle_object(config.pixel_shader);
@@ -97,13 +97,13 @@ void delete_dangling_program_pipelines(void* impl_ptr, pikango::shader_type type
     switch (type)
     {
         case pikango::shader_type::vertex:
-            identifier_offset = offsetof(graphics_shaders_pipeline_config_impl_ptr_identifier, vertex_shader_impl_ptr);
+            identifier_offset = offsetof(graphics_shaders_pipeline_info_impl_ptr_identifier, vertex_shader_impl_ptr);
             break;
         case pikango::shader_type::pixel:
-            identifier_offset = offsetof(graphics_shaders_pipeline_config_impl_ptr_identifier, pixel_shader_impl_ptr);
+            identifier_offset = offsetof(graphics_shaders_pipeline_info_impl_ptr_identifier, pixel_shader_impl_ptr);
             break;
         case pikango::shader_type::geometry:
-            identifier_offset = offsetof(graphics_shaders_pipeline_config_impl_ptr_identifier, geometry_shader_impl_ptr);
+            identifier_offset = offsetof(graphics_shaders_pipeline_info_impl_ptr_identifier, geometry_shader_impl_ptr);
             break;
     }
 

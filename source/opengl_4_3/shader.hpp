@@ -1,47 +1,28 @@
 PIKANGO_IMPL(shader)
 {
     GLuint id = 0;
-    pikango::shader_type type = pikango::shader_type::vertex;
+    pikango::shader_type type;
 
     ~shader_impl();
 };
 
 PIKANGO_NEW(shader)
 {
-    auto handle = pikango_internal::make_handle(new pikango_internal::shader_impl);
-    return handle;
-};
+    auto si = new pikango_internal::shader_impl;
+    si->type = info.type;
 
-void delete_dangling_program_pipelines(void* impl_ptr, pikango::shader_type type);
+    auto handle = pikango_internal::make_handle(si);
 
-pikango_internal::shader_impl::~shader_impl()
-{
-    delete_dangling_program_pipelines(this, type);
-
-    auto func = [](std::vector<std::any> args)
-    {
-        auto id = std::any_cast<GLuint>(args[0]);
-        glDeleteShader(id);
-    };
-
-    if (this->id != 0)
-        enqueue_task(func, {id}, pikango::queue_type::general);
-}
-
-void pikango::compile_shader(shader_handle target, pikango::shader_type type, const std::string& source)
-{
     auto func = [](std::vector<std::any> args)
     {
         auto handle = std::any_cast<shader_handle>(args[0]);
-        auto type   = std::any_cast<pikango::shader_type>(args[1]);
-        auto source = std::any_cast<std::string>(args[2]);
+        auto source = std::any_cast<const char*>(args[1]);
     
         auto si = pikango_internal::obtain_handle_object(handle);
-        auto source_ptr = source.c_str();
     
-        //Create Shader
-        GLuint shader = glCreateShader(get_format_shader(type));
-        glShaderSource(shader, 1, &source_ptr, NULL);
+        //Create And Compile Shader
+        GLuint shader = glCreateShader(get_format_shader(si->type));
+        glShaderSource(shader, 1, &source, NULL);
         glCompileShader(shader);
     
         int success;
@@ -64,8 +45,24 @@ void pikango::compile_shader(shader_handle target, pikango::shader_type type, co
         glDeleteShader(shader);
     
         si->id = program;
-        si->type = type;
     };
 
-    enqueue_task(func, {target, type, source}, pikango::queue_type::general);
+    enqueue_task(func, {handle, info.source}, pikango::queue_type::general);
+    return handle;
+};
+
+void delete_dangling_program_pipelines(void* impl_ptr, pikango::shader_type type);
+
+pikango_internal::shader_impl::~shader_impl()
+{
+    delete_dangling_program_pipelines(this, type);
+
+    auto func = [](std::vector<std::any> args)
+    {
+        auto id = std::any_cast<GLuint>(args[0]);
+        glDeleteShader(id);
+    };
+
+    if (this->id != 0)
+        enqueue_task(func, {id}, pikango::queue_type::general);
 }

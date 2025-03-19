@@ -1,19 +1,16 @@
 PIKANGO_IMPL(graphics_pipeline)
 {
-    pikango::graphics_pipeline_config config;
+    pikango::graphics_pipeline_create_info info;
 };
 
 PIKANGO_NEW(graphics_pipeline)
 {
-    auto handle = pikango_internal::make_handle(new pikango_internal::graphics_pipeline_impl);
+    auto impl   = new pikango_internal::graphics_pipeline_impl;
+    impl->info  = info;
+
+    auto handle = pikango_internal::make_handle(impl);
     return handle;
 };
-
-void pikango::configure_graphics_pipeline(graphics_pipeline_handle target, graphics_pipeline_config& configuration)
-{
-    auto gpi = pikango_internal::obtain_handle_object(target);
-    gpi->config = configuration;
-}
 
 void pikango::cmd::bind_graphics_pipeline(graphics_pipeline_handle pipeline)
 {

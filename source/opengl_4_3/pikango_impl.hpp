@@ -22,7 +22,7 @@ namespace
     struct pikango_internal::name##_impl
 
 #define PIKANGO_NEW(name)   \
-    pikango::name##_handle pikango::new_##name ()
+    pikango::name##_handle pikango::new_##name ( const pikango::name##_create_info& info )
 
 #include "execution_thread.hpp"
 #include "command_buffer.hpp"
@@ -364,7 +364,7 @@ void pikango::cmd::bind_texture(
         glBindSampler(slot, tsi->id);
         
         glActiveTexture(GL_TEXTURE0 + slot);
-        glBindTexture(tbi->texture_type, tbi->id);
+        glBindTexture(tbi->type, tbi->id);
     };
 
     record_task(func, {sampler, buffer, slot});

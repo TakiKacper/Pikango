@@ -53,7 +53,7 @@ void pikango::attach_to_frame_buffer(
         glFramebufferTexture2D(
             GL_FRAMEBUFFER, 
             attachment_type, 
-            ai->texture_type, 
+            ai->type, 
             ai->id, 
             0
         );

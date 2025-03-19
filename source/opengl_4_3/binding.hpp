@@ -1,8 +1,8 @@
 #pragma once
 
 namespace {
-    pikango::rasterization_pipeline_config  recent_rasterization_config;
-    pikango::depth_stencil_pipeline_config  recent_depth_stencil_config;
+    pikango::rasterization_pipeline_info  recent_rasterization_info;
+    pikango::depth_stencil_pipeline_info  recent_depth_stencil_info;
 };
 
 void apply_vertex_layout()
@@ -10,7 +10,7 @@ void apply_vertex_layout()
     for (int i = 0; i < 16; i++)
         glDisableVertexAttribArray(i);
 
-    auto& vlc = cmd_bindings::graphics_pipeline->config.vertex_layout_config;
+    auto& vlc = cmd_bindings::graphics_pipeline->info.vertex_layout_info;
 
     for (auto& attrib : vlc.attributes)
     {
@@ -42,7 +42,7 @@ void apply_vertex_layout()
 void apply_graphics_pipeline_shaders()
 {
     //Apply shaders
-    GLuint program_pipeline = get_program_pipeline(cmd_bindings::graphics_pipeline->config.shaders_config);
+    GLuint program_pipeline = get_program_pipeline(cmd_bindings::graphics_pipeline->info.shaders_info);
     glUseProgram(0);
     glBindProgramPipeline(program_pipeline);
 }
@@ -52,8 +52,8 @@ void apply_graphics_pipeline_settings()
     auto gpi = cmd_bindings::graphics_pipeline;
 
     //Apply rasterization settings  
-    auto& rast = gpi->config.rasterization_config;
-    auto& r_rast = recent_rasterization_config;
+    auto& rast = gpi->info.rasterization_info;
+    auto& r_rast = recent_rasterization_info;
 
     if (rast.enable_culling != r_rast.enable_culling)
     {
@@ -76,8 +76,8 @@ void apply_graphics_pipeline_settings()
     r_rast = rast;
 
     //Apply depth stencil settings
-    auto& ds = gpi->config.depth_stencil_config;
-    auto& r_ds = recent_depth_stencil_config;
+    auto& ds = gpi->info.depth_stencil_info;
+    auto& r_ds = recent_depth_stencil_info;
 
     if (ds.enable_depth_test != r_ds.enable_depth_test)
     {

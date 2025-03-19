@@ -138,12 +138,26 @@ GLenum get_format_shader(pikango::shader_type type)
 {
     switch (type)
     {
-        case pikango::shader_type::vertex: return GL_VERTEX_SHADER;
-        case pikango::shader_type::pixel: return GL_FRAGMENT_SHADER;
+        case pikango::shader_type::vertex:   return GL_VERTEX_SHADER;
+        case pikango::shader_type::pixel:    return GL_FRAGMENT_SHADER;
         case pikango::shader_type::geometry: return GL_GEOMETRY_SHADER;
     }
     //will never happen
     return GL_VERTEX_SHADER;
+}
+
+GLenum get_texture_type(pikango::texture_type type) {
+    switch (type)
+    {
+        case pikango::texture_type::texture_1d:          return GL_TEXTURE_1D;
+        case pikango::texture_type::texture_2d:          return GL_TEXTURE_2D;
+        case pikango::texture_type::texture_3d:          return GL_TEXTURE_3D;
+        case pikango::texture_type::texture_cubemap:     return GL_TEXTURE_CUBE_MAP;
+        case pikango::texture_type::texture_1d_array:    return GL_TEXTURE_1D_ARRAY;
+        case pikango::texture_type::texture_2d_array:    return GL_TEXTURE_2D_ARRAY;
+    }
+    //will never happen
+    return GL_TEXTURE_2D;
 }
 
 GLenum get_texture_source_format(pikango::texture_source_format format) {
