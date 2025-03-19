@@ -1,4 +1,4 @@
-PIKANGO_IMPL(shader)
+struct pikango_internal::shader_impl
 {
     GLuint id = 0;
     pikango::shader_type type;
@@ -6,7 +6,7 @@ PIKANGO_IMPL(shader)
     ~shader_impl();
 };
 
-PIKANGO_NEW(shader)
+pikango::shader_handle pikango::new_shader(const shader_create_info& info)
 {
     auto si = new pikango_internal::shader_impl;
     si->type = info.type;

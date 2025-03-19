@@ -1,10 +1,10 @@
-PIKANGO_IMPL(texture_sampler)
+struct pikango_internal::texture_sampler_impl
 {
     GLuint id = 0;
     ~texture_sampler_impl();
 };
 
-PIKANGO_NEW(texture_sampler)
+pikango::texture_sampler_handle pikango::new_texture_sampler(const texture_sampler_create_info& info)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::texture_sampler_impl);
 

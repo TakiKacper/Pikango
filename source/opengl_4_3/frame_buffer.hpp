@@ -1,12 +1,10 @@
-#pragma once
-
-PIKANGO_IMPL(frame_buffer)
+struct pikango_internal::frame_buffer_impl
 {
     GLuint id = 0;
     ~frame_buffer_impl();
 };
 
-PIKANGO_NEW(frame_buffer)
+pikango::frame_buffer_handle pikango::new_frame_buffer(const frame_buffer_create_info& info)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::frame_buffer_impl);
 

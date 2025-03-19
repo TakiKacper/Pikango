@@ -1,4 +1,4 @@
-PIKANGO_IMPL(texture_buffer)
+struct pikango_internal::texture_buffer_impl
 {
     GLuint id;
 
@@ -14,7 +14,7 @@ PIKANGO_IMPL(texture_buffer)
     ~texture_buffer_impl();
 };
 
-PIKANGO_NEW(texture_buffer)
+pikango::texture_buffer_handle pikango::new_texture_buffer(const texture_buffer_create_info& info)
 {
     auto tbi = new pikango_internal::texture_buffer_impl;
 

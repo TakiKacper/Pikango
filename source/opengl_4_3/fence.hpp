@@ -1,4 +1,4 @@
-PIKANGO_IMPL(fence)
+struct pikango_internal::fence_impl
 {
     bool subbmitted = false;
     bool is_signaled = false;
@@ -6,7 +6,7 @@ PIKANGO_IMPL(fence)
     std::condition_variable condition;
 };
 
-PIKANGO_NEW(fence)
+pikango::fence_handle pikango::new_fence(const fence_create_info& info)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::fence_impl);
     return handle;

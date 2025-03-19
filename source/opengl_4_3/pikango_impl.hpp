@@ -18,12 +18,6 @@ namespace
     thread_local pikango::command_buffer_handle recording_command_buffer;
 }
 
-#define PIKANGO_IMPL(name)  \
-    struct pikango_internal::name##_impl
-
-#define PIKANGO_NEW(name)   \
-    pikango::name##_handle pikango::new_##name ( const pikango::name##_create_info& info )
-
 #include "execution_thread.hpp"
 #include "command_buffer.hpp"
 #include "fence.hpp"

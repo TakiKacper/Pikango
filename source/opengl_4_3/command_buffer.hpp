@@ -1,10 +1,10 @@
-PIKANGO_IMPL(command_buffer)
+struct pikango_internal::command_buffer_impl
 {
     pikango::queue_type target_queue_type;
     std::vector<recorded_task> tasks;
 };
 
-PIKANGO_NEW(command_buffer)
+pikango::command_buffer_handle pikango::new_command_buffer(const command_buffer_create_info& info)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::command_buffer_impl);
     return handle;

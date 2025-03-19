@@ -1,4 +1,4 @@
-PIKANGO_IMPL(buffer)
+struct pikango_internal::buffer_impl
 {
     GLuint id;
     size_t buffer_size;
@@ -7,7 +7,7 @@ PIKANGO_IMPL(buffer)
     ~buffer_impl();
 };
 
-PIKANGO_NEW(buffer)
+pikango::buffer_handle pikango::new_buffer(const buffer_create_info& info)
 {
     auto bi = new pikango_internal::buffer_impl;
 

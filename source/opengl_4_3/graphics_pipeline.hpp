@@ -1,9 +1,9 @@
-PIKANGO_IMPL(graphics_pipeline)
+struct pikango_internal::graphics_pipeline_impl
 {
     pikango::graphics_pipeline_create_info info;
 };
 
-PIKANGO_NEW(graphics_pipeline)
+pikango::graphics_pipeline_handle pikango::new_graphics_pipeline(const graphics_pipeline_create_info& info)
 {
     auto impl   = new pikango_internal::graphics_pipeline_impl;
     impl->info  = info;
