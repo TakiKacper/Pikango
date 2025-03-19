@@ -56,6 +56,36 @@ namespace
 
         execution_thread_sleep_condition.notify_one();
     }
+
+    void enqueue_task_and_wait(const opengl_task& task, std::vector<std::any> args, pikango::queue_type target_queue_type)
+    {
+        std::mutex              mutex;
+        std::condition_variable condition;
+        bool flag = false;
+
+        auto wrapper = [](std::vector<std::any> args)
+        {
+            auto task = std::any_cast<opengl_task>(args[args.size() - 3]);
+            auto cond = std::any_cast<std::condition_variable*>(args[args.size() - 2]);
+            auto flag = std::any_cast<bool*>(args[args.size() - 1]);
+
+            task(args);
+
+            *flag = true;
+            cond->notify_one();
+        };
+
+        args.push_back(task);
+        args.push_back(&condition);
+        args.push_back(&flag);
+
+        enqueue_task(wrapper, args, target_queue_type);
+
+        std::unique_lock lock(mutex);
+        condition.wait(lock, [&] { 
+            return flag; 
+        });
+    }
 }
 
 void pikango::submit_command_buffer(pikango::command_buffer_handle cb, pikango::queue_type target_queue_type, size_t target_queue_index)
@@ -150,8 +180,7 @@ void pikango::wait_fence(fence_handle target)
 
 void pikango::wait_multiple_fences(std::vector<fence_handle> targets)
 {
-    for (auto& target : targets)
-        wait_fence(target);
+    for (auto& target : targets) wait_fence(target);
 }
 
 /*

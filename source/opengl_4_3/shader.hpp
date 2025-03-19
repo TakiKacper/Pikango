@@ -47,7 +47,10 @@ pikango::shader_handle pikango::new_shader(const shader_create_info& info)
         si->id = program;
     };
 
-    enqueue_task(func, {handle, info.source}, pikango::queue_type::general);
+    //waiting for execution so the source can be freed
+    //waiting is bad, but there is no other way - other api's would just compile shader
+    //while opengl require us to execute such task on our execution thread
+    enqueue_task_and_wait(func, {handle, info.source}, pikango::queue_type::general);
     return handle;
 };
 
