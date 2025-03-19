@@ -296,7 +296,13 @@ namespace pikango
 
     struct texture_sampler_create_info
     {
+        texture_wraping     wraping_x; 
+        texture_wraping     wraping_y;
+        texture_wraping     wraping_z;
 
+        texture_filtering   magnifying_filter; 
+        texture_filtering   minifying_filter;
+        texture_filtering   mipmap_filter;
     };
 
     struct texture_buffer_create_info
@@ -418,24 +424,6 @@ namespace pikango::cmd
         size_t read_offset, 
         size_t read_size, 
         size_t write_offset
-    );
-}
-
-//Texture Samplers
-namespace pikango
-{
-    void set_sampler_wraping(
-        texture_sampler_handle target, 
-        texture_wraping x, 
-        texture_wraping y, 
-        texture_wraping z
-    );
-
-    void set_sampler_filtering(
-        texture_sampler_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying, 
-        texture_filtering mipmap
     );
 }
 
