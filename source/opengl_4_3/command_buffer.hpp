@@ -18,16 +18,12 @@ void pikango::configure_command_buffer(command_buffer_handle target, queue_type 
 
 void pikango::begin_command_buffer_recording(command_buffer_handle target)
 {
-    recording_command_buffer = target;
+    auto cbi = pikango_internal::obtain_handle_object(target);
+    cbi->tasks.clear();
+    recorded_command_buffer = target;
 }
 
 void pikango::end_command_buffer_recording(command_buffer_handle target)
 {
-    recording_command_buffer = {};
-}
-
-void pikango::clear_command_buffer(command_buffer_handle target)
-{
-    auto cbi = pikango_internal::obtain_handle_object(target);
-    cbi->tasks.clear();
+    recorded_command_buffer = {};
 }

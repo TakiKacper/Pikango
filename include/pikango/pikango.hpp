@@ -387,7 +387,6 @@ namespace pikango
     void configure_command_buffer(command_buffer_handle target, queue_type target_queue_type);
     void begin_command_buffer_recording(command_buffer_handle target);
     void end_command_buffer_recording(command_buffer_handle target);
-    void clear_command_buffer(command_buffer_handle target);
 }
 
 //Fences

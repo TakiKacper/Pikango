@@ -15,7 +15,7 @@ namespace
     using opengl_task = void(*)(std::vector<std::any>);
     using recorded_task = std::pair<opengl_task, std::vector<std::any>>;
     using enqueued_task = recorded_task;
-    thread_local pikango::command_buffer_handle recording_command_buffer;
+    thread_local pikango::command_buffer_handle recorded_command_buffer;
 }
 
 #include "execution_thread.hpp"
@@ -26,7 +26,7 @@ namespace
 {
     void record_task(const opengl_task& task, std::vector<std::any> args)
     {
-        auto cbi = pikango_internal::obtain_handle_object(recording_command_buffer);
+        auto cbi = pikango_internal::obtain_handle_object(recorded_command_buffer);
         cbi->tasks.push_back({task, std::move(args)});
     }
 
