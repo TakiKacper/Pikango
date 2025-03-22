@@ -49,8 +49,9 @@ This macro for name = xyz would create folowing objects:
                                  \
     namespace pikango            \
     {                            \
-        using name##_handle = pikango_internal::handle<pikango_internal::name##_impl>;    \
-        name##_handle new_##name ();            \
+        struct name##_create_info; \
+        using name##_handle = pikango_internal::handle<pikango_internal::name##_impl>; \
+        name##_handle new_##name (const name##_create_info& info); \
     }
 
 PIKANGO_HANDLE_FWD(graphics_pipeline);
@@ -149,7 +150,10 @@ namespace pikango
 		r8, r16,
 		rg8, rg16,
 		r3_g3_b2, rgb4, rgb5, rgb8, rgb10, rgb12, 
-		rgba2, rgba4, rgba8, rgba12, rgba16, rgba32f
+		rgba2, rgba4, rgba8, rgba12, rgba16, rgba32f,
+
+        depth_16, depth_24, depth_32,
+        depth_24_stencil_8, depth_32_stencil_8
 	};
 
     enum class rasterization_culling_mode : unsigned char
@@ -219,7 +223,7 @@ namespace pikango
             : ax(_ax), ay(_ay), bx(_bx), by(_by) {};
     };
 
-    struct vertex_attribute_config
+    struct vertex_attribute_info
     {
         size_t      binding;
         size_t      location;
@@ -231,19 +235,19 @@ namespace pikango
         bool        per_instance;
     };
 
-    struct vertex_layout_pipeline_config
+    struct vertex_layout_pipeline_info
     {
-        std::vector<vertex_attribute_config> attributes;
+        std::vector<vertex_attribute_info> attributes;
     };
 
-    struct graphics_shaders_pipeline_config
+    struct graphics_shaders_pipeline_info
     {
         shader_handle vertex_shader;
         shader_handle pixel_shader;
         shader_handle geometry_shader;
     };
 
-    struct rasterization_pipeline_config
+    struct rasterization_pipeline_info
     {
         bool enable_culling = false;
 
@@ -254,18 +258,71 @@ namespace pikango
         float line_width = 1.0f;
     };
 
-    struct depth_stencil_pipeline_config
+    struct depth_stencil_pipeline_info
     {
         bool enable_depth_test = false;
         bool enable_depth_write = false;
     };
+}
 
-    struct graphics_pipeline_config
+/*
+    Create Infos
+*/
+
+namespace pikango
+{
+    struct graphics_pipeline_create_info
     {
-        vertex_layout_pipeline_config     vertex_layout_config;
-        graphics_shaders_pipeline_config  shaders_config;
-        rasterization_pipeline_config     rasterization_config;
-        depth_stencil_pipeline_config     depth_stencil_config;
+        vertex_layout_pipeline_info     vertex_layout_info;
+        graphics_shaders_pipeline_info  shaders_info;
+        rasterization_pipeline_info     rasterization_info;
+        depth_stencil_pipeline_info     depth_stencil_info;
+    };
+
+    struct command_buffer_create_info
+    {  
+    };
+
+    struct fence_create_info
+    {
+    };
+
+    struct buffer_create_info
+    {
+        size_t                  buffer_size_bytes;
+        buffer_memory_profile   memory_profile; 
+        buffer_access_profile   access_profile;
+    };
+
+    struct texture_sampler_create_info
+    {
+        texture_wraping     wraping_x; 
+        texture_wraping     wraping_y;
+        texture_wraping     wraping_z;
+
+        texture_filtering   magnifying_filter; 
+        texture_filtering   minifying_filter;
+        texture_filtering   mipmap_filter;
+    };
+
+    struct texture_buffer_create_info
+    {
+        texture_type            type;
+        texture_sized_format    memory_format;
+        size_t                  mipmap_layers;  
+        size_t                  dim1;
+        size_t                  dim2;
+        size_t                  dim3;
+    };
+    
+    struct shader_create_info
+    {
+        shader_type  type;
+        const char*  source;
+    };
+
+    struct frame_buffer_create_info
+    {
     };
 }
 
@@ -291,8 +348,8 @@ namespace pikango
 #ifdef PIKANGO_OPENGL_4_3
 namespace pikango
 {
-    using opengl_thread_task = void(*)(std::vector<std::any>);
-    void OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any> args);
+    using opengl_thread_task = void(*)(std::vector<std::any>&);
+    void OPENGL_ONLY_execute_on_context_thread(opengl_thread_task task, std::vector<std::any>&& args);
 }
 #endif
 
@@ -324,19 +381,12 @@ namespace pikango
     COMMNANDS AND UTILITY METHODS
 */
 
-//Pipelines
-namespace pikango
-{
-    void configure_graphics_pipeline(graphics_pipeline_handle target, graphics_pipeline_config& config);
-}
-
 //Command Buffer
 namespace pikango
 {
     void configure_command_buffer(command_buffer_handle target, queue_type target_queue_type);
     void begin_command_buffer_recording(command_buffer_handle target);
     void end_command_buffer_recording(command_buffer_handle target);
-    void clear_command_buffer(command_buffer_handle target);
 }
 
 //Fences
@@ -354,13 +404,6 @@ namespace pikango
 
 namespace pikango::cmd
 {
-    void assign_buffer_memory(
-        buffer_handle target, 
-        size_t memory_block_size_bytes, 
-        buffer_memory_profile memory_profile, 
-        buffer_access_profile access_profile
-    );
-
     void write_buffer(
         buffer_handle target, 
         size_t data_size_bytes, 
@@ -383,43 +426,9 @@ namespace pikango::cmd
     );
 }
 
-//Shaders Compilation
-namespace pikango
-{
-    void compile_shader(shader_handle target, shader_type type, const std::string& source);
-}
-
-//Texture Samplers
-namespace pikango
-{
-    void set_sampler_wraping(
-        texture_sampler_handle target, 
-        texture_wraping x, 
-        texture_wraping y, 
-        texture_wraping z
-    );
-
-    void set_sampler_filtering(
-        texture_sampler_handle target, 
-        texture_filtering magnifying, 
-        texture_filtering minifying, 
-        texture_filtering mipmap
-    );
-}
-
-//Texture Storages
+//Texture Buffers
 namespace pikango::cmd
 {
-    void assign_texture_buffer_memory(
-        texture_buffer_handle   target,
-        texture_type            type,
-        size_t                  mipmap_layers,
-        texture_sized_format    memory_format,
-        size_t                  dim_1,
-        size_t                  dim_2,
-        size_t                  dim_3
-    );
-
     void write_texture_buffer(
         texture_buffer_handle   target,
         size_t                  mipmap_layer,

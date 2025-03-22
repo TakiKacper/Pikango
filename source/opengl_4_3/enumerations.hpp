@@ -122,6 +122,13 @@ GLenum get_texture_sized_format(pikango::texture_sized_format format)
         case pikango::texture_sized_format::rgba12:   return GL_RGBA12;
         case pikango::texture_sized_format::rgba16:   return GL_RGBA16;
         case pikango::texture_sized_format::rgba32f:  return GL_RGBA32F;
+
+        case pikango::texture_sized_format::depth_16: return GL_DEPTH_COMPONENT16;
+        case pikango::texture_sized_format::depth_24: return GL_DEPTH_COMPONENT24;
+        case pikango::texture_sized_format::depth_32: return GL_DEPTH_COMPONENT32F;
+
+        case pikango::texture_sized_format::depth_24_stencil_8: return GL_DEPTH24_STENCIL8;
+        case pikango::texture_sized_format::depth_32_stencil_8: return GL_DEPTH32F_STENCIL8;
     }
     //will never happen
     return GL_RGBA32F;
@@ -131,12 +138,26 @@ GLenum get_format_shader(pikango::shader_type type)
 {
     switch (type)
     {
-        case pikango::shader_type::vertex: return GL_VERTEX_SHADER;
-        case pikango::shader_type::pixel: return GL_FRAGMENT_SHADER;
+        case pikango::shader_type::vertex:   return GL_VERTEX_SHADER;
+        case pikango::shader_type::pixel:    return GL_FRAGMENT_SHADER;
         case pikango::shader_type::geometry: return GL_GEOMETRY_SHADER;
     }
     //will never happen
     return GL_VERTEX_SHADER;
+}
+
+GLenum get_texture_type(pikango::texture_type type) {
+    switch (type)
+    {
+        case pikango::texture_type::texture_1d:          return GL_TEXTURE_1D;
+        case pikango::texture_type::texture_2d:          return GL_TEXTURE_2D;
+        case pikango::texture_type::texture_3d:          return GL_TEXTURE_3D;
+        case pikango::texture_type::texture_cubemap:     return GL_TEXTURE_CUBE_MAP;
+        case pikango::texture_type::texture_1d_array:    return GL_TEXTURE_1D_ARRAY;
+        case pikango::texture_type::texture_2d_array:    return GL_TEXTURE_2D_ARRAY;
+    }
+    //will never happen
+    return GL_TEXTURE_2D;
 }
 
 GLenum get_texture_source_format(pikango::texture_source_format format) {

@@ -1,23 +1,20 @@
-PIKANGO_IMPL(graphics_pipeline)
+struct pikango_internal::graphics_pipeline_impl
 {
-    pikango::graphics_pipeline_config config;
+    pikango::graphics_pipeline_create_info info;
 };
 
-PIKANGO_NEW(graphics_pipeline)
+pikango::graphics_pipeline_handle pikango::new_graphics_pipeline(const graphics_pipeline_create_info& info)
 {
-    auto handle = pikango_internal::make_handle(new pikango_internal::graphics_pipeline_impl);
+    auto impl   = new pikango_internal::graphics_pipeline_impl;
+    impl->info  = info;
+
+    auto handle = pikango_internal::make_handle(impl);
     return handle;
 };
 
-void pikango::configure_graphics_pipeline(graphics_pipeline_handle target, graphics_pipeline_config& configuration)
-{
-    auto gpi = pikango_internal::obtain_handle_object(target);
-    gpi->config = configuration;
-}
-
 void pikango::cmd::bind_graphics_pipeline(graphics_pipeline_handle pipeline)
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto pipeline = std::any_cast<graphics_pipeline_handle>(args[0]);
 

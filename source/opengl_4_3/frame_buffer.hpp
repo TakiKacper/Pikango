@@ -1,16 +1,14 @@
-#pragma once
-
-PIKANGO_IMPL(frame_buffer)
+struct pikango_internal::frame_buffer_impl
 {
     GLuint id = 0;
     ~frame_buffer_impl();
 };
 
-PIKANGO_NEW(frame_buffer)
+pikango::frame_buffer_handle pikango::new_frame_buffer(const frame_buffer_create_info& info)
 {
     auto handle = pikango_internal::make_handle(new pikango_internal::frame_buffer_impl);
 
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto handle = std::any_cast<frame_buffer_handle>(args[0]);
         auto fbi = pikango_internal::obtain_handle_object(handle);
@@ -23,7 +21,7 @@ PIKANGO_NEW(frame_buffer)
 
 pikango_internal::frame_buffer_impl::~frame_buffer_impl()
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto id = std::any_cast<GLuint>(args[0]);
         glDeleteFramebuffers(1, &id);
@@ -40,7 +38,7 @@ void pikango::attach_to_frame_buffer(
     size_t                      slot
 )
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto frame_buffer       = std::any_cast<frame_buffer_handle>(args[0]);
         auto attachment         = std::any_cast<texture_buffer_handle>(args[1]);
@@ -53,7 +51,7 @@ void pikango::attach_to_frame_buffer(
         glFramebufferTexture2D(
             GL_FRAMEBUFFER, 
             attachment_type, 
-            ai->texture_type, 
+            ai->type, 
             ai->id, 
             0
         );
@@ -84,7 +82,7 @@ pikango::frame_buffer_handle pikango::OPENGL_ONLY_get_default_frame_buffer()
 
 void pikango::cmd::bind_frame_buffer(frame_buffer_handle frame_buffer)
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto frame_buffer = std::any_cast<frame_buffer_handle>(args[0]);
 

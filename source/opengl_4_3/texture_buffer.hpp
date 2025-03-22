@@ -1,111 +1,79 @@
-PIKANGO_IMPL(texture_buffer)
+struct pikango_internal::texture_buffer_impl
 {
-    GLuint id = 0;
-    GLuint texture_type = 0;
+    GLuint id;
 
-    size_t dim_1 = 0;
-    size_t dim_2 = 0;
-    size_t dim_3 = 0;
+    GLenum type;
+    GLenum format;
 
-    size_t array_layers = 0;
-    size_t mipmap_layers = 0;
+    size_t dim1;
+    size_t dim2;
+    size_t dim3;
+
+    size_t mipmap;
 
     ~texture_buffer_impl();
 };
 
-PIKANGO_NEW(texture_buffer)
+pikango::texture_buffer_handle pikango::new_texture_buffer(const texture_buffer_create_info& info)
 {
-    auto handle = pikango_internal::make_handle(new pikango_internal::texture_buffer_impl);
-    auto ti = pikango_internal::obtain_handle_object(handle);
-    ti->id = 0;
+    auto tbi = new pikango_internal::texture_buffer_impl;
+
+    tbi->id = 0;
+
+    tbi->type = get_texture_type(info.type);
+    tbi->format = get_texture_sized_format(info.memory_format);
+
+    tbi->dim1 = info.dim1;
+    tbi->dim2 = info.dim2;
+    tbi->dim3 = info.dim3;
+
+    tbi->mipmap = info.mipmap_layers;
+
+    auto handle = pikango_internal::make_handle(tbi);
+
+    auto func = [](std::vector<std::any>& args)
+    {
+        auto handle  = std::any_cast<texture_buffer_handle>(args[0]);
+        auto tbi = pikango_internal::obtain_handle_object(handle);
+
+        glGenTextures(1, &tbi->id);
+        glBindTexture(tbi->type, tbi->id);
+
+        switch (tbi->type)
+        {
+        case GL_TEXTURE_1D:
+            glTexStorage1D(tbi->type, tbi->mipmap, tbi->format, tbi->dim1);
+            break;
+
+        case GL_TEXTURE_1D_ARRAY:
+        case GL_TEXTURE_2D:
+            glTexStorage2D(tbi->type, tbi->mipmap, tbi->format, tbi->dim1, tbi->dim2);
+            break; 
+
+        case GL_TEXTURE_2D_ARRAY:
+        case GL_TEXTURE_3D:
+            glTexStorage3D(tbi->type, tbi->mipmap, tbi->format, tbi->dim1, tbi->dim2, tbi->dim3);
+            break;
+
+        case GL_TEXTURE_CUBE_MAP:
+            glTexStorage3D(tbi->type, tbi->mipmap, tbi->format, tbi->dim1, tbi->dim2, 6);
+            break;
+        }
+    };
+
+    enqueue_task(func, {handle}, pikango::queue_type::general);
     return handle;
 };
 
 pikango_internal::texture_buffer_impl::~texture_buffer_impl()
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto id = std::any_cast<GLuint>(args[0]);
         glDeleteTextures(1, &id);
     };
 
     if (id != 0) enqueue_task(func, {id}, pikango::queue_type::general);
-}
-
-void pikango::cmd::assign_texture_buffer_memory(
-    texture_buffer_handle   target,
-    texture_type            type,
-    size_t                  mipmap_layers,
-    texture_sized_format    memory_format,
-    size_t                  dim_1,
-    size_t                  dim_2,
-    size_t                  dim_3
-)
-{
-    auto func = [](std::vector<std::any> args)
-    {
-        auto    handle  = std::any_cast<texture_buffer_handle>(args[0]);
-        auto    type    = std::any_cast<texture_type>(args[1]);
-        size_t  mipmap  = std::any_cast<size_t>(args[2]);
-        auto    format  = std::any_cast<GLuint>(args[3]);
-
-        size_t dim_1 = std::any_cast<size_t>(args[4]);
-        size_t dim_2 = std::any_cast<size_t>(args[5]);
-        size_t dim_3 = std::any_cast<size_t>(args[6]);
-
-        auto tbi = pikango_internal::obtain_handle_object(handle);
-
-        if (tbi->id == 0) glGenTextures(1, &tbi->id);
-
-        switch (type)
-        {
-        case pikango::texture_type::texture_1d:
-            glBindTexture(GL_TEXTURE_1D, tbi->id);
-            glTexStorage1D(GL_TEXTURE_1D, mipmap, format, dim_1);
-            tbi->texture_type = GL_TEXTURE_1D;
-            break;
-
-        case pikango::texture_type::texture_1d_array:
-            glBindTexture(GL_TEXTURE_1D_ARRAY, tbi->id);
-            glTexStorage2D(GL_TEXTURE_1D_ARRAY, mipmap, format, dim_1, dim_2);
-            tbi->texture_type = GL_TEXTURE_1D_ARRAY;
-            break;
-
-        case pikango::texture_type::texture_2d:
-            glBindTexture(GL_TEXTURE_2D, tbi->id);
-            glTexStorage2D(GL_TEXTURE_2D, mipmap, format, dim_1, dim_2);
-            tbi->texture_type = GL_TEXTURE_2D;
-            break;
-
-        case pikango::texture_type::texture_2d_array:
-            glBindTexture(GL_TEXTURE_2D_ARRAY, tbi->id);
-            glTexStorage3D(GL_TEXTURE_2D_ARRAY, mipmap, format, dim_1, dim_2, dim_3);
-            tbi->texture_type = GL_TEXTURE_2D_ARRAY;
-            break;
-
-        case pikango::texture_type::texture_3d:
-            glBindTexture(GL_TEXTURE_3D, tbi->id);
-            glTexStorage3D(GL_TEXTURE_3D, mipmap, format, dim_1, dim_2, dim_3);
-            tbi->texture_type = GL_TEXTURE_3D;
-            break;
-
-        case pikango::texture_type::texture_cubemap:
-            glBindTexture(GL_TEXTURE_CUBE_MAP, tbi->id);
-            glTexStorage3D(GL_TEXTURE_CUBE_MAP, mipmap, format, dim_1, dim_2, 6);
-            tbi->texture_type = GL_TEXTURE_CUBE_MAP;
-            break;
-        }
-    };
-
-    record_task(func, {
-        target,
-        type,
-        mipmap_layers,
-        get_texture_sized_format(memory_format),
-        dim_1,
-        dim_2,
-        dim_3
-    });
 }
 
 void pikango::cmd::write_texture_buffer(
@@ -116,12 +84,12 @@ void pikango::cmd::write_texture_buffer(
     size_t                  off_1,
     size_t                  off_2,
     size_t                  off_3,
-    size_t                  dim_1,
-    size_t                  dim_2,
-    size_t                  dim_3
+    size_t                  dim1,
+    size_t                  dim2,
+    size_t                  dim3
 )
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto handle = std::any_cast<texture_buffer_handle>(args[0]);
 
@@ -133,9 +101,9 @@ void pikango::cmd::write_texture_buffer(
         auto off_2 = std::any_cast<size_t>(args[5]);
         auto off_3 = std::any_cast<size_t>(args[6]);
 
-        auto dim_1 = std::any_cast<size_t>(args[7]);
-        auto dim_2 = std::any_cast<size_t>(args[8]);
-        auto dim_3 = std::any_cast<size_t>(args[9]);
+        auto dim1 = std::any_cast<size_t>(args[7]);
+        auto dim2 = std::any_cast<size_t>(args[8]);
+        auto dim3 = std::any_cast<size_t>(args[9]);
 
         auto tbi = pikango_internal::obtain_handle_object(handle);
 
@@ -148,36 +116,36 @@ void pikango::cmd::write_texture_buffer(
             GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
         };
 
-        switch (tbi->texture_type)
+        switch (tbi->type)
         {
         case GL_TEXTURE_1D:
-            glBindTexture(tbi->texture_type, tbi->id);
+            glBindTexture(tbi->type, tbi->id);
             glTexSubImage1D(
-                tbi->texture_type, mipmap, 
+                tbi->type, mipmap, 
                 off_1, 
-                dim_1, 
+                dim1, 
                 format, GL_UNSIGNED_BYTE, data
             );
             break;
 
         case GL_TEXTURE_1D_ARRAY:
         case GL_TEXTURE_2D:
-            glBindTexture(tbi->texture_type, tbi->id);
+            glBindTexture(tbi->type, tbi->id);
             glTexSubImage2D(
-                tbi->texture_type, mipmap, 
+                tbi->type, mipmap, 
                 off_1, off_2, 
-                dim_1, dim_2, 
+                dim1, dim2, 
                 format, GL_UNSIGNED_BYTE, data
             );
             break;
 
         case GL_TEXTURE_2D_ARRAY:
         case GL_TEXTURE_3D:
-            glBindTexture(tbi->texture_type, tbi->id);
+            glBindTexture(tbi->type, tbi->id);
             glTexSubImage3D(
-                tbi->texture_type, mipmap, 
+                tbi->type, mipmap, 
                 off_1, off_2, off_3, 
-                dim_1, dim_2, dim_3, 
+                dim1, dim2, dim3, 
                 format, GL_UNSIGNED_BYTE, data
             );
             break;
@@ -188,7 +156,7 @@ void pikango::cmd::write_texture_buffer(
             glTexSubImage2D(
                 cubemap_face, mipmap, 
                 off_1, off_2, 
-                dim_1, dim_2, 
+                dim1, dim2, 
                 format, GL_UNSIGNED_BYTE, data
             );
             break;
@@ -203,8 +171,8 @@ void pikango::cmd::write_texture_buffer(
         off_1,
         off_2,
         off_3,
-        dim_1,
-        dim_2,
-        dim_3
+        dim1,
+        dim2,
+        dim3
     });
 }

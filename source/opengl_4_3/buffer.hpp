@@ -1,21 +1,41 @@
-PIKANGO_IMPL(buffer)
+struct pikango_internal::buffer_impl
 {
-    GLuint id = 0;
-    size_t buffer_size = 0;
+    GLuint id;
+    size_t buffer_size;
     pikango::buffer_memory_profile memory_profile;
     pikango::buffer_access_profile access_profile;
     ~buffer_impl();
 };
 
-PIKANGO_NEW(buffer)
+pikango::buffer_handle pikango::new_buffer(const buffer_create_info& info)
 {
-    auto handle = pikango_internal::make_handle(new pikango_internal::buffer_impl);
+    auto bi = new pikango_internal::buffer_impl;
+
+    bi->id = 0;
+    bi->buffer_size    = info.buffer_size_bytes;
+    bi->memory_profile = info.memory_profile;
+    bi->access_profile = info.access_profile;
+
+    auto handle = pikango_internal::make_handle(bi);
+
+    auto func = [](std::vector<std::any>& args)
+    {
+        auto handle = std::any_cast<buffer_handle>(args[0]);
+        auto bi = pikango_internal::obtain_handle_object(handle);
+
+        glGenBuffers(1, &bi->id);
+
+        glBindBuffer(GL_COPY_WRITE_BUFFER, bi->id);
+        glBufferData(GL_COPY_WRITE_BUFFER, bi->buffer_size, nullptr, get_buffer_usage_flag(bi->memory_profile, bi->access_profile));   
+    };
+    
+    enqueue_task(func, {handle}, pikango::queue_type::general);
     return handle;
 }
 
 pikango_internal::buffer_impl::~buffer_impl()
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto id = std::any_cast<GLuint>(args[0]);
         glDeleteBuffers(1, &id);
@@ -32,7 +52,7 @@ size_t pikango::get_buffer_size(buffer_handle target)
 
 void pikango::cmd::bind_vertex_buffer(buffer_handle vertex_buffer, size_t binding)
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto vertex_buffer = std::any_cast<buffer_handle>(args[0]);
         auto binding       = std::any_cast<size_t>(args[1]);
@@ -47,7 +67,7 @@ void pikango::cmd::bind_vertex_buffer(buffer_handle vertex_buffer, size_t bindin
 
 void pikango::cmd::bind_index_buffer(buffer_handle index_buffer)
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto index_buffer = std::any_cast<buffer_handle>(args[0]);
 
@@ -65,7 +85,7 @@ void pikango::cmd::bind_uniform_buffer(
     size_t offset
 )
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto uniform_buffer = std::any_cast<buffer_handle>(args[0]);
         auto slot   = std::any_cast<size_t>(args[1]);
@@ -86,40 +106,9 @@ void pikango::cmd::bind_uniform_buffer(
     record_task(func, {uniform_buffer, slot, offset, size});
 }
 
-void pikango::cmd::assign_buffer_memory(
-    buffer_handle target,
-    size_t memory_block_size_bytes, 
-    buffer_memory_profile memory_profile, 
-    buffer_access_profile access_profile
-)
-{
-    auto bi = pikango_internal::obtain_handle_object(target);
-
-    bi->buffer_size    = memory_block_size_bytes;
-    bi->memory_profile = memory_profile;
-    bi->access_profile = access_profile;
-
-    auto func = [](std::vector<std::any> args)
-    {
-        auto handle = std::any_cast<buffer_handle>(args[0]);
-        auto size   = std::any_cast<size_t>(args[1]);
-        auto memory = std::any_cast<pikango::buffer_memory_profile>(args[2]);
-        auto access = std::any_cast<pikango::buffer_access_profile>(args[3]);
-
-        auto bi = pikango_internal::obtain_handle_object(handle);
-        if (bi->id == 0)
-            glGenBuffers(1, &bi->id);
-
-        glBindBuffer(GL_COPY_WRITE_BUFFER, bi->id);
-        glBufferData(GL_COPY_WRITE_BUFFER, size, nullptr, get_buffer_usage_flag(memory, access));   
-    };
-    
-    record_task(func, {target, memory_block_size_bytes, memory_profile, access_profile});
-}
-
 void pikango::cmd::write_buffer(buffer_handle target, size_t data_size_bytes, void* data)
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto handle = std::any_cast<buffer_handle>(args[0]);
         auto size = std::any_cast<size_t>(args[1]);
@@ -136,7 +125,7 @@ void pikango::cmd::write_buffer(buffer_handle target, size_t data_size_bytes, vo
 
 void pikango::cmd::write_buffer_region(buffer_handle target, size_t data_size_bytes, void* data, size_t data_offset_bytes)
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto handle = std::any_cast<buffer_handle>(args[0]);
         auto size   = std::any_cast<size_t>(args[1]);
@@ -160,7 +149,7 @@ void pikango::cmd::copy_buffer_to_buffer(
     size_t write_offset
 )
 {
-    auto func = [](std::vector<std::any> args)
+    auto func = [](std::vector<std::any>& args)
     {
         auto source         = std::any_cast<buffer_handle>(args[0]);
         auto destination    = std::any_cast<buffer_handle>(args[1]);
