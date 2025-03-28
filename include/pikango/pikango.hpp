@@ -235,6 +235,23 @@ namespace pikango
         bool        per_instance;
     };
 
+    struct draw_vertices_indirect_params
+    {
+        uint32_t    vertices_count;
+        uint32_t    instances_count;
+        uint32_t    vertices_buffer_offset_index;
+        uint32_t    instances_id_values_offset;
+    };
+
+    struct draw_indexed_indirect_params
+    {
+        uint32_t    indices_count;
+        uint32_t    instances_count;
+        uint32_t    indicies_buffer_offset_index;
+        int32_t     indicies_values_offset;
+        uint32_t    instances_id_values_offset;
+    };
+
     struct vertex_layout_pipeline_info
     {
         std::vector<vertex_attribute_info> attributes;
@@ -503,22 +520,36 @@ namespace pikango::cmd
     void draw_vertices(
         draw_primitive  primitive,
 
-        size_t          vertices_count,
-        size_t          vertices_buffer_offset_index,
+        uint32_t        vertices_count,
+        uint32_t        instances_count,
 
-        size_t          instances_count,
-        size_t          instances_id_values_offset
+        uint32_t        vertices_buffer_offset_index,
+        uint32_t        instances_id_values_offset
     );
 
     void draw_indexed(
         draw_primitive  primitive,
 
-        size_t          indices_count,
-        size_t          indicies_buffer_offset_index,
-        int32_t         indicies_values_offset,
+        uint32_t        indices_count,
+        uint32_t        instances_count,
 
-        size_t          instances_count,
-        size_t          instances_id_values_offset
+        uint32_t        indicies_buffer_offset_index,
+        int32_t         indicies_values_offset,
+        uint32_t        instances_id_values_offset
+    );
+
+    void draw_vertieces_indirect(
+        buffer_handle   indirect_buffer,
+        uint32_t        draw_count,
+        uint32_t        draw_params_buffer_offset,
+        uint32_t        draw_params_stride
+    );
+
+    void draw_indexed_indirect(
+        buffer_handle   indirect_buffer,
+        uint32_t        draw_count,
+        uint32_t        draw_params_buffer_offset,
+        uint32_t        draw_params_stride
     );
 }
 
