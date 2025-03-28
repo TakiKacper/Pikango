@@ -257,6 +257,11 @@ namespace pikango
         std::vector<vertex_attribute_info> attributes;
     };
 
+    struct input_assembly_pipeline_info
+    {
+        draw_primitive primitive;
+    };
+
     struct graphics_shaders_pipeline_info
     {
         shader_handle vertex_shader;
@@ -291,7 +296,8 @@ namespace pikango
     struct graphics_pipeline_create_info
     {
         vertex_layout_pipeline_info     vertex_layout_info;
-        graphics_shaders_pipeline_info  shaders_info;
+        input_assembly_pipeline_info    input_assembly_info;
+        graphics_shaders_pipeline_info  graphics_shaders_info;
         rasterization_pipeline_info     rasterization_info;
         depth_stencil_pipeline_info     depth_stencil_info;
     };
@@ -518,8 +524,6 @@ namespace pikango::cmd
 namespace pikango::cmd
 {
     void draw_vertices(
-        draw_primitive  primitive,
-
         uint32_t        vertices_count,
         uint32_t        instances_count,
 
@@ -528,8 +532,6 @@ namespace pikango::cmd
     );
 
     void draw_indexed(
-        draw_primitive  primitive,
-
         uint32_t        indices_count,
         uint32_t        instances_count,
 

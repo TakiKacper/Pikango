@@ -1,16 +1,11 @@
 #pragma once
 
-namespace {
-    pikango::rasterization_pipeline_info  recent_rasterization_info;
-    pikango::depth_stencil_pipeline_info  recent_depth_stencil_info;
-};
-
 void apply_vertex_layout()
 {
     for (int i = 0; i < 16; i++)
         glDisableVertexAttribArray(i);
 
-    auto& vlc = cmd_bindings::graphics_pipeline->info.vertex_layout_info;
+    auto& vlc = cmd_bindings::graphics_pipeline->vertex_layout;
 
     for (auto& attrib : vlc.attributes)
     {
@@ -42,7 +37,7 @@ void apply_vertex_layout()
 void apply_graphics_pipeline_shaders()
 {
     //Apply shaders
-    GLuint program_pipeline = get_program_pipeline(cmd_bindings::graphics_pipeline->info.shaders_info);
+    GLuint program_pipeline = get_program_pipeline(cmd_bindings::graphics_pipeline->shaders);
     glUseProgram(0);
     glBindProgramPipeline(program_pipeline);
 }
@@ -51,47 +46,22 @@ void apply_graphics_pipeline_settings()
 {
     auto gpi = cmd_bindings::graphics_pipeline;
 
-    //Apply rasterization settings  
-    auto& rast = gpi->info.rasterization_info;
-    auto& r_rast = recent_rasterization_info;
+    if (gpi->enable_culling) glEnable(GL_CULL_FACE);
+    else                     glDisable(GL_CULL_FACE);
 
-    if (rast.enable_culling != r_rast.enable_culling)
-    {
-        if (rast.enable_culling) glEnable(GL_CULL_FACE);
-        else                     glDisable(GL_CULL_FACE);  
-    }
-
-    if (rast.polygon_fill != r_rast.polygon_fill)
-        glPolygonMode(GL_FRONT_AND_BACK, get_rasterization_fill(rast.polygon_fill));
-
-    if (rast.culling_mode != r_rast.culling_mode)
-        glCullFace(get_culling_mode(rast.culling_mode));
-
-    if (rast.culling_front_face != r_rast.culling_front_face)
-        glFrontFace(get_front_face(rast.culling_front_face));
-
-    if (rast.line_width != r_rast.line_width)
-        glLineWidth(rast.line_width);
-
-    r_rast = rast;
+    glPolygonMode(GL_FRONT_AND_BACK, gpi->polygon_fill);
+    glCullFace(gpi->culling_mode);
+    glFrontFace(gpi->culling_front_face);
+    glLineWidth(gpi->line_width);
 
     //Apply depth stencil settings
-    auto& ds = gpi->info.depth_stencil_info;
-    auto& r_ds = recent_depth_stencil_info;
+    auto& ds = gpi->depth_stencil;
 
-    if (ds.enable_depth_test != r_ds.enable_depth_test)
-    {
-        if (ds.enable_depth_test) glEnable(GL_DEPTH_TEST);
-        else                      glDisable(GL_DEPTH_TEST);  
-    }
+    if (ds.enable_depth_test) glEnable(GL_DEPTH_TEST);
+    else                      glDisable(GL_DEPTH_TEST);
 
-    if (ds.enable_depth_write != r_ds.enable_depth_write)
-    {
-        if (ds.enable_depth_write) glDepthMask(true);
-        else                       glDepthMask(false);  
-    }
-
-    r_ds = ds;
+    if (ds.enable_depth_write) glDepthMask(true);
+    else                       glDepthMask(false);
 }
 
 //we wait with actual binding until the draw because of openGl desing the bindings

@@ -5,8 +5,6 @@ namespace {
 };
 
 void pikango::cmd::draw_vertices(
-    draw_primitive  primitive,
-
     uint32_t        vertices_count,
     uint32_t        instances_count,
 
@@ -16,18 +14,16 @@ void pikango::cmd::draw_vertices(
 {
     auto func = [](std::vector<std::any>& args)
     {
-        auto primitive = std::any_cast<draw_primitive>(args[0]);
+        auto vertices_count                 = std::any_cast<uint32_t>(args[0]);
+        auto vertices_buffer_offset_index   = std::any_cast<uint32_t>(args[1]);
 
-        auto vertices_count                 = std::any_cast<uint32_t>(args[1]);
-        auto vertices_buffer_offset_index   = std::any_cast<uint32_t>(args[2]);
-
-        auto instances_count                = std::any_cast<uint32_t>(args[3]);
-        auto instances_id_values_offset     = std::any_cast<uint32_t>(args[4]);
+        auto instances_count                = std::any_cast<uint32_t>(args[2]);
+        auto instances_id_values_offset     = std::any_cast<uint32_t>(args[3]);
 
         apply_bindings();
 
         glDrawArraysInstancedBaseInstance(
-            get_primitive(primitive),
+            cmd_bindings::graphics_pipeline->primitive,
             vertices_buffer_offset_index,
             vertices_count,
             instances_count,
@@ -36,7 +32,6 @@ void pikango::cmd::draw_vertices(
     };
 
     record_task(func, {
-        primitive, 
         vertices_count, 
         vertices_buffer_offset_index,
         instances_count,
@@ -45,8 +40,6 @@ void pikango::cmd::draw_vertices(
 }
 
 void pikango::cmd::draw_indexed(
-    draw_primitive  primitive,
-
     uint32_t        indices_count,
     uint32_t        instances_count,
 
@@ -57,21 +50,19 @@ void pikango::cmd::draw_indexed(
 {
     auto func = [](std::vector<std::any>& args)
     {
-        auto primitive = std::any_cast<draw_primitive>(args[0]);
+        auto indices_count              = std::any_cast<uint32_t>(args[0]);
+        auto indicies_buffer_offset     = std::any_cast<uint32_t>(args[1]);
+        auto indicies_values_offset     = std::any_cast<int32_t>(args[2]);
 
-        auto indices_count              = std::any_cast<uint32_t>(args[1]);
-        auto indicies_buffer_offset     = std::any_cast<uint32_t>(args[2]);
-        auto indicies_values_offset     = std::any_cast<int32_t>(args[3]);
-
-        auto instances_count            = std::any_cast<uint32_t>(args[4]);
-        auto instances_id_values_offset = std::any_cast<uint32_t>(args[5]);
+        auto instances_count            = std::any_cast<uint32_t>(args[3]);
+        auto instances_id_values_offset = std::any_cast<uint32_t>(args[4]);
 
         apply_bindings();
 
         size_t size = (indicies_buffer_offset * GL_UNSIGNED_INT_size_bytes);
 
         glDrawElementsInstancedBaseVertexBaseInstance(
-            get_primitive(primitive),
+            cmd_bindings::graphics_pipeline->primitive,
             indices_count,
             GL_UNSIGNED_INT,
             (void*)size,
@@ -82,7 +73,6 @@ void pikango::cmd::draw_indexed(
     };
 
     record_task(func, {
-        primitive, 
         indices_count, 
         indicies_buffer_offset_index, 
         indicies_values_offset,
@@ -113,7 +103,7 @@ void pikango::cmd::draw_vertieces_indirect(
 
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, bi->id);
         glMultiDrawArraysIndirect(
-            GL_TRIANGLE_STRIP,
+            cmd_bindings::graphics_pipeline->primitive,
             (void*)offset, 
             draw_count, 
             draw_params_stride
@@ -148,7 +138,7 @@ void pikango::cmd::draw_indexed_indirect(
 
         glBindBuffer(GL_DRAW_INDIRECT_BUFFER, bi->id);
         glMultiDrawElementsIndirect(
-            GL_TRIANGLES,
+            cmd_bindings::graphics_pipeline->primitive,
             GL_UNSIGNED_INT,
             (void*)(size_t)(draw_params_buffer_offset),
             draw_count,
